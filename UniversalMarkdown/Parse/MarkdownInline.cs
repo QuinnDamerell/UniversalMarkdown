@@ -25,6 +25,7 @@ namespace UniversalMarkdown.Parse
     public enum MarkdownInlineType
     {
         TextRun,
+        LineBreak,
         Bold,
         Italic,
         MarkdownLink,

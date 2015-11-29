@@ -23,7 +23,7 @@ using UniversalMarkdown.Parse.Elements;
 
 namespace UniversalMarkdown.Parse
 {
-    abstract class MarkdownElement
+    public abstract class MarkdownElement
     {
         /// <summary>
         /// Holds the list of children for this element

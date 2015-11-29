@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2015 Quinn Damerell
+﻿// Copyright (c) 2016 Quinn Damerell
 // 
 // The above copyright notice and this permission notice shall be
 // included in all copies or substantial portions of the Software.
@@ -11,6 +11,7 @@
 // WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
+
 
 using System;
 using System.Collections.Generic;

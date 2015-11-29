@@ -1,4 +1,19 @@
-﻿using System;
+﻿// Copyright (c) 2016 Quinn Damerell
+// 
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -71,8 +86,6 @@ namespace UniversalMarkdown.Parse
         /// <returns></returns>
         public static MarkdownBlock FindNextBlock(ref string markdown, int startingPos, int endingPos)
         {
-            MarkdownBlockType nextBlockType = MarkdownBlockType.Paragraph;
-
             // We need to look at the start of this current block and figure out what type it is.
             // Find the next char that isn't a \n, \r, or ' ', keep track of white space
             int nextCharPos = startingPos;
@@ -84,57 +97,29 @@ namespace UniversalMarkdown.Parse
                 nextCharPos++;
             }
 
-            //If we found 4 spaces in a row we have 'code'
-            if (spaceCount > 3)
+            if(CodeBlock.CanHandleBlock(ref markdown, nextCharPos, endingPos, spaceCount))
             {
-                nextBlockType = MarkdownBlockType.Code;
+                return new CodeBlock();
             }
-            // We have a quote; remember to check for the end of the text
-            else if (markdown.Length > nextCharPos && endingPos > nextCharPos && markdown[nextCharPos] == '>')
+            if(QuoteBlock.CanHandleBlock(ref markdown, nextCharPos, endingPos))
             {
-                nextBlockType = MarkdownBlockType.Quote;
+                return new QuoteBlock();
             }
-            // We have a header;
-            else if (markdown.Length > nextCharPos && endingPos > nextCharPos && markdown[nextCharPos] == '#')
+            if (HeaderBlock.CanHandleBlock(ref markdown, nextCharPos, endingPos))
             {
-                nextBlockType = MarkdownBlockType.Header;
+                return new HeaderBlock();
             }
-            // We have a list element;
-            else if (markdown.Length > nextCharPos + 1 && endingPos > nextCharPos + 1 && (markdown[nextCharPos] == '*' || markdown[nextCharPos] == '-') && markdown[nextCharPos + 1] == ' ')
+            if (ListElementBlock.CanHandleBlock(ref markdown, nextCharPos, endingPos))
             {
-                nextBlockType = MarkdownBlockType.ListElement;
+                return new ListElementBlock();
             }
-            // We have a number or letter list
-            else if (markdown.Length > nextCharPos + 1 && endingPos > nextCharPos + 1 && Char.IsLetterOrDigit(markdown[nextCharPos]) && markdown[nextCharPos + 1] == '.')
+            if (HorizontalRuleBlock.CanHandleBlock(ref markdown, nextCharPos, endingPos))
             {
-                nextBlockType = MarkdownBlockType.ListElement;
+                return new HorizontalRuleBlock();
             }
-            else if (markdown.IndexOf("*****", nextCharPos) == nextCharPos)
-            {
-                nextBlockType = MarkdownBlockType.HorizontalRule;
-            }
-            else
-            {
-                nextBlockType = MarkdownBlockType.Paragraph;
-            }    
 
-            // Now that we have our winner, make the object
-            switch (nextBlockType)
-            {
-                case MarkdownBlockType.Quote:
-                    return new QuoteBlock();
-                case MarkdownBlockType.Code:
-                    return new CodeBlock();
-                case MarkdownBlockType.Header:
-                    return new HeaderBlock();
-                case MarkdownBlockType.ListElement:
-                    return new ListElementBlock();
-                case MarkdownBlockType.HorizontalRule:
-                    return new HorizontalRuleBlock();
-                case MarkdownBlockType.Paragraph:
-                default:
-                    return new ParagraphBlock();
-            }
+            // If we can't match any of these just make a new paragraph.
+            return new ParagraphBlock();
         }
     }
 }

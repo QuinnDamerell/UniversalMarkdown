@@ -11,7 +11,7 @@ namespace UniversalMarkdown.Parse.Elements
     {
         public int HeaderLevel = 0;
 
-        public HeaderBlock() 
+        public HeaderBlock()
             : base(MarkdownBlockType.Header)
         { }
 
@@ -45,7 +45,7 @@ namespace UniversalMarkdown.Parse.Elements
                     break;
                 }
             }
-  
+
             // Make sure there is something to parse, and not just dead space
             if (headerEnd > headerStart)
             {
@@ -61,6 +61,19 @@ namespace UniversalMarkdown.Parse.Elements
 
             // Return where we ended.
             return headerEnd;
+        }
+
+
+        /// <summary>
+        /// Called to determine if this block type can handle the next block.
+        /// </summary>
+        /// <param name="markdown"></param>
+        /// <param name="nextCharPos"></param>
+        /// <param name="endingPos"></param>
+        /// <returns></returns>
+        public static bool CanHandleBlock(ref string markdown, int nextCharPos, int endingPos)
+        {
+            return markdown.Length > nextCharPos && endingPos > nextCharPos && markdown[nextCharPos] == '#';
         }
     }
 }

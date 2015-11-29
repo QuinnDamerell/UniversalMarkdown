@@ -97,5 +97,23 @@ namespace UniversalMarkdownUnitTests.Display
                                 MatrixTransform
                     Run Text: ')'"), result);
         }
+
+        [UITestMethod]
+        public void Hyperlink_Subreddit()
+        {
+            string result = RenderMarkdown("/r/subreddit");
+            Assert.AreEqual(CollapseWhitespace(@"
+                Paragraph
+                    Hyperlink NavigateUri: null
+                        SolidColorBrush
+                            Color A: 255, B: 41, G: 135, R: 204
+                            MatrixTransform
+                            MatrixTransform
+                        Run Text: '/r/subreddit'
+                            SolidColorBrush
+                                Color A: 255, B: 41, G: 135, R: 204
+                                MatrixTransform
+                                MatrixTransform"), result);
+        }
     }
 }

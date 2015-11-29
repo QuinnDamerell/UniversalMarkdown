@@ -5,14 +5,15 @@
       xmlns:local="using:UniversalMarkdownTestApp"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       xmlns:univeralMarkdown="using:UniversalMarkdown"
-      mc:Ignorable="d">
+      mc:Ignorable="d"
+      RequestedTheme="Dark">
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
-            <RowDefinition Height="auto" />
-            <RowDefinition Height="auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
         <TextBlock Margin="12" Text="Todo: Make this do more. :)" />

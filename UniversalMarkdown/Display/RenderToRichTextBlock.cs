@@ -32,7 +32,7 @@ using Windows.UI.Xaml.Media;
 
 namespace UniversalMarkdown.Display
 {
-    class RenderToRichTextBlock
+    public class RenderToRichTextBlock
     {
         /// <summary>
         /// The rich text block we will dump the markdown into.
@@ -107,6 +107,9 @@ namespace UniversalMarkdown.Display
             {
                 case MarkdownInlineType.TextRun:
                     RenderTextRun((TextRunElement)element, currentInlines, ref trimTextStart);
+                    break;
+                case MarkdownInlineType.LineBreak:
+                    RenderLineBreak((LineBreakInline)element, currentInlines, ref trimTextStart);
                     break;
                 case MarkdownInlineType.Bold:
                     RenderBoldRun((BoldTextElement)element, currentInlines, ref trimTextStart);
@@ -350,6 +353,18 @@ namespace UniversalMarkdown.Display
 
             // Add it
             currentInlines.Add(textRun);
+        }
+
+        /// <summary>
+        /// Renders a line break.
+        /// </summary>
+        /// <param name="element"></param>
+        /// <param name="currentInlines"></param>
+        /// <param name="trimTextStart">If true this element should trin the start of the text and set to fales.</param>
+        private void RenderLineBreak(LineBreakInline element, InlineCollection currentInlines, ref bool trimTextStart)
+        {
+            // Add it
+            currentInlines.Add(new LineBreak());
         }
 
         /// <summary>

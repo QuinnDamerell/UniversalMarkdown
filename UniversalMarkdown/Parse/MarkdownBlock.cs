@@ -33,7 +33,7 @@ namespace UniversalMarkdown.Parse
         HorizontalRule
     };
 
-    abstract class MarkdownBlock : MarkdownElement
+    public abstract class MarkdownBlock : MarkdownElement
     {
         /// <summary>
         /// Tells us what type this element is.

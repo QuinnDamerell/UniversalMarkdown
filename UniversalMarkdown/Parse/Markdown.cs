@@ -26,7 +26,7 @@ namespace UniversalMarkdown.Parse
     /// <summary>
     /// A class used to represent abstract markdown.
     /// </summary>
-    class Markdown : MarkdownBlock
+    public class Markdown : MarkdownBlock
     {
         public Markdown()
             : base(MarkdownBlockType.Root)

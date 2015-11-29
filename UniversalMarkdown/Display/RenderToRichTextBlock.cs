@@ -93,6 +93,9 @@ namespace UniversalMarkdown.Display
                 case MarkdownBlockType.HorizontalRule:
                     RenderHorizontalRule((HorizontalRuleBlock)element, currentBlocks);
                     break;
+                case MarkdownBlockType.LineBreak:
+                    RenderLineBreak((LineBreakBlock)element, currentBlocks);
+                    break;
             }
         }
 
@@ -107,9 +110,6 @@ namespace UniversalMarkdown.Display
             {
                 case MarkdownInlineType.TextRun:
                     RenderTextRun((TextRunElement)element, currentInlines, ref trimTextStart);
-                    break;
-                case MarkdownInlineType.LineBreak:
-                    RenderLineBreak((LineBreakInline)element, currentInlines, ref trimTextStart);
                     break;
                 case MarkdownInlineType.Bold:
                     RenderBoldRun((BoldTextElement)element, currentInlines, ref trimTextStart);
@@ -288,6 +288,21 @@ namespace UniversalMarkdown.Display
         }
 
         /// <summary>
+        /// Renders a line break element.
+        /// </summary>
+        /// <param name="element"></param>
+        /// <param name="currentBlocks"></param>
+        private void RenderLineBreak(LineBreakBlock element, BlockCollection currentBlocks)
+        {
+            // Make the new horizontal rule paragraph
+            Paragraph lineBreakPara = new Paragraph();
+            lineBreakPara.Margin = new Thickness(0, 12, 0, 12);
+
+            // Add it
+            currentBlocks.Add(lineBreakPara);
+        }
+
+        /// <summary>
         /// Renders a quote element.
         /// </summary>
         /// <param name="element"></param>
@@ -353,18 +368,6 @@ namespace UniversalMarkdown.Display
 
             // Add it
             currentInlines.Add(textRun);
-        }
-
-        /// <summary>
-        /// Renders a line break.
-        /// </summary>
-        /// <param name="element"></param>
-        /// <param name="currentInlines"></param>
-        /// <param name="trimTextStart">If true this element should trin the start of the text and set to fales.</param>
-        private void RenderLineBreak(LineBreakInline element, InlineCollection currentInlines, ref bool trimTextStart)
-        {
-            // Add it
-            currentInlines.Add(new LineBreak());
         }
 
         /// <summary>

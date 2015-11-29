@@ -117,6 +117,10 @@ namespace UniversalMarkdown.Parse
             {
                 return new HorizontalRuleBlock();
             }
+            if (LineBreakBlock.CanHandleBlock(ref markdown, nextCharPos, endingPos))
+            {
+                return new LineBreakBlock();
+            }
 
             // If we can't match any of these just make a new paragraph.
             return new ParagraphBlock();

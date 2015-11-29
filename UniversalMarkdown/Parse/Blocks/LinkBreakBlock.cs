@@ -22,10 +22,10 @@ using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
 {
-    class HorizontalRuleBlock : MarkdownBlock
+    class LineBreakBlock : MarkdownBlock
     {
-        public HorizontalRuleBlock() 
-            : base(MarkdownBlockType.HorizontalRule)
+        public LineBreakBlock() 
+            : base(MarkdownBlockType.LineBreak)
         { }
 
         /// <summary>
@@ -39,41 +39,24 @@ namespace UniversalMarkdown.Parse.Elements
         /// <returns></returns>
         internal override int Parse(ref string markdown, int startingPos, int maxEndingPos)
         {
-            // Figure out what char we are processing.
-            int horzStart = startingPos;
-            char ruleChar = '*';
-            if (markdown[horzStart] == '*')
-            {
-                ruleChar = '*';
-            }
-            else if(markdown[horzStart] == '-')
-            {
-                ruleChar = '-';
-            }
-            else
-            {
-                DebuggingReporter.ReportCriticalError("Tried parse horizontal rule but didn't find a * or -");
-            } 
+            // Get the end.
+            int nbspEnd = TryToFindNbsp(ref markdown, startingPos, maxEndingPos);
 
-            // Find the end of the line
-            int horzEnd = horzStart;
-            while (horzEnd < markdown.Length && horzEnd < maxEndingPos)
+            // Sanity check
+            if (nbspEnd == -1)
             {
-                if (markdown[horzEnd] != ruleChar)
-                {
-                    break;
-                }
-                horzEnd++;
-            }
+                DebuggingReporter.ReportCriticalError("Tried parse line break find a &nbps;");
+                return maxEndingPos;
+            }      
 
             // Trim off any extra line endings, except ' ' otherwise we can't do code blocks
-            while (horzEnd < markdown.Length && horzEnd < maxEndingPos && Char.IsWhiteSpace(markdown[horzEnd]) && markdown[horzEnd] != ' ')
+            while (nbspEnd < markdown.Length && nbspEnd < maxEndingPos && Char.IsWhiteSpace(markdown[nbspEnd]) && markdown[nbspEnd] != ' ')
             {
-                horzEnd++;
+                nbspEnd++;
             }       
 
             // Return where we ended.
-            return horzEnd;
+            return nbspEnd;
         }
 
         /// <summary>
@@ -85,7 +68,43 @@ namespace UniversalMarkdown.Parse.Elements
         /// <returns></returns>
         public static bool CanHandleBlock(ref string markdown, int nextCharPos, int endingPos)
         {
-            return markdown.IndexOf("*****", nextCharPos) == nextCharPos || markdown.IndexOf("---", nextCharPos) == nextCharPos;
+            return TryToFindNbsp(ref markdown, nextCharPos, endingPos) != -1;
+        }
+
+        /// <summary>
+        /// attempts to find a nbsp or multiple and if found returns the index where they end.
+        /// </summary>
+        /// <param name="markdown"></param>
+        /// <param name="startingPos"></param>
+        /// <param name="endingPos"></param>
+        /// <returns></returns>
+        private static int TryToFindNbsp(ref string markdown, int startingPos, int endingPos)
+        {
+            int currentPos = startingPos;
+            bool nonBreakingSpaceFound = false;
+
+            // We need to loop though and find all of the nbsp; if one or more are found with a \n \r after it we have a line break.
+            while (currentPos < markdown.Length && currentPos < endingPos)
+            {
+                // If we found one iterate and see if we find another.
+                if (markdown.IndexOf("&nbsp;", currentPos) == currentPos)
+                {
+                    currentPos += 6;
+                    nonBreakingSpaceFound = true;
+                }
+                // If we found a \n or \r figure out if we are good.
+                else if (markdown[currentPos] == '\n' || markdown[currentPos] == '\r')
+                {
+                    return nonBreakingSpaceFound ? currentPos : -1;
+                }
+                // Anything else just quit
+                else
+                {
+                    return -1;
+                }
+            }
+
+            return -1;
         }
     }
 }

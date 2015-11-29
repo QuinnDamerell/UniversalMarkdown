@@ -113,7 +113,8 @@ namespace UniversalMarkdown.Parse.Elements
             if (markdown.Length > nextCharPos + 1 && endingPos > nextCharPos + 1)
             {
                 // Check for * and - followed by space
-                if((markdown[nextCharPos] == '*' || markdown[nextCharPos] == '-') && markdown[nextCharPos + 1] == ' ')
+                char test = markdown[nextCharPos + 1];
+                if ((markdown[nextCharPos] == '*' || markdown[nextCharPos] == '-') && markdown[nextCharPos + 1] == ' ')
                 {
                     return true;
                 }

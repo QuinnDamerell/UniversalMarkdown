@@ -9,7 +9,7 @@ namespace UniversalMarkdown.Parse.Elements
 {
     class MarkdownLinkInline : MarkdownInline
     {
-        string Url { get; set; }
+        public string Url { get; set; }
 
         public MarkdownLinkInline()
             : base(MarkdownInlineType.MarkdownLink)

@@ -36,10 +36,7 @@ namespace UniversalMarkdown.Parse.Elements
             }
 
             // While we didn't hit the end && (it is a char or digit or _ )
-            while (subredditEnd < markdown.Length && subredditStart < endingPos && (Char.IsLetterOrDigit(markdown[subredditEnd]) || markdown[subredditEnd] == '_'))
-            {
-                subredditEnd++;
-            }
+            subredditEnd = Common.FindNextNonLetterDigitOrUnderscore(ref markdown, subredditEnd, endingPos, true);
 
             // Validate
             if(subredditEnd != endingPos)
@@ -80,14 +77,16 @@ namespace UniversalMarkdown.Parse.Elements
                     if (subredditStart + 2 < markdown.Length && subredditStart + 2 < endingPos && Char.IsLetterOrDigit(markdown[subredditStart + 2]))
                     {
                         // Check if there is a / before it, if so include it
+                        int beginEndSearchOffset = 2;
                         if (subredditStart != 0 && markdown[subredditStart - 1] == '/')
                         {
                             subredditStart--;
+                            beginEndSearchOffset++;
                         }
 
                         // Send the info off!
                         currentNextElementStart = subredditStart;
-                        elementEndingPos = Common.FindNextWhiteSpace(ref markdown, currentNextElementStart, endingPos, true);
+                        elementEndingPos = Common.FindNextNonLetterDigitOrUnderscore(ref markdown, currentNextElementStart + beginEndSearchOffset, endingPos, true);
                         return true;
                     }
                 }

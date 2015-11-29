@@ -202,5 +202,26 @@ namespace UniversalMarkdown.Helpers
             }
             return ifNotFoundReturnLenght ? endingPos : -1;
         }
+
+        /// <summary>
+        /// Finds the next char that is not a letter or digit in a range.
+        /// </summary>
+        /// <param name="markdown"></param>
+        /// <param name="startingPos"></param>
+        /// <param name="endingPos"></param>
+        /// <returns></returns>
+        public static int FindNextNonLetterDigitOrUnderscore(ref string markdown, int startingPos, int endingPos, bool ifNotFoundReturnLenght)
+        {
+            int currentPos = startingPos;
+            while (currentPos < markdown.Length && currentPos < endingPos)
+            {
+                if (!Char.IsLetterOrDigit(markdown[currentPos]) && markdown[currentPos] != '_')
+                {
+                    return currentPos;
+                }
+                currentPos++;
+            }
+            return ifNotFoundReturnLenght ? endingPos : -1;
+        }
     }
 }

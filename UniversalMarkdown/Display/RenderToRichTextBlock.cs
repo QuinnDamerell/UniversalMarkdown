@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UniversalMarkdown.Helpers;
+using UniversalMarkdown.Interfaces;
 using UniversalMarkdown.Parse;
 using UniversalMarkdown.Parse.Elements;
 using Windows.UI;
@@ -23,9 +24,15 @@ namespace UniversalMarkdown.Display
         /// </summary>
         RichTextBlock m_richTextBlock;
 
-        public RenderToRichTextBlock(RichTextBlock richTextBlock)
+        /// <summary>
+        /// A register class used to listen to hyper link clicks.
+        /// </summary>
+        ILinkRegister m_linkRegister;
+
+        public RenderToRichTextBlock(RichTextBlock richTextBlock, ILinkRegister linkRegister)
         {
-            m_richTextBlock = richTextBlock;           
+            m_richTextBlock = richTextBlock;
+            m_linkRegister = linkRegister;
         }
 
         /// <summary>
@@ -45,7 +52,7 @@ namespace UniversalMarkdown.Display
         }
 
         /// <summary>
-        /// Called to render an element.
+        /// Called to render a block element.
         /// </summary>
         /// <param name="element"></param>
         /// <param name="currentBlocks"></param>
@@ -75,7 +82,7 @@ namespace UniversalMarkdown.Display
         }
 
         /// <summary>
-        /// Called to render an element.
+        /// Called to render an inline element
         /// </summary>
         /// <param name="element"></param>
         /// <param name="currentInlines"></param>
@@ -107,9 +114,9 @@ namespace UniversalMarkdown.Display
         /// <summary>
         /// Renders all of the children for the given element.
         /// </summary>
-        /// <param name="rootElemnet"></param>
-        /// <param name="currentBlocks"></param>
-        /// <param name="currentInlines"></param>
+        /// <param name="rootElemnet">The root element to render children of</param>
+        /// <param name="currentInlines">The inlines where they should go</param>
+        /// <param name="trimTextStart">If true the first text box start will be trimed so there is no leading space</param>
         private void RenderInlineChildren(MarkdownElement rootElemnet, InlineCollection currentInlines, bool trimTextStart = false)
         {
             bool trimTextStartIntenal = trimTextStart;
@@ -119,12 +126,13 @@ namespace UniversalMarkdown.Display
             }
         }
 
+        #region Render Blocks
+
         /// <summary>
-        /// Renders a paragraph element
+        /// Renders a paragraph element.
         /// </summary>
         /// <param name="element"></param>
         /// <param name="currentBlocks"></param>
-        /// <param name="currentInlines"></param>
         private void RenderPargraph(ParagraphBlock element, BlockCollection currentBlocks)
         {
             // Make a new paragraph
@@ -141,48 +149,7 @@ namespace UniversalMarkdown.Display
         }
 
         /// <summary>
-        /// Renders a quote element
-        /// </summary>
-        /// <param name="element"></param>
-        /// <param name="currentBlocks"></param>
-        /// <param name="currentInlines"></param>
-        private void RenderQuote(QuoteBlock element, BlockCollection currentBlocks)
-        {
-            // Make the new quote paragraph
-            Paragraph quotePara = new Paragraph();
-            quotePara.Margin = new Thickness(element.QuoteIndent * 12, 12, 12, 12);
-            quotePara.Foreground = new SolidColorBrush(Color.FromArgb(180, 255, 255, 255));
-
-            // Add it to the blocks
-            currentBlocks.Add(quotePara);
-
-            // Render the children into the para inline.
-            RenderInlineChildren(element, quotePara.Inlines, true);
-        }
-
-        /// <summary>
-        /// Renders a code element
-        /// </summary>
-        /// <param name="element"></param>
-        /// <param name="currentBlocks"></param>
-        /// <param name="currentInlines"></param>
-        private void RenderCode(CodeBlock element, BlockCollection currentBlocks)
-        {
-            // Make the new code paragraph
-            Paragraph codePara = new Paragraph();
-            codePara.Margin = new Thickness(12 * element.CodeIndent, 0, 0, 0);
-            codePara.Foreground = new SolidColorBrush(Color.FromArgb(180, 255, 255, 255));
-            codePara.FontFamily = new FontFamily("Courier New");
-
-            // Add it to the blocks
-            currentBlocks.Add(codePara);
-
-            // Render the children into the para inline.
-            RenderInlineChildren(element, codePara.Inlines, true);
-        }
-
-        /// <summary>
-        /// Renders a header element
+        /// Renders a header element.
         /// </summary>
         /// <param name="element"></param>
         /// <param name="currentBlocks"></param>
@@ -223,7 +190,7 @@ namespace UniversalMarkdown.Display
         }
 
         /// <summary>
-        /// Renders a list element
+        /// Renders a list element.
         /// </summary>
         /// <param name="element"></param>
         /// <param name="currentBlocks"></param>
@@ -233,7 +200,7 @@ namespace UniversalMarkdown.Display
             Grid grid = new Grid();
 
             // The first column for the dot the second for the text
-            grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Auto)});
+            grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Auto) });
             grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
 
             // Make the dot container and the new text box
@@ -270,7 +237,7 @@ namespace UniversalMarkdown.Display
         }
 
         /// <summary>
-        /// Renders a horizontal rule element
+        /// Renders a horizontal rule element.
         /// </summary>
         /// <param name="element"></param>
         /// <param name="currentBlocks"></param>
@@ -303,11 +270,55 @@ namespace UniversalMarkdown.Display
         }
 
         /// <summary>
-        /// Renders a text run element
+        /// Renders a quote element.
         /// </summary>
         /// <param name="element"></param>
         /// <param name="currentBlocks"></param>
+        private void RenderQuote(QuoteBlock element, BlockCollection currentBlocks)
+        {
+            // Make the new quote paragraph
+            Paragraph quotePara = new Paragraph();
+            quotePara.Margin = new Thickness(element.QuoteIndent * 12, 12, 12, 12);
+            quotePara.Foreground = new SolidColorBrush(Color.FromArgb(180, 255, 255, 255));
+
+            // Add it to the blocks
+            currentBlocks.Add(quotePara);
+
+            // Render the children into the para inline.
+            RenderInlineChildren(element, quotePara.Inlines, true);
+        }
+
+
+        /// <summary>
+        /// Renders a code element.
+        /// </summary>
+        /// <param name="element"></param>
+        /// <param name="currentBlocks"></param>
+        private void RenderCode(CodeBlock element, BlockCollection currentBlocks)
+        {
+            // Make the new code paragraph
+            Paragraph codePara = new Paragraph();
+            codePara.Margin = new Thickness(12 * element.CodeIndent, 0, 0, 0);
+            codePara.Foreground = new SolidColorBrush(Color.FromArgb(180, 255, 255, 255));
+            codePara.FontFamily = new FontFamily("Courier New");
+
+            // Add it to the blocks
+            currentBlocks.Add(codePara);
+
+            // Render the children into the para inline.
+            RenderInlineChildren(element, codePara.Inlines, true);
+        }
+
+        #endregion
+
+        #region Render Inlines
+
+        /// <summary>
+        /// Renders a text run element.
+        /// </summary>
+        /// <param name="element"></param>
         /// <param name="currentInlines"></param>
+        /// <param name="trimTextStart">If true this element should trin the start of the text and set to fales.</param>
         private void RenderTextRun(TextRunElement element, InlineCollection currentInlines, ref bool trimTextStart)
         {
             // Create the text run
@@ -327,11 +338,11 @@ namespace UniversalMarkdown.Display
         }
 
         /// <summary>
-        /// Renders a text run element
+        /// Renders a bold run element.
         /// </summary>
         /// <param name="element"></param>
-        /// <param name="currentBlocks"></param>
         /// <param name="currentInlines"></param>
+        /// <param name="trimTextStart">If true this element should trin the start of the text and set to fales.</param>
         private void RenderBoldRun(BoldTextElement element, InlineCollection currentInlines, ref bool trimTextStart)
         {
             // Create the text run
@@ -350,11 +361,14 @@ namespace UniversalMarkdown.Display
         /// </summary>
         /// <param name="element"></param>
         /// <param name="currentInlines"></param>
+        /// <param name="trimTextStart">If true this element should trin the start of the text and set to fales.</param>
         private void RenderMarkdownLink(MarkdownLinkInline element, InlineCollection currentInlines, ref bool trimTextStart)
         {
             // Create the text run
             Hyperlink link = new Hyperlink();
-            // #todo handle link clicking. 
+
+            // Register the link
+            m_linkRegister.RegisterNewHyperLink(link, element.Url);
 
             // Render the children into the link inline.
             RenderInlineChildren(element, link.Inlines);
@@ -364,15 +378,18 @@ namespace UniversalMarkdown.Display
         }
 
         /// <summary>
-        /// Renders a link element
+        /// Renders a raw link element
         /// </summary>
         /// <param name="element"></param>
         /// <param name="currentInlines"></param>
+        /// <param name="trimTextStart">If true this element should trin the start of the text and set to fales.</param>
         private void RenderRawHyperlink(RawHyperlinkInline element, InlineCollection currentInlines, ref bool trimTextStart)
         {
             // Create the text run
             Hyperlink link = new Hyperlink();
-            // #todo handle link clicking. 
+
+            // Register the link
+            m_linkRegister.RegisterNewHyperLink(link, element.Url);
 
             // Make a text block for the link
             Run linkText = new Run();
@@ -390,14 +407,18 @@ namespace UniversalMarkdown.Display
         }
 
         /// <summary>
-        /// Renders a subreddit element
+        /// Renders a raw subreddit element
         /// </summary>
         /// <param name="element"></param>
         /// <param name="currentInlines"></param>
+        /// <param name="trimTextStart">If true this element should trin the start of the text and set to fales.</param>
         private void RenderRawSubreddit(RawSubredditInline element, InlineCollection currentInlines, ref bool trimTextStart)
         {
             // Create the hyper link
             Hyperlink link = new Hyperlink();
+
+            // Register the link
+            m_linkRegister.RegisterNewHyperLink(link, element.Text);
 
             // Add the subreddit text
             Run subreddit = new Run();
@@ -418,8 +439,8 @@ namespace UniversalMarkdown.Display
         /// Renders a text run element
         /// </summary>
         /// <param name="element"></param>
-        /// <param name="currentBlocks"></param>
         /// <param name="currentInlines"></param>
+        /// <param name="trimTextStart">If true this element should trin the start of the text and set to fales.</param>
         private void RenderItalicRun(ItalicTextElement element, InlineCollection currentInlines, ref bool trimTextStart)
         {
             // Create the text run
@@ -432,5 +453,7 @@ namespace UniversalMarkdown.Display
             // Add it to the current inlines
             currentInlines.Add(italicSpan);
         }
+
+        #endregion
     }
 }

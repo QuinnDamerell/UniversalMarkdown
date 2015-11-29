@@ -8,5 +8,5 @@ The goal of this project is provide a great, easy to use, and fast markdown pars
 ### Quick Usage
 Currently there is only a UWP control, but hopefully more will be added later. Usage of the UWP TextBlock is simple, after referencing the project all that is required is to add the element to your XAML. See the sample app for a quick and dirty reference implementation.
 
-## Questions, Feedback, & More
+### Questions, Feedback, & More
 I hope to write more documentation for this project when I get time, for now if you have any questions please ask them in http://www.reddit.com/r/baconitdev.

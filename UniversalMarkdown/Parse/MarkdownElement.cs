@@ -25,10 +25,15 @@ namespace UniversalMarkdown.Parse
 {
     public abstract class MarkdownElement
     {
+        public MarkdownElement()
+        {
+            Children = new List<MarkdownElement>();
+        }
+
         /// <summary>
         /// Holds the list of children for this element
         /// </summary>
-        public List<MarkdownElement> Children = new List<MarkdownElement>();
+        public List<MarkdownElement> Children { get; private set; }
 
         /// <summary>
         /// A function that all elements must implement to parse what they own.

@@ -22,9 +22,11 @@ using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
 {
-    class MarkdownLinkInline : MarkdownInline
+    public class MarkdownLinkInline : MarkdownInline
     {
         public string Url { get; set; }
+
+        public string Tooltip { get; set; }
 
         public MarkdownLinkInline()
             : base(MarkdownInlineType.MarkdownLink)

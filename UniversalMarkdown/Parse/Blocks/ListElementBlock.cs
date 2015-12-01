@@ -22,7 +22,7 @@ using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
 {
-    class ListElementBlock : MarkdownBlock
+    public class ListElementBlock : MarkdownBlock
     {
         public int ListIndent = 0;
 

@@ -22,7 +22,7 @@ using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
 {
-    class ParagraphBlock : MarkdownBlock
+    public class ParagraphBlock : MarkdownBlock
     {
         public ParagraphBlock() 
             : base(MarkdownBlockType.Paragraph)

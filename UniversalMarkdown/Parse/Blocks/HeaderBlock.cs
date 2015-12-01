@@ -22,9 +22,9 @@ using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
 {
-    class HeaderBlock : MarkdownBlock
+    public class HeaderBlock : MarkdownBlock
     {
-        public int HeaderLevel = 0;
+        public int HeaderLevel { get; set; }
 
         public HeaderBlock()
             : base(MarkdownBlockType.Header)

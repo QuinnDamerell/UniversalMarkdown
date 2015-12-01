@@ -22,7 +22,7 @@ using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
 {
-    class QuoteBlock : MarkdownBlock
+    public class QuoteBlock : MarkdownBlock
     {
         public int QuoteIndent = 0;
 

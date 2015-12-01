@@ -22,7 +22,7 @@ using UniversalMarkdown.Parse.Elements;
 
 namespace UniversalMarkdown.Parse
 {
-    public enum MarkdownBlockType
+    internal enum MarkdownBlockType
     {
         Root,
         Paragraph,
@@ -39,14 +39,35 @@ namespace UniversalMarkdown.Parse
         /// <summary>
         /// Tells us what type this element is.
         /// </summary>
-        public MarkdownBlockType Type { get; set; }
+        internal MarkdownBlockType Type { get; set; }
 
         /// <summary>
         /// Default constructor for this class.
         /// </summary>
-        public MarkdownBlock(MarkdownBlockType type)
+        internal MarkdownBlock(MarkdownBlockType type)
         {
             Type = type;
-        }      
+        }
+
+        /// <summary>
+        /// Determines whether the specified object is equal to the current object.
+        /// </summary>
+        /// <param name="obj"> The object to compare with the current object. </param>
+        /// <returns> <c>true</c> if the specified object is equal to the current object; otherwise, <c>false.</c> </returns>
+        public override bool Equals(object obj)
+        {
+            if (!base.Equals(obj) || !(obj is MarkdownBlock))
+                return false;
+            return Type == ((MarkdownBlock)obj).Type;
+        }
+
+        /// <summary>
+        /// Serves as the default hash function.
+        /// </summary>
+        /// <returns> A hash code for the current object. </returns>
+        public override int GetHashCode()
+        {
+            return base.GetHashCode() ^ Type.GetHashCode();
+        }
     }
 }

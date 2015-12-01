@@ -93,7 +93,6 @@
     <Content Include="ApplicationInsights.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="UniversalMarkdownTextBlock.csproj" />
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>

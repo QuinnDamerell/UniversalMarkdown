@@ -22,7 +22,7 @@ using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
 {
-    class RawHyperlinkInline : MarkdownInline
+    public class RawHyperlinkInline : MarkdownInline
     {
         public string Url { get; set; }
 

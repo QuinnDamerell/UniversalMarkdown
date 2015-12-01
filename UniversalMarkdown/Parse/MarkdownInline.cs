@@ -22,7 +22,7 @@ using UniversalMarkdown.Parse.Elements;
 
 namespace UniversalMarkdown.Parse
 {
-    public enum MarkdownInlineType
+    internal enum MarkdownInlineType
     {
         TextRun,
         Bold,
@@ -32,17 +32,17 @@ namespace UniversalMarkdown.Parse
         RawSubreddit
     };
 
-    abstract class MarkdownInline : MarkdownElement
+    public abstract class MarkdownInline : MarkdownElement
     {
         /// <summary>
         /// Tells us what type this element is.
         /// </summary>
-        public MarkdownInlineType Type { get; set; }
+        internal MarkdownInlineType Type { get; set; }
 
         /// <summary>
         /// Default constructor for this class.
         /// </summary>
-        public MarkdownInline(MarkdownInlineType type)
+        internal MarkdownInline(MarkdownInlineType type)
         {
             Type = type;
         }

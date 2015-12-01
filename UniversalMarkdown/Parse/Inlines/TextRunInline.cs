@@ -21,7 +21,7 @@ using System.Threading.Tasks;
 
 namespace UniversalMarkdown.Parse.Elements
 {
-    class TextRunInline : MarkdownInline
+    public class TextRunInline : MarkdownInline
     {
         /// <summary>
         /// The text for this run.

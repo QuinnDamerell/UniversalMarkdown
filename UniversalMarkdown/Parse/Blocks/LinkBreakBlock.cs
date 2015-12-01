@@ -22,7 +22,7 @@ using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
 {
-    class LineBreakBlock : MarkdownBlock
+    public class LineBreakBlock : MarkdownBlock
     {
         public LineBreakBlock() 
             : base(MarkdownBlockType.LineBreak)

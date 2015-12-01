@@ -22,7 +22,7 @@ using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
 {
-    class BoldTextInline : MarkdownInline
+    public class BoldTextInline : MarkdownInline
     {
         public BoldTextInline()
             : base(MarkdownInlineType.Bold)

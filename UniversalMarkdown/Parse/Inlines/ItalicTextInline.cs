@@ -22,7 +22,7 @@ using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
 {
-    class ItalicTextInline : MarkdownInline
+    public class ItalicTextInline : MarkdownInline
     {
         public ItalicTextInline()
             : base(MarkdownInlineType.Italic)

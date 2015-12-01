@@ -7,16 +7,7 @@ namespace UniversalMarkdownUnitTests.Display
     public class StrikethroughTests : DisplayTestBase
     {
         [UITestMethod]
-        public void Strikethrough_Simple()
-        {
-            var result = RenderMarkdown("~~strike~~");
-            Assert.AreEqual(CollapseWhitespace(@"
-                Paragraph
-                    Span
-                        Run Text: 'strike'"), result);
-        }
-
-        [UITestMethod]
+        [TestCategory("Display - inline")]
         public void Strikethrough_Inline()
         {
             string result = RenderMarkdown("This is ~~strike~~ text");

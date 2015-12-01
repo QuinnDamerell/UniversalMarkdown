@@ -22,7 +22,7 @@ using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
 {
-    class RawSubredditInline : MarkdownInline
+    public class RawSubredditInline : MarkdownInline
     {
         public string Text { get; set; }
 

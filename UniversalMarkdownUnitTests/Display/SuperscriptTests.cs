@@ -7,6 +7,7 @@ namespace UniversalMarkdownUnitTests.Display
     public class SuperscriptTests : DisplayTestBase
     {
         [UITestMethod]
+        [TestCategory("Display - inline")]
         public void Superscript_Simple()
         {
             string result = RenderMarkdown("Using the carot sign ^will create exponentials");
@@ -18,6 +19,7 @@ namespace UniversalMarkdownUnitTests.Display
         }
 
         [UITestMethod]
+        [TestCategory("Display - inline")]
         public void Superscript_Nested()
         {
             string result = RenderMarkdown("Y^a^a");
@@ -26,28 +28,6 @@ namespace UniversalMarkdownUnitTests.Display
                     Run Text: 'Y'
                     Run Text: 'a'
                     Run Text: 'a'"), result);   // TODO
-        }
-
-        [UITestMethod]
-        public void Superscript_WithParentheses()
-        {
-            // The text to superscript can be enclosed in brackets.
-            string result = RenderMarkdown("This is a sentence^(This is a note in superscript).");
-            Assert.AreEqual(CollapseWhitespace(@"
-                Paragraph
-                    Run Text: 'This is a sentence'
-                    Run Text: 'This is a note in superscript'
-                    Run Text: '.'"), result);   // TODO
-        }
-
-        [UITestMethod]
-        public void Superscript_Negative()
-        {
-            // Does nothing.
-            string result = RenderMarkdown("Using the carot sign ^ incorrectly");
-            Assert.AreEqual(CollapseWhitespace(@"
-                Paragraph
-                    Run Text: 'Using the carot sign ^ incorrectly'"), result);
         }
     }
 }

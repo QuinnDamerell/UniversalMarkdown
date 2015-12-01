@@ -96,21 +96,36 @@
     <SDKReference Include="TestPlatform.Universal, Version=$(UnitTestPlatformVersion)" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Display\EscapeTests.cs" />
-    <Compile Include="Display\SuperscriptTests.cs" />
-    <Compile Include="Display\HorizontalRuleTests.cs" />
-    <Compile Include="Display\NumberedListTests.cs" />
+    <Compile Include="Display\BoldTests.cs" />
     <Compile Include="Display\BulletedListTests.cs" />
+    <Compile Include="Display\CodeTests.cs" />
+    <Compile Include="Display\DisplayTestBase.cs" />
     <Compile Include="Display\HeaderTests.cs" />
+    <Compile Include="Display\HorizontalRuleTests.cs" />
     <Compile Include="Display\HyperlinkTests.cs" />
-    <Compile Include="Display\TableTests.cs" />
+    <Compile Include="Display\ItalicTests.cs" />
+    <Compile Include="Display\NumberedListTests.cs" />
+    <Compile Include="Display\ParagraphTests.cs" />
     <Compile Include="Display\QuoteTests.cs" />
     <Compile Include="Display\StrikethroughTests.cs" />
-    <Compile Include="Display\CodeTests.cs" />
-    <Compile Include="Display\ParagraphTests.cs" />
-    <Compile Include="Display\ItalicTests.cs" />
-    <Compile Include="Display\BoldTests.cs" />
-    <Compile Include="Display\DisplayTestBase.cs" />
+    <Compile Include="Display\SuperscriptTests.cs" />
+    <Compile Include="Display\TableTests.cs" />
+    <Compile Include="Parse\ParseTestExtensionMethods.cs" />
+    <Compile Include="Parse\ParseTestBase.cs" />
+    <Compile Include="Parse\EscapeTests.cs" />
+    <Compile Include="Parse\SuperscriptTests.cs" />
+    <Compile Include="Parse\HorizontalRuleTests.cs" />
+    <Compile Include="Parse\NumberedListTests.cs" />
+    <Compile Include="Parse\BulletedListTests.cs" />
+    <Compile Include="Parse\HeaderTests.cs" />
+    <Compile Include="Parse\HyperlinkTests.cs" />
+    <Compile Include="Parse\TableTests.cs" />
+    <Compile Include="Parse\QuoteTests.cs" />
+    <Compile Include="Parse\StrikethroughTests.cs" />
+    <Compile Include="Parse\CodeTests.cs" />
+    <Compile Include="Parse\ParagraphTests.cs" />
+    <Compile Include="Parse\ItalicTests.cs" />
+    <Compile Include="Parse\BoldTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestBase.cs" />
     <Compile Include="UnitTestApp.xaml.cs">

@@ -22,7 +22,7 @@ using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
 {
-    class HorizontalRuleBlock : MarkdownBlock
+    public class HorizontalRuleBlock : MarkdownBlock
     {
         public HorizontalRuleBlock() 
             : base(MarkdownBlockType.HorizontalRule)

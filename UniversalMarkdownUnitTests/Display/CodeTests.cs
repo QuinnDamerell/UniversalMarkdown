@@ -7,6 +7,7 @@ namespace UniversalMarkdownUnitTests.Display
     public class CodeTests : DisplayTestBase
     {
         [UITestMethod]
+        [TestCategory("Display - inline")]
         public void Code_Inline()
         {
             string result = RenderMarkdown("Here is some `inline code` lol");
@@ -18,28 +19,7 @@ namespace UniversalMarkdownUnitTests.Display
         }
 
         [UITestMethod]
-        public void Code_Inline_Boundary()
-        {
-            string result = RenderMarkdown("before` middle `after");
-            Assert.AreEqual(CollapseWhitespace(@"
-                Paragraph
-                    Run Text: 'before'
-                    Run Text: ' middle '
-                    Run Text: 'after'"), result);
-        }
-
-        [UITestMethod]
-        public void Code_Inline_Formatting()
-        {
-            // Formatting is ignored inside code.
-            string result = RenderMarkdown("Here is some `ignored **formatting** inside code`");
-            Assert.AreEqual(CollapseWhitespace(@"
-                Paragraph
-                    Run Text: 'Here is some '
-                    Run Text: 'ignored **formatting** inside code'"), result);
-        }
-
-        [UITestMethod]
+        [TestCategory("Display - block")]
         public void Code_Block()
         {
             // Multi-line code block.  Should have a border and scroll, not wrap!
@@ -106,21 +86,6 @@ namespace UniversalMarkdownUnitTests.Display
                             MatrixTransform
                 Paragraph
                     Run Text: 'after'"), result);
-        }
-
-        [UITestMethod]
-        public void Code_Block_Negative()
-        {
-            // Multi-line code blocks must start with a new paragraph.
-            string result = RenderMarkdown(CollapseWhitespace(@"
-                before
-                    Code
-                        More code
-                    Even more code
-                after"));
-            Assert.AreEqual(CollapseWhitespace(@"
-                Paragraph
-                    Run Text: 'before Code More code Even more code after'"), result);
         }
     }
 }

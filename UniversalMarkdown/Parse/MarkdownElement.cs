@@ -64,7 +64,7 @@ namespace UniversalMarkdown.Parse
                 // the start. We need to wrap it into a Text Run
                 if (nextElemntStart != currentParsePosition)
                 {
-                    TextRunElement textRun = new TextRunElement();
+                    TextRunInline textRun = new TextRunInline();
                     textRun.Parse(ref markdown, currentParsePosition, nextElemntStart);
                     Children.Add(textRun);
                 }

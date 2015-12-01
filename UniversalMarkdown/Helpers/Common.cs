@@ -40,11 +40,11 @@ namespace UniversalMarkdown.Helpers
 
             // Go through all of the elements and try to find the next closest element. 
             // Note the order is important here, so don't reorder them.
-            if (BoldTextElement.FindNextClosest(ref markdown, startingPos, endingPos, ref nextElementStart, ref nextElementEnd))
+            if (BoldTextInline.FindNextClosest(ref markdown, startingPos, endingPos, ref nextElementStart, ref nextElementEnd))
             {
                 nextClosestType = MarkdownInlineType.Bold;
             }
-            if (ItalicTextElement.FindNextClosest(ref markdown, startingPos, endingPos, ref nextElementStart, ref nextElementEnd))
+            if (ItalicTextInline.FindNextClosest(ref markdown, startingPos, endingPos, ref nextElementStart, ref nextElementEnd))
             {
                 nextClosestType = MarkdownInlineType.Italic;
             }
@@ -74,9 +74,9 @@ namespace UniversalMarkdown.Helpers
             switch (nextClosestType)
             {
                 case MarkdownInlineType.Bold:
-                    return new BoldTextElement();
+                    return new BoldTextInline();
                 case MarkdownInlineType.Italic:
-                    return new ItalicTextElement();
+                    return new ItalicTextInline();
                 case MarkdownInlineType.MarkdownLink:
                     return new MarkdownLinkInline();
                 case MarkdownInlineType.RawHyperlink:
@@ -85,7 +85,7 @@ namespace UniversalMarkdown.Helpers
                     return new RawSubredditInline();
                 case MarkdownInlineType.TextRun:
                 default:
-                    return new TextRunElement();
+                    return new TextRunInline();
             }
         }
 

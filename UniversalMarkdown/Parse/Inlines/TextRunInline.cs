@@ -21,14 +21,14 @@ using System.Threading.Tasks;
 
 namespace UniversalMarkdown.Parse.Elements
 {
-    class TextRunElement : MarkdownInline
+    class TextRunInline : MarkdownInline
     {
         /// <summary>
         /// The text for this run.
         /// </summary>
         public string Text { get; set; }
 
-        public TextRunElement() :
+        public TextRunInline() :
             base(MarkdownInlineType.TextRun)
         {   }
 

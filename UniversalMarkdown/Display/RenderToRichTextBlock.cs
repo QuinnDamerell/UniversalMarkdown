@@ -109,16 +109,16 @@ namespace UniversalMarkdown.Display
             switch(element.Type)
             {
                 case MarkdownInlineType.TextRun:
-                    RenderTextRun((TextRunElement)element, currentInlines, ref trimTextStart);
+                    RenderTextRun((TextRunInline)element, currentInlines, ref trimTextStart);
                     break;
                 case MarkdownInlineType.Bold:
-                    RenderBoldRun((BoldTextElement)element, currentInlines, ref trimTextStart);
+                    RenderBoldRun((BoldTextInline)element, currentInlines, ref trimTextStart);
                     break;
                 case MarkdownInlineType.MarkdownLink:
                     RenderMarkdownLink((MarkdownLinkInline)element, currentInlines, ref trimTextStart);
                     break;
                 case MarkdownInlineType.Italic:
-                    RenderItalicRun((ItalicTextElement)element, currentInlines, ref trimTextStart);
+                    RenderItalicRun((ItalicTextInline)element, currentInlines, ref trimTextStart);
                     break;
                 case MarkdownInlineType.RawHyperlink:
                     RenderRawHyperlink((RawHyperlinkInline)element, currentInlines, ref trimTextStart);
@@ -352,7 +352,7 @@ namespace UniversalMarkdown.Display
         /// <param name="element"></param>
         /// <param name="currentInlines"></param>
         /// <param name="trimTextStart">If true this element should trin the start of the text and set to fales.</param>
-        private void RenderTextRun(TextRunElement element, InlineCollection currentInlines, ref bool trimTextStart)
+        private void RenderTextRun(TextRunInline element, InlineCollection currentInlines, ref bool trimTextStart)
         {
             // Create the text run
             Run textRun = new Run();
@@ -376,7 +376,7 @@ namespace UniversalMarkdown.Display
         /// <param name="element"></param>
         /// <param name="currentInlines"></param>
         /// <param name="trimTextStart">If true this element should trin the start of the text and set to fales.</param>
-        private void RenderBoldRun(BoldTextElement element, InlineCollection currentInlines, ref bool trimTextStart)
+        private void RenderBoldRun(BoldTextInline element, InlineCollection currentInlines, ref bool trimTextStart)
         {
             // Create the text run
             Span boldSpan = new Span();
@@ -474,7 +474,7 @@ namespace UniversalMarkdown.Display
         /// <param name="element"></param>
         /// <param name="currentInlines"></param>
         /// <param name="trimTextStart">If true this element should trin the start of the text and set to fales.</param>
-        private void RenderItalicRun(ItalicTextElement element, InlineCollection currentInlines, ref bool trimTextStart)
+        private void RenderItalicRun(ItalicTextInline element, InlineCollection currentInlines, ref bool trimTextStart)
         {
             // Create the text run
             Span italicSpan = new Span();

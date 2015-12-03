@@ -1,8 +1,8 @@
 ﻿// Copyright (c) 2016 Quinn Damerell
-// 
+//
 // The above copyright notice and this permission notice shall be
 // included in all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 // EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
 // OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -24,7 +24,7 @@ namespace UniversalMarkdown.Parse.Elements
 {
     class HorizontalRuleBlock : MarkdownBlock
     {
-        public HorizontalRuleBlock() 
+        public HorizontalRuleBlock()
             : base(MarkdownBlockType.HorizontalRule)
         { }
 
@@ -50,10 +50,19 @@ namespace UniversalMarkdown.Parse.Elements
             {
                 ruleChar = '-';
             }
+            else if(markdown[horzStart] == '=')
+            {
+                ruleChar = '=';
+            }
+            else if (markdown[horzStart] == '_')
+            {
+                ruleChar = '_';
+            }
             else
             {
                 DebuggingReporter.ReportCriticalError("Tried parse horizontal rule but didn't find a * or -");
-            } 
+                return maxEndingPos;
+            }
 
             // Find the end of the line
             int horzEnd = horzStart;
@@ -70,7 +79,7 @@ namespace UniversalMarkdown.Parse.Elements
             while (horzEnd < markdown.Length && horzEnd < maxEndingPos && Char.IsWhiteSpace(markdown[horzEnd]) && markdown[horzEnd] != ' ')
             {
                 horzEnd++;
-            }       
+            }
 
             // Return where we ended.
             return horzEnd;
@@ -85,7 +94,7 @@ namespace UniversalMarkdown.Parse.Elements
         /// <returns></returns>
         public static bool CanHandleBlock(ref string markdown, int nextCharPos, int endingPos)
         {
-            return markdown.IndexOf("*****", nextCharPos) == nextCharPos || markdown.IndexOf("---", nextCharPos) == nextCharPos;
+            return markdown.IndexOf("***", nextCharPos) == nextCharPos || markdown.IndexOf("---", nextCharPos) == nextCharPos || markdown.IndexOf("===", nextCharPos) == nextCharPos || markdown.IndexOf("___", nextCharPos) == nextCharPos;
         }
     }
 }

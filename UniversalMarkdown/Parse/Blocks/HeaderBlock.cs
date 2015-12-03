@@ -1,8 +1,8 @@
 ﻿// Copyright (c) 2016 Quinn Damerell
-// 
+//
 // The above copyright notice and this permission notice shall be
 // included in all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 // EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
 // OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -41,7 +41,7 @@ namespace UniversalMarkdown.Parse.Elements
         /// <returns></returns>
         internal override int Parse(ref string markdown, int startingPos, int maxEndingPos)
         {
-            // Find the # 
+            // Find the #
             int headerStart = Common.IndexOf(ref markdown, '#', startingPos, maxEndingPos);
             if (headerStart == -1)
             {
@@ -49,8 +49,8 @@ namespace UniversalMarkdown.Parse.Elements
                 return maxEndingPos;
             }
 
-            // Find the end of header
-            int headerEnd = Common.FindNextNewLine(ref markdown, headerStart, maxEndingPos);
+            // Find the end of header, note that headers break with a single new line.
+            int headerEnd = Common.FindNextSingleNewLine(ref markdown, headerStart, maxEndingPos);
             if (headerEnd == -1)
             {
                 DebuggingReporter.ReportCriticalError("Tried to parse header that didn't have an end");

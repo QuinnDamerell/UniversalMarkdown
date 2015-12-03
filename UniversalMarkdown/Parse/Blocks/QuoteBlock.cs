@@ -1,8 +1,8 @@
 ﻿// Copyright (c) 2016 Quinn Damerell
-// 
+//
 // The above copyright notice and this permission notice shall be
 // included in all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 // EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
 // OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -26,7 +26,7 @@ namespace UniversalMarkdown.Parse.Elements
     {
         public int QuoteIndent = 0;
 
-        public QuoteBlock() 
+        public QuoteBlock()
             : base(MarkdownBlockType.Quote)
         { }
 
@@ -50,7 +50,7 @@ namespace UniversalMarkdown.Parse.Elements
             }
 
             // Find the end of quote
-            int quoteEnd = Common.FindNextNewLine(ref markdown, quoteStart, maxEndingPos);
+            int quoteEnd = Common.FindNextDoubleNewLine(ref markdown, quoteStart, maxEndingPos);
             if(quoteEnd == -1)
             {
                 DebuggingReporter.ReportCriticalError("Tried to parse quote that didn't have an end");

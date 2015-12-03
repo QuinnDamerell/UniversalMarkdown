@@ -1,8 +1,8 @@
 ﻿// Copyright (c) 2016 Quinn Damerell
-// 
+//
 // The above copyright notice and this permission notice shall be
 // included in all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 // EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
 // OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -50,7 +50,6 @@ namespace UniversalMarkdown.Parse
         {
             int currentParsePosition = startingPos;
 
-            string para = markdown.Substring(startingPos, maxEndingPos - startingPos);
 
             while (currentParsePosition < maxEndingPos)
             {
@@ -64,7 +63,7 @@ namespace UniversalMarkdown.Parse
                 // the start. We need to wrap it into a Text Run
                 if (nextElemntStart != currentParsePosition)
                 {
-                    TextRunElement textRun = new TextRunElement();
+                    TextRunInline textRun = new TextRunInline();
                     textRun.Parse(ref markdown, currentParsePosition, nextElemntStart);
                     Children.Add(textRun);
                 }

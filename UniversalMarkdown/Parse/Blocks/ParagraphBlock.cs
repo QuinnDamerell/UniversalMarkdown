@@ -1,8 +1,8 @@
 ﻿// Copyright (c) 2016 Quinn Damerell
-// 
+//
 // The above copyright notice and this permission notice shall be
 // included in all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 // EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
 // OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -24,14 +24,14 @@ namespace UniversalMarkdown.Parse.Elements
 {
     class ParagraphBlock : MarkdownBlock
     {
-        public ParagraphBlock() 
+        public ParagraphBlock()
             : base(MarkdownBlockType.Paragraph)
         { }
 
         /// <summary>
         /// Called when this block type should parse out the goods. Given the markdown, a starting point, and a max ending point
         /// the block should find the start of the block, find the end and parse out the middle. The end most of the time will not be
-        /// the max ending pos, but it sometimes can be. The funciton will return where it ended parsing the block in the markdown.
+        /// the max ending pos, but it sometimes can be. The function will return where it ended parsing the block in the markdown.
         /// </summary>
         /// <param name="markdown"></param>
         /// <param name="startingPos"></param>
@@ -40,7 +40,7 @@ namespace UniversalMarkdown.Parse.Elements
         internal override int Parse(ref string markdown, int startingPos, int maxEndingPos)
         {
             // Find the end of paragraph
-            int endingPos = Common.FindNextNewLine(ref markdown, startingPos, maxEndingPos);
+            int endingPos = Common.FindNextDoubleNewLine(ref markdown, startingPos, maxEndingPos);
 
             // Make sure there is something to parse, and not just dead space
             if (endingPos > startingPos)

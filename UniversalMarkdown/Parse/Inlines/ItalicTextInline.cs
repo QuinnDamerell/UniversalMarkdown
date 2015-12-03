@@ -1,8 +1,8 @@
 ﻿// Copyright (c) 2016 Quinn Damerell
-// 
+//
 // The above copyright notice and this permission notice shall be
 // included in all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 // EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
 // OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -28,9 +28,19 @@ namespace UniversalMarkdown.Parse.Elements
             : base(MarkdownInlineType.Italic)
         { }
 
+
         /// <summary>
-        /// Called when the object should parse it's goods out of the markdown. The markdown, start, and stop are given. 
-        /// The start and stop are what is returned from the FindNext function below. The object should do it's parsing and 
+        /// Returns the chars that if found means we might have a match.
+        /// </summary>
+        /// <returns></returns>
+        public static InlineTripCharHelper GetTripChars()
+        {
+            return new InlineTripCharHelper() { FirstChar = '*', Type = MarkdownInlineType.Italic };
+        }
+
+        /// <summary>
+        /// Called when the object should parse it's goods out of the markdown. The markdown, start, and stop are given.
+        /// The start and stop are what is returned from the FindNext function below. The object should do it's parsing and
         /// return up to the last pos it used. This can be shorter than what is given to the function in endingPos.
         /// </summary>
         /// <param name="markdown">The markdown</param>
@@ -66,36 +76,31 @@ namespace UniversalMarkdown.Parse.Elements
         }
 
         /// <summary>
-        /// Attempts to find a element in the range given. If an element is found we must check if the starting is less than currentNextElementStart,
-        /// and if so update that value to be the start and update the elementEndPos to be the end of the element. These two vales will be passed back to us
-        /// when we are asked to parse. We then return true or false to indicate if we are the new candidate. 
+        /// Verify a match that is found in the markdown. If the match is good and the rest of the element exits the function should
+        /// return true and the element will be matched. If if is a false positive return false and we will keep looking.
         /// </summary>
-        /// <param name="markdown">mark down to parse</param>
-        /// <param name="currentPos">the starting point to search</param>
-        /// <param name="maxEndingPos">the ending point to search</param>
-        /// <param name="elementStartingPos">the current starting element, if this element is < we will update this to be our starting pos</param>
-        /// <param name="elementEndingPos">The ending pos of this element if it is interesting.</param>
-        /// <returns>true if we are the next element candidate, false otherwise.</returns>
-        public static bool FindNextClosest(ref string markdown, int startingPos, int endingPos, ref int currentNextElementStart, ref int elementEndingPos)
+        /// <param name="markdown">The markdown to match</param>
+        /// <param name="startingPos">Where the first trip char should be found</param>
+        /// <param name="maxEndingPos">The max length to look in.</param>
+        /// <param name="elementEndingPos">If found, the ending pos of the element found.</param>
+        /// <returns></returns>
+        public static bool VerifyMatch(ref string markdown, int startingPos, int maxEndingPos, ref int elementStartingPos, ref int elementEndingPos)
         {
-            // Test for italic
-            // Note this will find a bold tag also, but due to this check (tempPos < currentClosesPos) it
-            // will not enter.
-            int italicStartingPos = Common.IndexOf(ref markdown, '*', startingPos, endingPos);
-            if (italicStartingPos != -1 && italicStartingPos < currentNextElementStart && markdown.Length > italicStartingPos + 1)
+            // Do an sanity check
+            if (markdown[startingPos] == '*')
             {
                 // We might have one, try to find the ending that is in the current endingPos
                 // We need to loop and keep looking for * not followed by another * (bold)
-                int italicEndPos = Common.IndexOf(ref markdown, '*', italicStartingPos + 1, endingPos);
+                int italicEndPos = Common.IndexOf(ref markdown, '*', startingPos + 1, maxEndingPos);
                 while (italicEndPos != -1 && italicEndPos + 1 < markdown.Length && markdown[italicEndPos + 1] == '*')
                 {
-                    italicEndPos = Common.IndexOf(ref markdown, '*', italicEndPos + 2, endingPos);
+                    italicEndPos = Common.IndexOf(ref markdown, '*', italicEndPos + 2, maxEndingPos);
                 }
 
                 // If we found it and it is the next closest ending pos use it!
                 if (italicEndPos != -1)
                 {
-                    currentNextElementStart = italicStartingPos;
+                    elementStartingPos = startingPos;
                     elementEndingPos = italicEndPos + 1;
                     return true;
                 }

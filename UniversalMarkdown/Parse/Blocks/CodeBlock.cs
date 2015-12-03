@@ -1,8 +1,8 @@
 ﻿// Copyright (c) 2016 Quinn Damerell
-// 
+//
 // The above copyright notice and this permission notice shall be
 // included in all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 // EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
 // OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -26,14 +26,14 @@ namespace UniversalMarkdown.Parse.Elements
     {
         public int CodeIndent = 0;
 
-        public CodeBlock() 
+        public CodeBlock()
             : base(MarkdownBlockType.Code)
         { }
 
         /// <summary>
         /// Called when this block type should parse out the goods. Given the markdown, a starting point, and a max ending point
         /// the block should find the start of the block, find the end and parse out the middle. The end most of the time will not be
-        /// the max ending pos, but it sometimes can be. The funciton will return where it ended parsing the block in the markdown.
+        /// the max ending pos, but it sometimes can be. The function will return where it ended parsing the block in the markdown.
         /// </summary>
         /// <param name="markdown"></param>
         /// <param name="startingPos"></param>
@@ -41,13 +41,14 @@ namespace UniversalMarkdown.Parse.Elements
         /// <returns></returns>
         internal override int Parse(ref string markdown, int startingPos, int maxEndingPos)
         {
-            // Find where the code begins
-            int codeStart = startingPos;
+            // Find where the code begins, since we are given the line after the last space we actually need
+            // to go backwards.
+            int spaceCountStart = startingPos - 1;
             int spaceCount = 0;
-            while (codeStart < markdown.Length && codeStart < maxEndingPos)
+            while (spaceCountStart >= 0)
             {
                 // If we found a space count it
-                if (markdown[codeStart] == ' ')
+                if (markdown[spaceCountStart] == ' ')
                 {
                     spaceCount++;
                 }
@@ -64,16 +65,16 @@ namespace UniversalMarkdown.Parse.Elements
                         spaceCount = 0;
                     }
                 }
-                codeStart++;
+                spaceCountStart--;
             }
 
             if (spaceCount == 0)
             {
                 DebuggingReporter.ReportCriticalError("Tried to code but found no space row > 3");
-            } 
+            }
 
-            // Find the end of code
-            int codeEnd = Common.FindNextNewLine(ref markdown, codeStart, maxEndingPos);
+            // Find the end of code, note code breaks with a single new line.
+            int codeEnd = Common.FindNextSingleNewLine(ref markdown, startingPos, maxEndingPos);
             if(codeEnd == -1)
             {
                 DebuggingReporter.ReportCriticalError("Tried to code quote that didn't have an end");
@@ -84,10 +85,10 @@ namespace UniversalMarkdown.Parse.Elements
             CodeIndent = (int)Math.Floor(spaceCount / 4.0);
 
             // Make sure there is something to parse, and not just dead space
-            if (codeEnd > codeStart)
+            if (codeEnd > startingPos)
             {
                 // Parse the children of this quote
-                ParseInlineChildren(ref markdown, codeStart, codeEnd);
+                ParseInlineChildren(ref markdown, startingPos, codeEnd);
             }
 
             // Trim off any extra line endings, except ' ' otherwise we can't do code blocks

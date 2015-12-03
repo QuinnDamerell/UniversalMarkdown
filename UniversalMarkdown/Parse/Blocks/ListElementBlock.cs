@@ -1,8 +1,8 @@
 ﻿// Copyright (c) 2016 Quinn Damerell
-// 
+//
 // The above copyright notice and this permission notice shall be
 // included in all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 // EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
 // OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -26,16 +26,16 @@ namespace UniversalMarkdown.Parse.Elements
     {
         public int ListIndent = 0;
 
-        public string ListBullet = "•";
+        public string ListBullet = String.Empty;
 
-        public ListElementBlock() 
+        public ListElementBlock()
             : base(MarkdownBlockType.ListElement)
         { }
 
         /// <summary>
         /// Called when this block type should parse out the goods. Given the markdown, a starting point, and a max ending point
         /// the block should find the start of the block, find the end and parse out the middle. The end most of the time will not be
-        /// the max ending pos, but it sometimes can be. The funciton will return where it ended parsing the block in the markdown.
+        /// the max ending pos, but it sometimes can be. The function will return where it ended parsing the block in the markdown.
         /// </summary>
         /// <param name="markdown"></param>
         /// <param name="startingPos"></param>
@@ -54,28 +54,80 @@ namespace UniversalMarkdown.Parse.Elements
                 // We have a bullet list
                 else if (markdown[listStart] == '*' || markdown[listStart] == '-')
                 {
+                    ListBullet = "•";
+                    // +1 to move past the ' '
+                    listStart++;
                     break;
                 }
-                // We have a number or letter list
+                // We have a letter or digit list, start grabbing the bullet
                 else if(Char.IsLetterOrDigit(markdown[listStart]))
                 {
-                    // Grab the list letter
-                    ListBullet = markdown[listStart] + ".";
-
-                    // +1 to move past the .
-                    listStart++;
+                    // Grab the list letter, but keep going to get the rest.
+                    ListBullet += markdown[listStart];
+                }
+                // We finished the letter list.
+                else if(markdown[listStart] == '.')
+                {
+                    ListBullet += '.';
                     break;
                 }
                 listStart++;
             }
 
-            // Find the end of the list
-            int listEnd = Common.FindNextNewLine(ref markdown, listStart, maxEndingPos);
+            // A list should only single newline break if it is that start of another element in the list.
+            // So we need to loop to check for them.
+            // This is hard becasue of all of our list types. For * and - we just check if the next two chars
+            // are * or and a ' ' if so we matched. For letters and digits, once we find one we keep looping until
+            // we find a '.'. If we find a . we get a match, if anything else we fail.
+            int nextDoubleBreak = Common.FindNextDoubleNewLine(ref markdown, listStart, maxEndingPos);
+            int nextSingleBreak = Common.FindNextSingleNewLine(ref markdown, listStart, maxEndingPos);
+            int potentialListStart = -1;
+            int listEnd = nextDoubleBreak;
+            while (nextSingleBreak < nextDoubleBreak && nextSingleBreak + 2 < maxEndingPos)
+            {
+                // Ignore spaces unless we are tracking a potential list start
+                if(potentialListStart == -1 && markdown[nextSingleBreak + 1] == ' ')
+                {
+                    nextSingleBreak++;
+                }
+                // Check for a * or a - followed by a space
+                else if((markdown[nextSingleBreak + 1] == '*' || markdown[nextSingleBreak + 1] == '-' ) && markdown[nextSingleBreak + 2] == ' ')
+                {
+                    // This is our line break
+                    listEnd = nextSingleBreak;
+                    break;
+                }
+                // If this is a char we might have a new list start. Note the position and loop.
+                else if(Char.IsLetterOrDigit(markdown[nextSingleBreak + 1]))
+                {
+                    if (potentialListStart == -1)
+                    {
+                        potentialListStart = nextSingleBreak;
+                    }
+                    nextSingleBreak++;
+                }
+                // If we find a . and we have a potential list start then we matched.
+                else if(potentialListStart != -1 && markdown[nextSingleBreak + 1] == '.')
+                {
+                    // This is our line break
+                    listEnd = potentialListStart;
+                    break;
+                }
+                else
+                {
+                    // We failed with this new line, try to get the next one.
+                    nextSingleBreak = Common.FindNextSingleNewLine(ref markdown, nextSingleBreak + 1, maxEndingPos);
+                    potentialListStart = -1;
+                }
+            }
+
             if (listEnd == -1)
             {
                 DebuggingReporter.ReportCriticalError("Tried to parse list that didn't have an end");
                 listEnd = maxEndingPos;
             }
+
+            string sub = markdown.Substring(listStart, listEnd - listStart);
 
             // Remove one indent from the list. This doesn't work exactly like reddit's
             // but it is close enough
@@ -118,8 +170,16 @@ namespace UniversalMarkdown.Parse.Elements
                 {
                     return true;
                 }
-                // Check for a ltter or digit followed by a .
-                if(Char.IsLetterOrDigit(markdown[nextCharPos]) && markdown[nextCharPos + 1] == '.')
+
+                // We need to also look for 1. or ab. or 100. So first jump past any letters or digits
+                int currentCount = nextCharPos;
+                while(currentCount < endingPos && Char.IsLetterOrDigit(markdown[currentCount]))
+                {
+                    currentCount++;
+                }
+
+                // If we found at least one letter or digit and this is a . we have a list.
+                if(currentCount != nextCharPos && currentCount < endingPos && markdown[currentCount] == '.')
                 {
                     return true;
                 }

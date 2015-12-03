@@ -42,7 +42,7 @@ namespace UniversalMarkdown.Parse.Elements
         internal override int Parse(ref string markdown, int startingPos, int maxEndingPos)
         {
             // Do a quick check.
-            int quoteStart = startingPos;
+            int quoteStart = startingPos + 1;
             if(markdown[startingPos] != '>')
             {
                 DebuggingReporter.ReportCriticalError("Tried to parse quote that didn't exist");
@@ -56,8 +56,9 @@ namespace UniversalMarkdown.Parse.Elements
                 quoteEnd = maxEndingPos;
             }
 
-            // Find how many indents we have, we have to count backwards from the starting pos.
-            QuoteIndent = 0;
+            // Find how many indents we have, we have to count backwards from the starting pos. Start with one
+            // so if we have no spaces we at least get that.
+            QuoteIndent = 1;
             int currentBackCount = startingPos - 1;
             while (currentBackCount >= 0 && markdown[currentBackCount] != '\n' && markdown[currentBackCount] != '\r')
             {

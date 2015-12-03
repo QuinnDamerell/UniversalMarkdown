@@ -48,7 +48,7 @@ namespace UniversalMarkdown.Parse.Elements
                 DebuggingReporter.ReportCriticalError("Tried to parse a header but # wasn't found");
             }
 
-            // Find the end of header, note that headers break with a single new line.
+            // Find the end of header, note that headers break with a single new line no matter what.
             int headerEnd = Common.FindNextSingleNewLine(ref markdown, headerStart, maxEndingPos);
             if (headerEnd == -1)
             {

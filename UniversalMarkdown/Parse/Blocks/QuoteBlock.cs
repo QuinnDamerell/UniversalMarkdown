@@ -48,7 +48,7 @@ namespace UniversalMarkdown.Parse.Elements
                 DebuggingReporter.ReportCriticalError("Tried to parse quote that didn't exist");
             }
 
-            // Find the end of quote
+            // Find the end of quote, we always break on a double return no matter what.
             int quoteEnd = Common.FindNextDoubleNewLine(ref markdown, quoteStart, maxEndingPos);
             if(quoteEnd == -1)
             {

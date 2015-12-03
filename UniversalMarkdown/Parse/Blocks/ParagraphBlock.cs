@@ -39,8 +39,8 @@ namespace UniversalMarkdown.Parse.Elements
         /// <returns></returns>
         internal override int Parse(ref string markdown, int startingPos, int maxEndingPos)
         {
-            // Find the end of paragraph
-            int endingPos = Common.FindNextDoubleNewLine(ref markdown, startingPos, maxEndingPos);
+            // Find the end of paragraph, read the summary of the function for details.
+            int endingPos = Common.FindNextParagraphLineBreak(ref markdown, startingPos, maxEndingPos);
 
             // Make sure there is something to parse, and not just dead space
             if (endingPos > startingPos)

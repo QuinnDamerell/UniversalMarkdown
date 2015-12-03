@@ -157,6 +157,130 @@ namespace UniversalMarkdown.Helpers
         }
 
         /// <summary>
+        /// Returns the next paragraph line break. This is either a double line break or a single line break followed by a
+        /// new block type.
+        /// </summary>
+        /// <param name="markdown"></param>
+        /// <param name="startingPos"></param>
+        /// <param name="endingPos"></param>
+        /// <returns></returns>
+        public static int FindNextParagraphLineBreak(ref string markdown, int startingPos, int endingPos)
+        {
+            // First get the next double and single line break.
+            int doubleNewLinePos = FindNextDoubleNewLine(ref markdown, startingPos, endingPos);
+            int singleNewLinePos = FindNextSingleNewLine(ref markdown, startingPos, endingPos);
+
+            // While we still have a single break before the double check it.
+            while (singleNewLinePos != -1 && singleNewLinePos < doubleNewLinePos)
+            {
+                int investigatePos = singleNewLinePos;
+
+                // Otherwise, we need to figure out what the next thing is. First ignore any spaces, \r or \n
+                // Note this won't clobber double newlines because we shouldn't be here if this is a double, the loop shouldn't be
+                // entered.
+                int spaceCount = 0;
+                bool ateNewLine = false;
+                bool ateReturn = false;
+                while (investigatePos < endingPos)
+                {
+                    // Count spaces
+                    if(markdown[investigatePos] == ' ')
+                    {
+                        spaceCount++;
+                    }
+                    // If we hit a \r and we haven't already eat it
+                    else if(markdown[investigatePos] == '\r')
+                    {
+                        if(ateReturn)
+                        {
+                            break;
+                        }
+                        ateReturn = true;
+                    }
+                    // If we hit a \n and we haven't already eat it
+                    else if (markdown[investigatePos] == '\n')
+                    {
+                        if (ateNewLine)
+                        {
+                            break;
+                        }
+                        ateNewLine = true;
+                    }
+                    // If we hit anything else break.
+                    else
+                    {
+                        break;
+                    }
+                    investigatePos++;
+                }
+
+                // We didn't find anything.
+                if(investigatePos == endingPos)
+                {
+                    return doubleNewLinePos;
+                }
+
+                // If we have 4+ spaces it is code.
+                if (spaceCount > 3)
+                {
+                    return singleNewLinePos;
+                }
+
+                // If its a > or # we have a quote or header
+                if (markdown[investigatePos] == '>' || markdown[investigatePos] == '#')
+                {
+                    return singleNewLinePos;
+                }
+
+                // We need to check for a rule, this can be * or - or _ or = 3 or more times
+                if (markdown[investigatePos] == '*' || markdown[investigatePos] == '-' || markdown[investigatePos] == '_' || markdown[investigatePos] == '=')
+                {
+                    // Make sure there are at least 2 more of them.
+                    char matchChar = markdown[investigatePos];
+                    if (investigatePos + 2 < endingPos && markdown[investigatePos + 1] == matchChar && markdown[investigatePos + 2] == matchChar)
+                    {
+                        return singleNewLinePos;
+                    }
+                }
+
+                // Now we need to check for a list. This is either * or - followed by a space, or any letter or digit (s) followed by a .
+                bool potentialListStart = true; ;
+                while (investigatePos < endingPos)
+                {
+                    // Check for a * or a - followed by a space
+                    if (investigatePos + 1 < endingPos && (markdown[investigatePos] == '*' || markdown[investigatePos] == '-') && markdown[investigatePos + 1] == ' ')
+                    {
+                        // This is our line break
+                        return singleNewLinePos;
+                    }
+                    // If this is a char we might have a new list start. Note the position and loop.
+                    else if (Char.IsLetterOrDigit(markdown[investigatePos]))
+                    {
+                        potentialListStart = true;
+                        investigatePos++;
+                    }
+                    // If we find a . and we have a potential list start then we matched.
+                    else if (potentialListStart && markdown[investigatePos] == '.')
+                    {
+                        // This is our line break
+                        return singleNewLinePos;
+                    }
+                    else
+                    {
+                        // Not a list
+                        break;
+                    }
+                }
+
+                // We didn't get any matches, try the next single line break
+                singleNewLinePos = FindNextSingleNewLine(ref markdown, singleNewLinePos + 1, endingPos);
+            }
+
+            // If we got to the end none of the single breaks worked out. Return the double.
+            return doubleNewLinePos;
+        }
+
+        /// <summary>
         /// Returns the next \n\n or \r\n\r\n in the markdown.
         /// </summary>
         /// <param name="markdown"></param>

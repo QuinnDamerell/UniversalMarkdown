@@ -73,7 +73,7 @@ namespace UniversalMarkdown.Parse.Elements
                 DebuggingReporter.ReportCriticalError("Tried to code but found no space row > 3");
             }
 
-            // Find the end of code, note code breaks with a single new line.
+            // Find the end of code, note code breaks with a single new line no matter what.
             int codeEnd = Common.FindNextSingleNewLine(ref markdown, startingPos, maxEndingPos);
             if(codeEnd == -1)
             {

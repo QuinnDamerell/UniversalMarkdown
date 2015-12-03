@@ -43,18 +43,67 @@ namespace UniversalMarkdown.Parse.Elements
         /// <returns></returns>
         internal override int Parse(ref string markdown, int startingPos, int maxEndingPos)
         {
-            // Grab all of the text
-            Text = markdown.Substring(startingPos, maxEndingPos - startingPos);
+            // We need to go though all of the text and remove any newlines and returns if they aren't needed
+            // the most efficient way to do this is to use a string builder to build the new string as normal.
+            // We need to guess at the capacity of the string builder string, the entire range should be good.
+            StringBuilder strBuilder = new StringBuilder(maxEndingPos - startingPos);
 
-            // Since we only break on double new lines we can have extra /n /r laying around we need to remove.
-            while (Text.Contains('\n'))
+            // We need to keep track of continuous spaces, if there are more than 2 in a row we shouldn't remove the
+            // new line.
+            int continuousSpaceCount = 0;
+
+            // loop through from start to end.
+
+            for (int currentMarkdownPos = startingPos; currentMarkdownPos < maxEndingPos; currentMarkdownPos++)
             {
-                Text = Text.Replace('\n', ' ');
+                char currentChar = markdown[currentMarkdownPos];
+                if(currentChar == '\n' || currentChar == '\r')
+                {
+                    // If we have two spaces before add it as normal.
+                    if(continuousSpaceCount > 1)
+                    {
+                        strBuilder.Append(currentChar);
+                    }
+                    else
+                    {
+                        // Check if we have a space before this one. If so don't
+                        // bother inserting another.
+                        if(currentMarkdownPos == 0 || markdown[currentMarkdownPos - 1] != ' ')
+                        {
+                            strBuilder.Append(' ');
+                        }                         
+                    }                    
+                }
+                // If we have a space keep track of it.
+                else if(currentChar == ' ')
+                {                    
+                    strBuilder.Append(currentChar);
+                    continuousSpaceCount++;
+                }
+                // Also remove any non breaking spaces (&nbsp;)
+                else if(currentChar == '&' && currentMarkdownPos + 5 < maxEndingPos && 
+                        markdown[currentMarkdownPos + 1] == 'n' &&
+                        markdown[currentMarkdownPos + 2] == 'b' &&
+                        markdown[currentMarkdownPos + 3] == 's' &&
+                        markdown[currentMarkdownPos + 4] == 'p' &&
+                        markdown[currentMarkdownPos + 5] == ';')
+                {
+                    // Add a space. 
+                    strBuilder.Append(' ');
+
+                    // Jump the count ahead, don't forget the for loop will +1 by itself.
+                    currentMarkdownPos += 5;
+                }
+                // If we have anything else add it and reset the space count.
+                else
+                {
+                    strBuilder.Append(currentChar);
+                    continuousSpaceCount = 0;
+                }
             }
-            while (Text.Contains('\r'))
-            {
-                Text = Text.Replace('\r', ' ');
-            }
+
+            // Finally set the text
+            Text = strBuilder.ToString();
 
             // Return that we ate it all.
             return maxEndingPos;

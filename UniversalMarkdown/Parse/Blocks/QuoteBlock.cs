@@ -33,7 +33,7 @@ namespace UniversalMarkdown.Parse.Elements
         /// <summary>
         /// Called when this block type should parse out the goods. Given the markdown, a starting point, and a max ending point
         /// the block should find the start of the block, find the end and parse out the middle. The end most of the time will not be
-        /// the max ending pos, but it sometimes can be. The funciton will return where it ended parsing the block in the markdown.
+        /// the max ending pos, but it sometimes can be. The function will return where it ended parsing the block in the markdown.
         /// </summary>
         /// <param name="markdown"></param>
         /// <param name="startingPos"></param>
@@ -41,12 +41,11 @@ namespace UniversalMarkdown.Parse.Elements
         /// <returns></returns>
         internal override int Parse(ref string markdown, int startingPos, int maxEndingPos)
         {
-            // Find the start of the quote
-            int quoteStart = Common.IndexOf(ref markdown, '>', startingPos, maxEndingPos);
-            if(quoteStart == -1)
+            // Do a quick check.
+            int quoteStart = startingPos;
+            if(markdown[startingPos] != '>')
             {
                 DebuggingReporter.ReportCriticalError("Tried to parse quote that didn't exist");
-                return maxEndingPos;
             }
 
             // Find the end of quote
@@ -57,12 +56,13 @@ namespace UniversalMarkdown.Parse.Elements
                 quoteEnd = maxEndingPos;
             }
 
-            // Find how many indents we have
+            // Find how many indents we have, we have to count backwards from the starting pos.
             QuoteIndent = 0;
-            while (quoteStart < markdown.Length && quoteStart < quoteEnd && markdown[quoteStart] == '>')
+            int currentBackCount = startingPos - 1;
+            while (currentBackCount >= 0 && markdown[currentBackCount] != '\n' && markdown[currentBackCount] != '\r')
             {
                 QuoteIndent++;
-                quoteStart++;
+                currentBackCount--;
             }
 
             // Make sure there is something to parse, and not just dead space

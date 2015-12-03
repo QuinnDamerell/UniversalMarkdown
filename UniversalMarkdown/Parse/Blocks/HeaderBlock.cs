@@ -33,7 +33,7 @@ namespace UniversalMarkdown.Parse.Elements
         /// <summary>
         /// Called when this block type should parse out the goods. Given the markdown, a starting point, and a max ending point
         /// the block should find the start of the block, find the end and parse out the middle. The end most of the time will not be
-        /// the max ending pos, but it sometimes can be. The funciton will return where it ended parsing the block in the markdown.
+        /// the max ending pos, but it sometimes can be. The function will return where it ended parsing the block in the markdown.
         /// </summary>
         /// <param name="markdown"></param>
         /// <param name="startingPos"></param>
@@ -41,12 +41,11 @@ namespace UniversalMarkdown.Parse.Elements
         /// <returns></returns>
         internal override int Parse(ref string markdown, int startingPos, int maxEndingPos)
         {
-            // Find the #
-            int headerStart = Common.IndexOf(ref markdown, '#', startingPos, maxEndingPos);
-            if (headerStart == -1)
+            // Do a quick check
+            int headerStart = startingPos;
+            if (markdown[headerStart] != '#')
             {
-                DebuggingReporter.ReportCriticalError("Tried to header but # wasn't found");
-                return maxEndingPos;
+                DebuggingReporter.ReportCriticalError("Tried to parse a header but # wasn't found");
             }
 
             // Find the end of header, note that headers break with a single new line.

@@ -43,16 +43,12 @@ namespace UniversalMarkdown.Parse.Elements
         /// <returns></returns>
         internal override int Parse(ref string markdown, int startingPos, int maxEndingPos)
         {
-            // Find where the list begins
+            // Find out what the list is and where it begins.
             int listStart = startingPos;
             while (listStart < markdown.Length && listStart < maxEndingPos)
             {
-                if (markdown[listStart] == ' ')
-                {
-                    ListIndent++;
-                }
                 // We have a bullet list
-                else if (markdown[listStart] == '*' || markdown[listStart] == '-')
+                if (markdown[listStart] == '*' || markdown[listStart] == '-')
                 {
                     ListBullet = "•";
                     // +1 to move past the ' '
@@ -72,6 +68,15 @@ namespace UniversalMarkdown.Parse.Elements
                     break;
                 }
                 listStart++;
+            }
+
+            // Now figure out how many spaces come before this list, we have to count backwards from the starting pos.
+            ListIndent = 0;
+            int currentBackCount = startingPos - 1;
+            while (currentBackCount >= 0 && markdown[currentBackCount] != '\n' && markdown[currentBackCount] != '\r')
+            {
+                ListIndent++;
+                currentBackCount--;
             }
 
             // A list should only single newline break if it is that start of another element in the list.

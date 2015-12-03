@@ -111,7 +111,8 @@ namespace UniversalMarkdown.Parse.Elements
         /// <returns></returns>
         public static bool CanHandleBlock(ref string markdown, int nextCharPos, int endingPos, int spaceCount)
         {
-            return spaceCount > 3;
+            // Check the spaces and ensure the next char isn't a list element or quote.
+            return spaceCount > 3 && markdown[nextCharPos] != '*' && markdown[nextCharPos] != '-' && markdown[nextCharPos] != '>';
         }
     }
 }

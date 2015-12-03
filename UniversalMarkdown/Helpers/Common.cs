@@ -285,7 +285,6 @@ namespace UniversalMarkdown.Helpers
                 endingPos -= 1;
             }
 
-            string sub = markdown.Substring(startingPos, count);
             return reverseSearch ? markdown.LastIndexOf(search, endingPos, count) : markdown.IndexOf(search, startingPos, count);
         }
 

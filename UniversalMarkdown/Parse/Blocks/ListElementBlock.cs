@@ -132,8 +132,6 @@ namespace UniversalMarkdown.Parse.Elements
                 listEnd = maxEndingPos;
             }
 
-            string sub = markdown.Substring(listStart, listEnd - listStart);
-
             // Remove one indent from the list. This doesn't work exactly like reddit's
             // but it is close enough
             ListIndent = Math.Max(1, ListIndent - 1);

@@ -8,6 +8,7 @@ namespace UniversalMarkdownUnitTests.Parse
     public class SuperscriptTests : ParseTestBase
     {
         [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void Superscript_Simple()
         {
             Assert.Fail("Not implemented");
@@ -20,6 +21,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void Superscript_Nested()
         {
             Assert.Fail("Not implemented");
@@ -33,6 +35,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void Superscript_WithParentheses()
         {
             Assert.Fail("Not implemented");
@@ -47,6 +50,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void Superscript_Negative()
         {
             Assert.Fail("Not implemented");

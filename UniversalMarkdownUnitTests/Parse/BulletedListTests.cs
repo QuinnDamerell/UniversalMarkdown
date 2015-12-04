@@ -8,6 +8,7 @@ namespace UniversalMarkdownUnitTests.Parse
     public class BulletedListTests : ParseTestBase
     {
         [UITestMethod]
+        [TestCategory("Parse - block")]
         public void BulletedList_SingleLine()
         {
             AssertEqual("- List",
@@ -16,6 +17,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - block")]
         public void BulletedList_Simple()
         {
             AssertEqual(CollapseWhitespace(@"
@@ -37,6 +39,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - block")]
         public void BulletedList_Nested()
         {
             AssertEqual(CollapseWhitespace(@"
@@ -51,6 +54,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - block")]
         public void BulletedList_Negative_SpaceRequired()
         {
             // The space is required.
@@ -60,6 +64,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - block")]
         public void BulletedList_Negative_NewParagraph()
         {
             // Bulleted lists must start on a new paragraph

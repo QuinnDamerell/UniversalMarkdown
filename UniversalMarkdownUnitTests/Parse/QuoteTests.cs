@@ -8,6 +8,7 @@ namespace UniversalMarkdownUnitTests.Parse
     public class QuoteTests : ParseTestBase
     {
         [UITestMethod]
+        [TestCategory("Parse - block")]
         public void Quote_SingleLine()
         {
             AssertEqual(">Quoted text",
@@ -17,6 +18,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - block")]
         public void Quote_MultiLine_1()
         {
             AssertEqual(CollapseWhitespace(@"
@@ -33,6 +35,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - block")]
         public void Quote_MultiLine()
         {
             AssertEqual(CollapseWhitespace(@"
@@ -48,6 +51,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - block")]
         public void Quote_Nested()
         {
             AssertEqual(CollapseWhitespace(@"

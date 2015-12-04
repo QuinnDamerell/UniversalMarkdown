@@ -8,6 +8,7 @@ namespace UniversalMarkdownUnitTests.Parse
     public class ItalicTests : ParseTestBase
     {
         [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void Italic_Simple()
         {
             AssertEqual("*italic*",
@@ -17,6 +18,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void Italic_Simple_Alt()
         {
             AssertEqual("_italic_",
@@ -26,6 +28,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void Italic_Inline()
         {
             AssertEqual("This is *italic* text",
@@ -37,6 +40,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void Italic_Inline_Alt()
         {
             AssertEqual("This is _italic_ text",
@@ -48,6 +52,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void Italic_Inside_Word()
         {
             AssertEqual("before*middle*end",
@@ -59,6 +64,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void Italic_MultiLine()
         {
             // Does work across lines.
@@ -73,6 +79,15 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void Italic_Escape()
+        {
+            AssertEqual(@"\*escape the formatting syntax\*", new ParagraphBlock().AddChildren(
+                new TextRunInline { Text = "*escape the formatting syntax*" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void Italic_Negative_1()
         {
             AssertEqual("before* middle *end",
@@ -81,6 +96,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void Italic_Negative_2()
         {
             AssertEqual("before* middle*end",
@@ -89,6 +105,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void Italic_Negative_3()
         {
             // There must be a valid end italics marker otherwise the whole thing is ignored.
@@ -98,6 +115,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void Italic_Negative_MultiParagraph()
         {
             // Doesn't work across paragraphs.

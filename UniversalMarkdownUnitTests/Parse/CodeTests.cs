@@ -8,6 +8,7 @@ namespace UniversalMarkdownUnitTests.Parse
     public class CodeTests : ParseTestBase
     {
         [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void Code_Inline()
         {
             Assert.Fail("Not supported.");
@@ -20,6 +21,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void Code_Inline_Boundary()
         {
             Assert.Fail("Not supported.");
@@ -32,6 +34,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void Code_Inline_Formatting()
         {
             // Formatting is ignored inside code.
@@ -44,6 +47,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - block")]
         public void Code_Block()
         {
             // Multi-line code block.  Should have a border and scroll, not wrap!
@@ -62,6 +66,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - block")]
         public void Code_Block_With_Indent()
         {
             // Multi-line code block.  Should have a border and scroll, not wrap!
@@ -82,6 +87,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - block")]
         public void Code_Block_Negative()
         {
             // Multi-line code blocks must start with a new paragraph.

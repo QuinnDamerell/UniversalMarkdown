@@ -7,6 +7,7 @@ namespace UniversalMarkdownUnitTests.Display
     public class HorizontalRuleTests : DisplayTestBase
     {
         [UITestMethod]
+        [TestCategory("Display - block")]
         public void HorizontalRule_Simple()
         {
             string result = RenderMarkdown("*****");

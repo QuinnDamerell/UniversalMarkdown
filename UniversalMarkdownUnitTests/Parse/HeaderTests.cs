@@ -8,6 +8,7 @@ namespace UniversalMarkdownUnitTests.Parse
     public class HeaderTests : ParseTestBase
     {
         [UITestMethod]
+        [TestCategory("Parse - block")]
         public void Header_1()
         {
             AssertEqual("#Header 1",
@@ -16,6 +17,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - block")]
         public void Header_1_Alt()
         {
             AssertEqual(CollapseWhitespace(@"
@@ -26,6 +28,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - block")]
         public void Header_2()
         {
             AssertEqual("##Header 2",
@@ -34,6 +37,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - block")]
         public void Header_2_Alt()
         {
             // Note: trailing spaces on the second line are okay.
@@ -45,6 +49,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - block")]
         public void Header_3()
         {
             AssertEqual("###Header 3",
@@ -53,6 +58,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - block")]
         public void Header_4()
         {
             AssertEqual("####Header 4",
@@ -61,6 +67,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - block")]
         public void Header_5()
         {
             AssertEqual("#####Header 5",
@@ -69,6 +76,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - block")]
         public void Header_6()
         {
             AssertEqual("######Header 6",
@@ -77,6 +85,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - block")]
         public void Header_6_WithTrailingHashSymbols()
         {
             AssertEqual("###### Header 6 ######",
@@ -85,6 +94,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - block")]
         public void Header_1_Inline()
         {
             AssertEqual(CollapseWhitespace(@"
@@ -100,6 +110,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - block")]
         public void Header_Negative_RogueCharacter()
         {
             // The second line after a heading must be all === or all ---
@@ -111,6 +122,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - block")]
         public void Header_Negative_ExtraSpace()
         {
             // The second line after a heading must not start with a space

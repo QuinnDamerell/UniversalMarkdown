@@ -8,6 +8,7 @@ namespace UniversalMarkdownUnitTests.Parse
     public class HorizontalRuleTests : ParseTestBase
     {
         [UITestMethod]
+        [TestCategory("Parse - block")]
         public void HorizontalRule_Simple()
         {
             AssertEqual("***",
@@ -15,6 +16,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - block")]
         public void HorizontalRule_StarsAndSpaces()
         {
             AssertEqual("* * * * *",
@@ -22,6 +24,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - block")]
         public void HorizontalRule_Alt()
         {
             AssertEqual("---",
@@ -29,6 +32,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - block")]
         public void HorizontalRule_BeforeAfter()
         {
             // Text on other lines is okay.
@@ -44,6 +48,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - block")]
         public void HorizontalRule_Negative()
         {
             // Text on the same line is not.
@@ -56,6 +61,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - block")]
         public void HorizontalRule_Negative_FourStars()
         {
             // Also, must be at least 3 stars.

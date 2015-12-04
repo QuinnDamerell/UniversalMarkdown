@@ -8,6 +8,7 @@ namespace UniversalMarkdownUnitTests.Parse
     public class HyperlinkTests : ParseTestBase
     {
         [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void Hyperlink_Http()
         {
             AssertEqual("http://reddit.com",
@@ -16,6 +17,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void Hyperlink_Https()
         {
             AssertEqual("https://reddit.com",
@@ -24,6 +26,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void Hyperlink_WithLabel()
         {
             AssertEqual("[reddit](http://reddit.com)",
@@ -33,6 +36,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void Hyperlink_RelativeLink()
         {
             AssertEqual("[reddit] (/blog)",
@@ -42,6 +46,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void Hyperlink_WithLabelSpacing()
         {
             AssertEqual("[reddit] (http://reddit.com)",
@@ -51,6 +56,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void Hyperlink_WithLabelAndFormatting()
         {
             AssertEqual("[red**dit**](http://reddit.com)",
@@ -62,6 +68,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void Hyperlink_WithTooltip()
         {
             AssertEqual(@"[Wikipedia](http://en.wikipedia.org ""tooltip text"")",
@@ -71,6 +78,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void Hyperlink_Escape()
         {
             // The link stops at the first ')'
@@ -81,6 +89,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void Hyperlink_Subreddit()
         {
             AssertEqual("/r/subreddit",

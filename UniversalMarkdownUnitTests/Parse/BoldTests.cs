@@ -8,6 +8,7 @@ namespace UniversalMarkdownUnitTests.Parse
     public class BoldTests : ParseTestBase
     {
         [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void Bold_Simple()
         {
             AssertEqual("**bold**", new ParagraphBlock().AddChildren(
@@ -16,6 +17,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void Bold_Simple_Alt()
         {
             AssertEqual("__bold__", new ParagraphBlock().AddChildren(
@@ -24,6 +26,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void Bold_Inline()
         {
             AssertEqual("This is **bold** text", new ParagraphBlock().AddChildren(
@@ -34,6 +37,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void Bold_Inline_Alt()
         {
             AssertEqual("This is __bold__ text", new ParagraphBlock().AddChildren(
@@ -44,6 +48,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void Bold_Inside_Word()
         {
             AssertEqual("before**middle**end", new ParagraphBlock().AddChildren(
@@ -54,6 +59,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void Bold_Negative_1()
         {
             AssertEqual("before** middle **end", new ParagraphBlock().AddChildren(
@@ -61,6 +67,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void Bold_Negative_2()
         {
             AssertEqual("before** middle**end", new ParagraphBlock().AddChildren(

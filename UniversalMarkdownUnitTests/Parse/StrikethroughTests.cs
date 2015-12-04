@@ -8,6 +8,7 @@ namespace UniversalMarkdownUnitTests.Parse
     public class StrikethroughTests : ParseTestBase
     {
         [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void Strikethrough_Simple()
         {
             Assert.Fail("Not implemented");
@@ -18,6 +19,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void Strikethrough_Inline()
         {
             Assert.Fail("Not implemented");

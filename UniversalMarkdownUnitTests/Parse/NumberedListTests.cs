@@ -8,6 +8,7 @@ namespace UniversalMarkdownUnitTests.Parse
     public class NumberedListTests : ParseTestBase
     {
         [UITestMethod]
+        [TestCategory("Parse - block")]
         public void NumberedList_SingleLine()
         {
             AssertEqual("1. List",
@@ -16,6 +17,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - block")]
         public void NumberedList_Numbering()
         {
             // The numbers are ignored, and they can be any length.
@@ -30,6 +32,7 @@ namespace UniversalMarkdownUnitTests.Parse
         }
 
         [UITestMethod]
+        [TestCategory("Parse - block")]
         public void NumberedList_Negative_SpaceRequired()
         {
             // A space is required after the dot.

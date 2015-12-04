@@ -29,7 +29,9 @@ namespace UniversalMarkdown.Parse
         Italic,
         MarkdownLink,
         RawHyperlink,
-        RawSubreddit
+        RawSubreddit,
+        Strikethrough,
+        Superscript,
     };
 
     public abstract class MarkdownInline : MarkdownElement

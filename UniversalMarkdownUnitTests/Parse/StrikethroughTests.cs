@@ -11,24 +11,59 @@ namespace UniversalMarkdownUnitTests.Parse
         [TestCategory("Parse - inline")]
         public void Strikethrough_Simple()
         {
-            Assert.Fail("Not implemented");
-            //AssertEqual("~~strike~~",
-            //    new ParagraphBlock().AddChildren(
-            //        new StrikethroughTextInline().AddChildren(
-            //            new TextRunInline { Text = "strike" })));
+            AssertEqual("~~strike~~",
+                new ParagraphBlock().AddChildren(
+                    new StrikethroughTextInline().AddChildren(
+                        new TextRunInline { Text = "strike" })));
         }
 
         [UITestMethod]
         [TestCategory("Parse - inline")]
         public void Strikethrough_Inline()
         {
-            Assert.Fail("Not implemented");
-            //AssertEqual("This is ~~strike~~ text",
-            //    new ParagraphBlock().AddChildren(
-            //        new TextRunInline { Text = "This is " },
-            //        new StrikethroughTextInline().AddChildren(
-            //            new TextRunInline { Text = "strike" }),
-            //        new TextRunInline { Text = " text" }));
+            AssertEqual("This is ~~strike~~ text",
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "This is " },
+                    new StrikethroughTextInline().AddChildren(
+                        new TextRunInline { Text = "strike" }),
+                    new TextRunInline { Text = " text" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void Strikethrough_Negative_1()
+        {
+            AssertEqual(@"~~ strike~~",
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "~~ strike~~" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void Strikethrough_Negative_2()
+        {
+            AssertEqual(@"~~strike ~~",
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "~~strike ~~" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void Strikethrough_Escape_1()
+        {
+            AssertEqual(@"\~~strike~~",
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "~~strike~~" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void Strikethrough_Escape_2()
+        {
+            AssertEqual(@"~~strike\~~",
+                new ParagraphBlock().AddChildren(
+                    new StrikethroughTextInline().AddChildren(
+                        new TextRunInline { Text = @"strike\" })));
         }
     }
 }

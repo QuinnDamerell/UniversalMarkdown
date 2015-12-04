@@ -49,7 +49,7 @@ namespace UniversalMarkdown.Helpers
         /// <returns></returns>
         public static List<InlineTripCharHelper> GetTripCharsList()
         {
-            lock(s_tripCharList)
+            lock (s_tripCharList)
             {
                 if (s_tripCharList.Count == 0)
                 {
@@ -58,6 +58,8 @@ namespace UniversalMarkdown.Helpers
                     s_tripCharList.Add(MarkdownLinkInline.GetTripChars());
                     s_tripCharList.Add(RawHyperlinkInline.GetTripChars());
                     s_tripCharList.Add(RawSubredditInline.GetTripChars());
+                    s_tripCharList.Add(StrikethroughTextInline.GetTripChars());
+                    s_tripCharList.Add(SuperscriptTextInline.GetTripChars());
                     // Text run doesn't have one.
                 }
             }
@@ -75,73 +77,85 @@ namespace UniversalMarkdown.Helpers
             List<InlineTripCharHelper> tripChars = GetTripCharsList();
 
             // Loop though all of the chars in this run and look for a trip char.
-            for(int i = startingPos; i < endingPos; i++)
+            for (int i = startingPos; i < endingPos; i++)
             {
                 char currentChar = Char.ToLower(markdown[i]);
 
                 // Try to match each trip char to the char
-                foreach(InlineTripCharHelper currentTripChar in tripChars)
-            {
+                foreach (InlineTripCharHelper currentTripChar in tripChars)
+                {
                     // Check if our current char matches the sufex char.
-                    if(currentChar == currentTripChar.FirstChar)
-            {
+                    if (currentChar == currentTripChar.FirstChar)
+                    {
 
                         // We have a match! See if there is a suffix and if so if it matches.
-                        if(currentTripChar.FirstCharSuffix != null)
-            {
+                        if (currentTripChar.FirstCharSuffix != null)
+                        {
                             // We need to loop through the sufex and see if it matches the next n chars in the markdown.
                             int suffexCharCounter = i + 1;
                             bool suffexFound = true;
                             foreach (char suffexChar in currentTripChar.FirstCharSuffix)
-            {
+                            {
                                 char test = Char.ToLower(markdown[suffexCharCounter]);
                                 if (suffexCharCounter >= endingPos || suffexChar != Char.ToLower(markdown[suffexCharCounter]))
                                 {
                                     suffexFound = false;
                                     break;
-            }
+                                }
                                 suffexCharCounter++;
                             }
                             // If the suffex didn't match this isn't a possibility.
-                            if(!suffexFound)
-            {
+                            if (!suffexFound)
+                            {
                                 continue;
-            }
+                            }
                         }
 
                         // If we are here we have a possible match. Call into the inline class to verify.
                         // Note! The order of bold and italic here is important because they both start with *
                         // otherwise italic will consume bold's opening tag.
-                        switch(currentTripChar.Type)
-            {
-                case MarkdownInlineType.Bold:
+                        switch (currentTripChar.Type)
+                        {
+                            case MarkdownInlineType.Bold:
                                 if (BoldTextInline.VerifyMatch(ref markdown, i, endingPos, ref nextElementStart, ref nextElementEnd))
                                 {
                                     return new BoldTextInline();
                                 }
                                 break;
-                case MarkdownInlineType.Italic:
+                            case MarkdownInlineType.Italic:
                                 if (ItalicTextInline.VerifyMatch(ref markdown, i, endingPos, ref nextElementStart, ref nextElementEnd))
                                 {
                                     return new ItalicTextInline();
                                 }
                                 break;
-                case MarkdownInlineType.MarkdownLink:
+                            case MarkdownInlineType.MarkdownLink:
                                 if (MarkdownLinkInline.VerifyMatch(ref markdown, i, endingPos, ref nextElementStart, ref nextElementEnd))
                                 {
-                    return new MarkdownLinkInline();
+                                    return new MarkdownLinkInline();
                                 }
                                 break;
-                case MarkdownInlineType.RawHyperlink:
+                            case MarkdownInlineType.RawHyperlink:
                                 if (RawHyperlinkInline.VerifyMatch(ref markdown, i, endingPos, ref nextElementStart, ref nextElementEnd))
                                 {
-                    return new RawHyperlinkInline();
+                                    return new RawHyperlinkInline();
                                 }
                                 break;
-                case MarkdownInlineType.RawSubreddit:
+                            case MarkdownInlineType.RawSubreddit:
                                 if (RawSubredditInline.VerifyMatch(ref markdown, i, endingPos, ref nextElementStart, ref nextElementEnd))
                                 {
-                    return new RawSubredditInline();
+                                    return new RawSubredditInline();
+                                }
+                                break;
+                            case MarkdownInlineType.Strikethrough:
+                                if (StrikethroughTextInline.VerifyMatch(ref markdown, i, endingPos, ref nextElementStart, ref nextElementEnd))
+                                {
+                                    return new StrikethroughTextInline();
+                                }
+                                break;
+                            case MarkdownInlineType.Superscript:
+                                if (SuperscriptTextInline.VerifyMatch(ref markdown, i, endingPos, ref nextElementStart, ref nextElementEnd))
+                                {
+                                    return new SuperscriptTextInline();
                                 }
                                 break;
                         }
@@ -184,14 +198,14 @@ namespace UniversalMarkdown.Helpers
                 while (investigatePos < endingPos)
                 {
                     // Count spaces
-                    if(markdown[investigatePos] == ' ')
+                    if (markdown[investigatePos] == ' ')
                     {
                         spaceCount++;
                     }
                     // If we hit a \r and we haven't already eat it
-                    else if(markdown[investigatePos] == '\r')
+                    else if (markdown[investigatePos] == '\r')
                     {
-                        if(ateReturn)
+                        if (ateReturn)
                         {
                             break;
                         }
@@ -215,7 +229,7 @@ namespace UniversalMarkdown.Helpers
                 }
 
                 // We didn't find anything.
-                if(investigatePos == endingPos)
+                if (investigatePos == endingPos)
                 {
                     return doubleNewLinePos;
                 }
@@ -404,7 +418,7 @@ namespace UniversalMarkdown.Helpers
 
             // Check the ending. Since we use inclusive ranges we need to -1 from this for
             // reverses searches.
-            if(reverseSearch && endingPos > 0)
+            if (reverseSearch && endingPos > 0)
             {
                 endingPos -= 1;
             }
@@ -419,18 +433,18 @@ namespace UniversalMarkdown.Helpers
         /// <param name="startingPos"></param>
         /// <param name="endingPos"></param>
         /// <returns></returns>
-        public static int FindNextWhiteSpace(ref string markdown, int startingPos, int endingPos, bool ifNotFoundReturnLenght)
+        public static int FindNextWhiteSpace(ref string markdown, int startingPos, int endingPos, bool ifNotFoundReturnLength)
         {
             int currentPos = startingPos;
-            while(currentPos < markdown.Length && currentPos < endingPos)
+            while (currentPos < markdown.Length && currentPos < endingPos)
             {
-                if(Char.IsWhiteSpace(markdown[currentPos]))
+                if (Char.IsWhiteSpace(markdown[currentPos]))
                 {
                     return currentPos;
                 }
                 currentPos++;
             }
-            return ifNotFoundReturnLenght ? endingPos : -1;
+            return ifNotFoundReturnLength ? endingPos : -1;
         }
 
         /// <summary>

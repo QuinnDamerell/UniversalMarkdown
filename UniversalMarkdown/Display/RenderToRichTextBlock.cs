@@ -62,7 +62,7 @@ namespace UniversalMarkdown.Display
             // For the root, loop through the block types and render them
             foreach (MarkdownBlock element in markdownTree.Children)
             {
-                RendnerBlock(element, m_richTextBlock.Blocks);
+                RenderBlock(element, m_richTextBlock.Blocks);
             }
         }
 
@@ -71,7 +71,7 @@ namespace UniversalMarkdown.Display
         /// </summary>
         /// <param name="element"></param>
         /// <param name="currentBlocks"></param>
-        private void RendnerBlock(MarkdownBlock element, BlockCollection currentBlocks)
+        private void RenderBlock(MarkdownBlock element, BlockCollection currentBlocks)
         {
             switch (element.Type)
             {
@@ -104,7 +104,7 @@ namespace UniversalMarkdown.Display
         /// </summary>
         /// <param name="element"></param>
         /// <param name="currentInlines"></param>
-        private void RendnerInline(MarkdownInline element, InlineCollection currentInlines, ref bool trimTextStart)
+        private void RenderInline(MarkdownInline element, InlineCollection currentInlines, ref bool trimTextStart)
         {
             switch(element.Type)
             {
@@ -126,6 +126,12 @@ namespace UniversalMarkdown.Display
                 case MarkdownInlineType.RawSubreddit:
                     RenderRawSubreddit((RawSubredditInline)element, currentInlines, ref trimTextStart);
                     break;
+                case MarkdownInlineType.Strikethrough:
+                    RenderStrikethroughRun((StrikethroughTextInline)element, currentInlines, ref trimTextStart);
+                    break;
+                case MarkdownInlineType.Superscript:
+                    RenderSuperscriptRun((SuperscriptTextInline)element, currentInlines, ref trimTextStart);
+                    break;
             }
         }
 
@@ -139,7 +145,7 @@ namespace UniversalMarkdown.Display
         {
             foreach (MarkdownInline element in rootElemnet.Children)
             {
-                RendnerInline(element, currentInlines, ref trimTextStart);
+                RenderInline(element, currentInlines, ref trimTextStart);
             }
         }
 
@@ -489,6 +495,42 @@ namespace UniversalMarkdown.Display
 
             // Add it to the current inlines
             currentInlines.Add(italicSpan);
+        }
+
+        /// <summary>
+        /// Renders a strikethrough element
+        /// </summary>
+        /// <param name="element"></param>
+        /// <param name="currentInlines"></param>
+        /// <param name="trimTextStart">If true this element should trin the start of the text and set to fales.</param>
+        private void RenderStrikethroughRun(StrikethroughTextInline element, InlineCollection currentInlines, ref bool trimTextStart)
+        {
+            // TODO: make this actually strikethrough somehow...
+            Span span = new Span();
+
+            // Render the children into the inline.
+            RenderInlineChildren(element, span.Inlines, ref trimTextStart);
+
+            // Add it to the current inlines
+            currentInlines.Add(span);
+        }
+
+        /// <summary>
+        /// Renders a superscript element
+        /// </summary>
+        /// <param name="element"></param>
+        /// <param name="currentInlines"></param>
+        /// <param name="trimTextStart">If true this element should trin the start of the text and set to fales.</param>
+        private void RenderSuperscriptRun(SuperscriptTextInline element, InlineCollection currentInlines, ref bool trimTextStart)
+        {
+            Span span = new Span();
+            Typography.SetVariants(span, FontVariants.Superscript);
+
+            // Render the children into the inline.
+            RenderInlineChildren(element, span.Inlines, ref trimTextStart);
+
+            // Add it to the current inlines
+            currentInlines.Add(span);
         }
 
         #endregion

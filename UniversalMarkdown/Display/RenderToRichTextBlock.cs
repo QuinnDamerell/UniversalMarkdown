@@ -1,8 +1,8 @@
 ﻿// Copyright (c) 2016 Quinn Damerell
-// 
+//
 // The above copyright notice and this permission notice shall be
 // included in all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 // EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
 // OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -62,7 +62,7 @@ namespace UniversalMarkdown.Display
             // For the root, loop through the block types and render them
             foreach (MarkdownBlock element in markdownTree.Children)
             {
-                RendnerBlock(element, m_richTextBlock.Blocks);            
+                RendnerBlock(element, m_richTextBlock.Blocks);
             }
         }
 
@@ -135,12 +135,11 @@ namespace UniversalMarkdown.Display
         /// <param name="rootElemnet">The root element to render children of</param>
         /// <param name="currentInlines">The inlines where they should go</param>
         /// <param name="trimTextStart">If true the first text box start will be trimed so there is no leading space</param>
-        private void RenderInlineChildren(MarkdownElement rootElemnet, InlineCollection currentInlines, bool trimTextStart = false)
+        private void RenderInlineChildren(MarkdownElement rootElemnet, InlineCollection currentInlines, ref bool trimTextStart)
         {
-            bool trimTextStartIntenal = trimTextStart;
             foreach (MarkdownInline element in rootElemnet.Children)
             {
-                RendnerInline(element, currentInlines, ref trimTextStartIntenal);
+                RendnerInline(element, currentInlines, ref trimTextStart);
             }
         }
 
@@ -163,7 +162,8 @@ namespace UniversalMarkdown.Display
             currentBlocks.Add(paragraph);
 
             // Render the children into the para inline.
-            RenderInlineChildren(element, paragraph.Inlines, true);
+            bool trimTextStart = true;
+            RenderInlineChildren(element, paragraph.Inlines, ref trimTextStart);
         }
 
         /// <summary>
@@ -204,7 +204,8 @@ namespace UniversalMarkdown.Display
             currentBlocks.Add(headerPara);
 
             // Render the children into the para inline.
-            RenderInlineChildren(element, headerPara.Inlines, true);
+            bool trimTextStart = true;
+            RenderInlineChildren(element, headerPara.Inlines, ref trimTextStart);
         }
 
         /// <summary>
@@ -251,7 +252,8 @@ namespace UniversalMarkdown.Display
             currentBlocks.Add(blockParagraph);
 
             // Render the children into the rich.
-            RenderInlineChildren(element, inlineParagraph.Inlines, true);
+            bool trimTextStart = true;
+            RenderInlineChildren(element, inlineParagraph.Inlines, ref trimTextStart);
         }
 
         /// <summary>
@@ -318,7 +320,8 @@ namespace UniversalMarkdown.Display
             currentBlocks.Add(quotePara);
 
             // Render the children into the para inline.
-            RenderInlineChildren(element, quotePara.Inlines, true);
+            bool trimTextStart = true;
+            RenderInlineChildren(element, quotePara.Inlines, ref trimTextStart);
         }
 
 
@@ -339,7 +342,8 @@ namespace UniversalMarkdown.Display
             currentBlocks.Add(codePara);
 
             // Render the children into the para inline.
-            RenderInlineChildren(element, codePara.Inlines, true);
+            bool trimTextStart = true;
+            RenderInlineChildren(element, codePara.Inlines, ref trimTextStart);
         }
 
         #endregion
@@ -383,7 +387,7 @@ namespace UniversalMarkdown.Display
             boldSpan.FontWeight = FontWeights.Bold;
 
             // Render the children into the bold inline.
-            RenderInlineChildren(element, boldSpan.Inlines);
+            RenderInlineChildren(element, boldSpan.Inlines, ref trimTextStart);
 
             // Add it to the current inlines
             currentInlines.Add(boldSpan);
@@ -404,7 +408,7 @@ namespace UniversalMarkdown.Display
             m_linkRegister.RegisterNewHyperLink(link, element.Url);
 
             // Render the children into the link inline.
-            RenderInlineChildren(element, link.Inlines);
+            RenderInlineChildren(element, link.Inlines, ref trimTextStart);
 
             // Add it to the current inlines
             currentInlines.Add(link);
@@ -481,7 +485,7 @@ namespace UniversalMarkdown.Display
             italicSpan.FontStyle = FontStyle.Italic;
 
             // Render the children into the italic inline.
-            RenderInlineChildren(element, italicSpan.Inlines);
+            RenderInlineChildren(element, italicSpan.Inlines, ref trimTextStart);
 
             // Add it to the current inlines
             currentInlines.Add(italicSpan);

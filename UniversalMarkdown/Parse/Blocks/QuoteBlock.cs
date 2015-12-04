@@ -1,8 +1,8 @@
 ﻿// Copyright (c) 2016 Quinn Damerell
-// 
+//
 // The above copyright notice and this permission notice shall be
 // included in all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 // EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
 // OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -26,14 +26,14 @@ namespace UniversalMarkdown.Parse.Elements
     {
         public int QuoteIndent = 0;
 
-        public QuoteBlock() 
+        public QuoteBlock()
             : base(MarkdownBlockType.Quote)
         { }
 
         /// <summary>
         /// Called when this block type should parse out the goods. Given the markdown, a starting point, and a max ending point
         /// the block should find the start of the block, find the end and parse out the middle. The end most of the time will not be
-        /// the max ending pos, but it sometimes can be. The funciton will return where it ended parsing the block in the markdown.
+        /// the max ending pos, but it sometimes can be. The function will return where it ended parsing the block in the markdown.
         /// </summary>
         /// <param name="markdown"></param>
         /// <param name="startingPos"></param>
@@ -41,28 +41,29 @@ namespace UniversalMarkdown.Parse.Elements
         /// <returns></returns>
         internal override int Parse(ref string markdown, int startingPos, int maxEndingPos)
         {
-            // Find the start of the quote
-            int quoteStart = Common.IndexOf(ref markdown, '>', startingPos, maxEndingPos);
-            if(quoteStart == -1)
+            // Do a quick check.
+            int quoteStart = startingPos + 1;
+            if(markdown[startingPos] != '>')
             {
                 DebuggingReporter.ReportCriticalError("Tried to parse quote that didn't exist");
-                return maxEndingPos;
             }
 
-            // Find the end of quote
-            int quoteEnd = Common.FindNextNewLine(ref markdown, quoteStart, maxEndingPos);
+            // Find the end of quote, we always break on a double return no matter what.
+            int quoteEnd = Common.FindNextDoubleNewLine(ref markdown, quoteStart, maxEndingPos);
             if(quoteEnd == -1)
             {
                 DebuggingReporter.ReportCriticalError("Tried to parse quote that didn't have an end");
                 quoteEnd = maxEndingPos;
             }
 
-            // Find how many indents we have
-            QuoteIndent = 0;
-            while (quoteStart < markdown.Length && quoteStart < quoteEnd && markdown[quoteStart] == '>')
+            // Find how many indents we have, we have to count backwards from the starting pos. Start with one
+            // so if we have no spaces we at least get that.
+            QuoteIndent = 1;
+            int currentBackCount = startingPos - 1;
+            while (currentBackCount >= 0 && markdown[currentBackCount] != '\n' && markdown[currentBackCount] != '\r')
             {
                 QuoteIndent++;
-                quoteStart++;
+                currentBackCount--;
             }
 
             // Make sure there is something to parse, and not just dead space

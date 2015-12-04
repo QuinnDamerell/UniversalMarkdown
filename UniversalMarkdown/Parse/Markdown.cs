@@ -1,8 +1,8 @@
 ﻿// Copyright (c) 2016 Quinn Damerell
-// 
+//
 // The above copyright notice and this permission notice shall be
 // included in all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 // EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
 // OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -40,8 +40,8 @@ namespace UniversalMarkdown.Parse
                 return;
             }
 
-            // We need to make sure that all text ends with a \r/n so everything is contained in at least something
-            markdownText += "\r\n";
+            // We need to make sure that all text ends with a \n\n so everything is contained in at least something
+            markdownText += "\n\n";
 
             // Parse us.
             Parse(ref markdownText, 0, markdownText.Length);
@@ -56,7 +56,7 @@ namespace UniversalMarkdown.Parse
         /// <returns></returns>
         internal override int Parse(ref string markdown, int startingPos, int maxEndingPos)
         {
-            // We are the only thing that can parse blocks, and we should be the only thing to hold blocks. 
+            // We are the only thing that can parse blocks, and we should be the only thing to hold blocks.
             // So start off by parsing our block children.
             int currentParsePosition = 0;
 
@@ -64,8 +64,14 @@ namespace UniversalMarkdown.Parse
             {
                 int elementStartingPos = currentParsePosition;
 
-                // Find the next element
-                MarkdownBlock element = FindNextBlock(ref markdown, currentParsePosition, maxEndingPos);
+                // Find the next element, note this can change the elementStartingPos param
+                MarkdownBlock element = FindNextBlock(ref markdown, ref elementStartingPos, maxEndingPos);
+
+                // If our next start is our end then we are done.
+                if(maxEndingPos == elementStartingPos)
+                {
+                    return maxEndingPos;
+                }
 
                 // Ask it to parse, it will return us the ending pos of itself.
                 currentParsePosition = element.Parse(ref markdown, elementStartingPos, maxEndingPos);
@@ -84,40 +90,39 @@ namespace UniversalMarkdown.Parse
         /// <param name="startingPos"></param>
         /// <param name="endingPost"></param>
         /// <returns></returns>
-        public static MarkdownBlock FindNextBlock(ref string markdown, int startingPos, int endingPos)
+        public static MarkdownBlock FindNextBlock(ref string markdown, ref int startingPos, int endingPos)
         {
             // We need to look at the start of this current block and figure out what type it is.
             // Find the next char that isn't a \n, \r, or ' ', keep track of white space
-            int nextCharPos = startingPos;
             int spaceCount = 0;
-            while (markdown.Length > nextCharPos && endingPos > nextCharPos && (markdown[nextCharPos] == '\r' || markdown[nextCharPos] == '\n' || Char.IsWhiteSpace(markdown[nextCharPos])))
+            while (markdown.Length > startingPos && endingPos > startingPos && (markdown[startingPos] == '\r' || markdown[startingPos] == '\n' || Char.IsWhiteSpace(markdown[startingPos])))
             {
                 // If we find a space count it for the indent rules. If not reset the count.
-                spaceCount = markdown[nextCharPos] == ' ' ? spaceCount + 1 : 0;
-                nextCharPos++;
+                spaceCount = markdown[startingPos] == ' ' ? spaceCount + 1 : 0;
+                startingPos++;
             }
 
-            if(CodeBlock.CanHandleBlock(ref markdown, nextCharPos, endingPos, spaceCount))
+            if(CodeBlock.CanHandleBlock(ref markdown, startingPos, endingPos, spaceCount))
             {
                 return new CodeBlock();
             }
-            if(QuoteBlock.CanHandleBlock(ref markdown, nextCharPos, endingPos))
+            if(QuoteBlock.CanHandleBlock(ref markdown, startingPos, endingPos))
             {
                 return new QuoteBlock();
             }
-            if (HeaderBlock.CanHandleBlock(ref markdown, nextCharPos, endingPos))
+            if (HeaderBlock.CanHandleBlock(ref markdown, startingPos, endingPos))
             {
                 return new HeaderBlock();
             }
-            if (ListElementBlock.CanHandleBlock(ref markdown, nextCharPos, endingPos))
+            if (ListElementBlock.CanHandleBlock(ref markdown, startingPos, endingPos))
             {
                 return new ListElementBlock();
             }
-            if (HorizontalRuleBlock.CanHandleBlock(ref markdown, nextCharPos, endingPos))
+            if (HorizontalRuleBlock.CanHandleBlock(ref markdown, startingPos, endingPos))
             {
                 return new HorizontalRuleBlock();
             }
-            if (LineBreakBlock.CanHandleBlock(ref markdown, nextCharPos, endingPos))
+            if (LineBreakBlock.CanHandleBlock(ref markdown, startingPos, endingPos))
             {
                 return new LineBreakBlock();
             }

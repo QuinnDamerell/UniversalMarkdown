@@ -1,8 +1,8 @@
 ﻿// Copyright (c) 2016 Quinn Damerell
-// 
+//
 // The above copyright notice and this permission notice shall be
 // included in all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 // EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
 // OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -31,8 +31,17 @@ namespace UniversalMarkdown.Parse.Elements
         { }
 
         /// <summary>
-        /// Called when the object should parse it's goods out of the markdown. The markdown, start, and stop are given. 
-        /// The start and stop are what is returned from the FindNext function below. The object should do it's parsing and 
+        /// Returns the chars that if found means we might have a match.
+        /// </summary>
+        /// <returns></returns>
+        public static InlineTripCharHelper GetTripChars()
+        {
+            return new InlineTripCharHelper() { FirstChar = 'r', FirstCharSuffix = "/", Type = MarkdownInlineType.RawSubreddit };
+        }
+
+        /// <summary>
+        /// Called when the object should parse it's goods out of the markdown. The markdown, start, and stop are given.
+        /// The start and stop are what is returned from the FindNext function below. The object should do it's parsing and
         /// return up to the last pos it used. This can be shorter than what is given to the function in endingPos.
         /// </summary>
         /// <param name="markdown">The markdown</param>
@@ -41,22 +50,23 @@ namespace UniversalMarkdown.Parse.Elements
         /// <returns></returns>
         internal override int Parse(ref string markdown, int startingPos, int endingPos)
         {
-            // Find the start of the subreddit link
-            int subredditStart = Common.IndexOf(ref markdown, "r/", startingPos, endingPos);
-            if(subredditStart != startingPos && (subredditStart - 1) != startingPos)
+            // Do a sanity check.
+            if((Char.ToLower(markdown[startingPos]) != 'r' || markdown[startingPos + 1] != '/') &&
+               (markdown[startingPos] != '/' || Char.ToLower(markdown[startingPos + 1]) != 'r' || markdown[startingPos + 2] != '/'))
             {
                 DebuggingReporter.ReportCriticalError("Trying to parse a subreddit link but didn't find a subreddit");
                 return endingPos;
             }
+            int subredditStart = startingPos;
 
             // Grab where to begin looking for the end.
             int subredditEnd = subredditStart + 2;
             int subredditTextStart = subredditStart + 2;
 
-            // Check if there is a / before it, if so include it
-            if (subredditStart != 0 && markdown[subredditStart - 1] == '/')
+            // If we start with a / we need to +1 to the end.
+            if (markdown[subredditStart] == '/')
             {
-                subredditStart--;
+                subredditEnd++;
             }
 
             // While we didn't hit the end && (it is a char or digit or _ )
@@ -69,36 +79,32 @@ namespace UniversalMarkdown.Parse.Elements
             }
 
             // Grab the text
-            Text = markdown.Substring(subredditStart, subredditEnd - subredditStart);     
+            Text = markdown.Substring(subredditStart, subredditEnd - subredditStart);
 
             // Return what we consumed
             return subredditEnd;
         }
 
         /// <summary>
-        /// Attempts to find a element in the range given. If an element is found we must check if the starting is less than currentNextElementStart,
-        /// and if so update that value to be the start and update the elementEndPos to be the end of the element. These two vales will be passed back to us
-        /// when we are asked to parse. We then return true or false to indicate if we are the new candidate. 
+        /// Verify a match that is found in the markdown. If the match is good and the rest of the element exits the function should
+        /// return true and the element will be matched. If if is a false positive return false and we will keep looking.
         /// </summary>
-        /// <param name="markdown">mark down to parse</param>
-        /// <param name="currentPos">the starting point to search</param>
-        /// <param name="maxEndingPos">the ending point to search</param>
-        /// <param name="elementStartingPos">the current starting element, if this element is < we will update this to be our starting pos</param>
-        /// <param name="elementEndingPos">The ending pos of this element if it is interesting.</param>
-        /// <returns>true if we are the next element candidate, false otherwise.</returns>
-        public static bool FindNextClosest(ref string markdown, int startingPos, int endingPos, ref int currentNextElementStart, ref int elementEndingPos)
+        /// <param name="markdown">The markdown to match</param>
+        /// <param name="startingPos">Where the first trip char should be found</param>
+        /// <param name="maxEndingPos">The max length to look in.</param>
+        /// <param name="elementEndingPos">If found, the ending pos of the element found.</param>
+        /// <returns></returns>
+        public static bool VerifyMatch(ref string markdown, int startingPos, int maxEndingPos, ref int elementStartingPos, ref int elementEndingPos)
         {
-            // Test for raw subreddit links. We need to loop here so if we find a false positive
-            // we can keep checking before the current closest. Note this logic must match the logic
-            // in the subreddit link parser below.
-            int subredditStart = Common.IndexOf(ref markdown, "r/", startingPos, endingPos);
-            while (subredditStart != -1 && subredditStart < currentNextElementStart)
+            // Sanity Check
+            if(Char.ToLower(markdown[startingPos]) == 'r')
             {
+                int subredditStart = startingPos;
                 // Make sure the char before the r/ is not a letter
                 if (subredditStart == 0 || !Char.IsLetterOrDigit(markdown[subredditStart - 1]))
                 {
                     // Make sure there is something after the r/
-                    if (subredditStart + 2 < markdown.Length && subredditStart + 2 < endingPos && Char.IsLetterOrDigit(markdown[subredditStart + 2]))
+                    if (subredditStart + 2 < markdown.Length && subredditStart + 2 < maxEndingPos && Char.IsLetterOrDigit(markdown[subredditStart + 2]))
                     {
                         // Check if there is a / before it, if so include it
                         int beginEndSearchOffset = 2;
@@ -109,13 +115,11 @@ namespace UniversalMarkdown.Parse.Elements
                         }
 
                         // Send the info off!
-                        currentNextElementStart = subredditStart;
-                        elementEndingPos = Common.FindNextNonLetterDigitOrUnderscore(ref markdown, currentNextElementStart + beginEndSearchOffset, endingPos, true);
+                        elementStartingPos = subredditStart;
+                        elementEndingPos = Common.FindNextNonLetterDigitOrUnderscore(ref markdown, subredditStart + beginEndSearchOffset, maxEndingPos, true);
                         return true;
                     }
                 }
-                subredditStart += 2;
-                subredditStart = Common.IndexOf(ref markdown, "r/", subredditStart, endingPos);
             }
             return false;
         }

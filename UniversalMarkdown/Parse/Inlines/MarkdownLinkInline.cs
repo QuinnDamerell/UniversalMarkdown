@@ -1,8 +1,8 @@
 ﻿// Copyright (c) 2016 Quinn Damerell
-// 
+//
 // The above copyright notice and this permission notice shall be
 // included in all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 // EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
 // OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -32,9 +32,19 @@ namespace UniversalMarkdown.Parse.Elements
             : base(MarkdownInlineType.MarkdownLink)
         { }
 
+
         /// <summary>
-        /// Called when the object should parse it's goods out of the markdown. The markdown, start, and stop are given. 
-        /// The start and stop are what is returned from the FindNext function below. The object should do it's parsing and 
+        /// Returns the chars that if found means we might have a match.
+        /// </summary>
+        /// <returns></returns>
+        public static InlineTripCharHelper GetTripChars()
+        {
+            return new InlineTripCharHelper() { FirstChar = '[', Type = MarkdownInlineType.MarkdownLink };
+        }
+
+        /// <summary>
+        /// Called when the object should parse it's goods out of the markdown. The markdown, start, and stop are given.
+        /// The start and stop are what is returned from the FindNext function below. The object should do it's parsing and
         /// return up to the last pos it used. This can be shorter than what is given to the function in endingPos.
         /// </summary>
         /// <param name="markdown">The markdown</param>
@@ -53,7 +63,7 @@ namespace UniversalMarkdown.Parse.Elements
             if (linkTextOpen != startingPos)
             {
                 DebuggingReporter.ReportCriticalError("link parse didn't find [ in at the starting pos");
-            }            
+            }
             if (linkClose + 1 != endingPos)
             {
                 DebuggingReporter.ReportCriticalError("link parse didn't find ] in at the end pos");
@@ -66,46 +76,76 @@ namespace UniversalMarkdown.Parse.Elements
                 // Parse any children of this link element
                 ParseInlineChildren(ref markdown, linkTextOpen, linkTextClose);
             }
-            
+
+            // We can't render links in links. So if anything in the children of this is a link
+            // we have to remove it
+            for(int count = 0; count < Children.Count; count++)
+            {
+                // Look through the children for a link, if found grab the text
+                MarkdownInlineType type = ((MarkdownInline)Children[count]).Type;
+                string replaceText = null;
+                if (type == MarkdownInlineType.MarkdownLink)
+                {
+                    // If it is a link just grab the URL. Ideally we would grab the text
+                    // but that is too hard and this will never happen.
+                    replaceText = ((MarkdownLinkInline)Children[count]).Url;
+                }
+                else if (type == MarkdownInlineType.RawHyperlink)
+                {
+                    replaceText = ((RawHyperlinkInline)Children[count]).Url;
+                }
+                else if (type == MarkdownInlineType.RawSubreddit)
+                {
+                    replaceText = ((RawSubredditInline)Children[count]).Text;
+                }
+
+                // If we found text to replace add a new text element as the text.
+                if(replaceText != null)
+                {
+                    TextRunInline textRun = new TextRunInline();
+                    textRun.Text = replaceText;
+                    Children[count] = textRun;
+                }
+            }
+
             // Grab the link
             linkOpen++;
-            Url = markdown.Substring(linkOpen, linkClose - linkOpen);         
+            Url = markdown.Substring(linkOpen, linkClose - linkOpen);
 
             // Return the point after the )
             return linkClose + 1;
         }
 
         /// <summary>
-        /// Attempts to find a element in the range given. If an element is found we must check if the starting is less than currentNextElementStart,
-        /// and if so update that value to be the start and update the elementEndPos to be the end of the element. These two vales will be passed back to us
-        /// when we are asked to parse. We then return true or false to indicate if we are the new candidate. 
+        /// Verify a match that is found in the markdown. If the match is good and the rest of the element exits the function should
+        /// return true and the element will be matched. If if is a false positive return false and we will keep looking.
         /// </summary>
-        /// <param name="markdown">mark down to parse</param>
-        /// <param name="currentPos">the starting point to search</param>
-        /// <param name="maxEndingPos">the ending point to search</param>
-        /// <param name="elementStartingPos">the current starting element, if this element is < we will update this to be our starting pos</param>
-        /// <param name="elementEndingPos">The ending pos of this element if it is interesting.</param>
-        /// <returns>true if we are the next element candidate, false otherwise.</returns>
-        public static bool FindNextClosest(ref string markdown, int startingPos, int endingPos, ref int currentNextElementStart, ref int elementEndingPos)
+        /// <param name="markdown">The markdown to match</param>
+        /// <param name="startingPos">Where the first trip char should be found</param>
+        /// <param name="maxEndingPos">The max length to look in.</param>
+        /// <param name="elementEndingPos">If found, the ending pos of the element found.</param>
+        /// <returns></returns>
+        public static bool VerifyMatch(ref string markdown, int startingPos, int maxEndingPos, ref int elementStartingPos, ref int elementEndingPos)
         {
-            // Test for links
-            int linkTextOpen = Common.IndexOf(ref markdown, '[', startingPos, endingPos);
-            if (linkTextOpen != -1 && linkTextOpen < currentNextElementStart)
+            // Sanity check
+            if(markdown[startingPos] == '[')
             {
+                int linkTextOpen = startingPos;
                 // Ensure we have a link
-                int linkTextClose = Common.IndexOf(ref markdown, ']', linkTextOpen, endingPos);
+                int linkTextClose = Common.IndexOf(ref markdown, ']', linkTextOpen, maxEndingPos);
                 if (linkTextClose != -1)
                 {
-                    int linkOpen = Common.IndexOf(ref markdown, '(', linkTextClose, endingPos);
+                    int linkOpen = Common.IndexOf(ref markdown, '(', linkTextClose, maxEndingPos);
                     if (linkOpen != -1)
                     {
-                        int linkClose = Common.IndexOf(ref markdown, ')', linkOpen, endingPos);
+                        char test = markdown[maxEndingPos];
+                        int linkClose = Common.IndexOf(ref markdown, ')', linkOpen, maxEndingPos);
                         if (linkClose != -1)
                         {
                             // Make sure the order is correct
                             if (linkTextOpen < linkTextClose && linkTextClose < linkOpen && linkOpen < linkClose)
                             {
-                                currentNextElementStart = linkTextOpen;
+                                elementStartingPos = startingPos;
                                 elementEndingPos = linkClose + 1;
                                 return true;
                             }

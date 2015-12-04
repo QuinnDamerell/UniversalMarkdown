@@ -29,7 +29,7 @@ namespace UniversalMarkdown.Helpers
     /// to has a possible match. We will go through the range once and look for everyone's trip chars, and if they can make a match from the trip
     /// char then we will commit to them.
     /// </summary>
-    public class InlineTripCharHelper
+    internal class InlineTripCharHelper
     {
         // Note! Everything in first char and suffix should be lower case!
         public char FirstChar;
@@ -53,8 +53,8 @@ namespace UniversalMarkdown.Helpers
             {
                 if (s_tripCharList.Count == 0)
                 {
-                    s_tripCharList.Add(BoldTextElement.GetTripChars());
-                    s_tripCharList.Add(ItalicTextElement.GetTripChars());
+                    s_tripCharList.Add(BoldTextInline.GetTripChars());
+                    s_tripCharList.Add(ItalicTextInline.GetTripChars());
                     s_tripCharList.Add(MarkdownLinkInline.GetTripChars());
                     s_tripCharList.Add(RawHyperlinkInline.GetTripChars());
                     s_tripCharList.Add(RawSubredditInline.GetTripChars());

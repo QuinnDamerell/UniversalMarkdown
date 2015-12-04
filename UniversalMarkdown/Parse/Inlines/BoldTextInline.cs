@@ -32,7 +32,7 @@ namespace UniversalMarkdown.Parse.Elements
         /// Returns the chars that if found means we might have a match.
         /// </summary>
         /// <returns></returns>
-        public static InlineTripCharHelper GetTripChars()
+        internal static InlineTripCharHelper GetTripChars()
         {
             return new InlineTripCharHelper() { FirstChar = '*', FirstCharSuffix = "*", Type = MarkdownInlineType.Bold};
         }

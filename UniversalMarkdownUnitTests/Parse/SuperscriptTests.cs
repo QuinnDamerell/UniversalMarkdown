@@ -53,5 +53,34 @@ namespace UniversalMarkdownUnitTests.Parse
                 new ParagraphBlock().AddChildren(
                     new TextRunInline { Text = "Using the carot sign ^ incorrectly" }));
         }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void Superscript_Negative_WithParentheses()
+        {
+            AssertEqual("Using the carot sign ^ (incorrectly)",
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "Using the carot sign ^ (incorrectly)" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void Superscript_Negative_WithParentheses_2()
+        {
+            AssertEqual("Using the carot sign ^(incorrectly",
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "Using the carot sign ^(incorrectly" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void Superscript_Negative_WithParentheses_3()
+        {
+            AssertEqual("Using the carot sign ^(across\r\n\r\nparagraphs)",
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "Using the carot sign ^(across" }),
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "paragraphs)" }));
+        }
     }
 }

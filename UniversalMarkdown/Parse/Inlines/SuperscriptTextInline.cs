@@ -67,9 +67,13 @@ namespace UniversalMarkdown.Parse.Elements
                     return true;
                 }
 
-                // We might have one, try to find the ending that is in the current endingPos
+                // Search for the next whitespace character.
+                int whitespacePos = Common.FindNextWhiteSpace(ref markdown, contentStart, maxEndingPos, ifNotFoundReturnLength: true);
+                if (whitespacePos == contentStart)
+                    return false;   // No match if the character after the caret is a space.
+
                 elementStartingPos = startingPos;
-                elementEndingPos = Common.FindNextWhiteSpace(ref markdown, contentStart, maxEndingPos, ifNotFoundReturnLength: true);
+                elementEndingPos = whitespacePos;
                 return true;
             }
             return false;

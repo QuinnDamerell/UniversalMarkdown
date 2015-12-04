@@ -69,11 +69,16 @@ namespace UniversalMarkdown.Parse.Elements
                 }
             }
 
+            // Strip off hash symbols from the end of the line.
+            int endOfInlines = headerEnd;
+            while (endOfInlines > headerStart && markdown[endOfInlines - 1] == '#')
+                endOfInlines--;
+
             // Make sure there is something to parse, and not just dead space
-            if (headerEnd > headerStart)
+            if (endOfInlines > headerStart)
             {
                 // Parse the children of this quote
-                ParseInlineChildren(ref markdown, headerStart, headerEnd);
+                ParseInlineChildren(ref markdown, headerStart, endOfInlines);
             }
 
             // Trim off any extra line endings, except ' ' otherwise we can't do code blocks

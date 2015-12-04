@@ -29,6 +29,17 @@ namespace UniversalMarkdownUnitTests.Parse
 
         [UITestMethod]
         [TestCategory("Parse - block")]
+        public void Header_1_Alt_WithHashes()
+        {
+            AssertEqual(CollapseWhitespace(@"
+                Header 1##
+                ="),
+                new HeaderBlock { HeaderLevel = 1 }.AddChildren(
+                    new TextRunInline { Text = "Header 1##" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - block")]
         public void Header_2()
         {
             AssertEqual("##Header 2",
@@ -91,6 +102,40 @@ namespace UniversalMarkdownUnitTests.Parse
             AssertEqual("###### Header 6 ######",
                 new HeaderBlock { HeaderLevel = 6 }.AddChildren(
                     new TextRunInline { Text = " Header 6 " }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - block")]
+        public void Header_7()
+        {
+            AssertEqual("#######Header 6",
+                new HeaderBlock { HeaderLevel = 6 }.AddChildren(
+                    new TextRunInline { Text = "#Header 6" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - block")]
+        public void Header_1_Empty()
+        {
+            AssertEqual("#",
+                new HeaderBlock { HeaderLevel = 1 });
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - block")]
+        public void Header_Hashes()
+        {
+            AssertEqual("## # # ##",
+                new HeaderBlock { HeaderLevel = 2 }.AddChildren(
+                    new TextRunInline { Text = " # # " }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - block")]
+        public void Header_6_Empty()
+        {
+            AssertEqual("#######",
+                new HeaderBlock { HeaderLevel = 6 });
         }
 
         [UITestMethod]

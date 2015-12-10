@@ -174,10 +174,20 @@ namespace UniversalMarkdown.Parse.Elements
                     return true;
                 }
 
-                // We need to also look for 1. or ab. or 100. So first jump past any letters or digits
+                // We need to also look for 1. or a. or 100. So first jump past any letters or digits.
+                // Note reddit only allows single letters though like a. or b. not aa.
                 int currentCount = nextCharPos;
+                bool hasLettter = false;
                 while(currentCount < endingPos && Char.IsLetterOrDigit(markdown[currentCount]))
                 {
+                    if(hasLettter)
+                    {
+                        return false;
+                    }
+                    if(Char.IsLetter(markdown[currentCount]))
+                    {
+                        hasLettter = true;
+                    }
                     currentCount++;
                 }
 

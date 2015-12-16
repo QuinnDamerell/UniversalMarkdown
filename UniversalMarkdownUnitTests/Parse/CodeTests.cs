@@ -11,26 +11,24 @@ namespace UniversalMarkdownUnitTests.Parse
         [TestCategory("Parse - inline")]
         public void Code_Inline()
         {
-            Assert.Fail("Not supported.");
-            //AssertEqual("Here is some `inline code` lol",
-            //    new ParagraphBlock().AddChildren(
-            //        new TextRunInline { Text = "Here is some " },
-            //        new CodeRunInline().AddChildren(
-            //            new TextRunInline { Text = "inline code" }),
-            //        new TextRunInline { Text = " lol" }));
+            AssertEqual("Here is some `inline code` lol",
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "Here is some " },
+                    new CodeInline().AddChildren(
+                        new TextRunInline { Text = "inline code" }),
+                    new TextRunInline { Text = " lol" }));
         }
 
         [UITestMethod]
         [TestCategory("Parse - inline")]
         public void Code_Inline_Boundary()
         {
-            Assert.Fail("Not supported.");
-            //AssertEqual("before` middle `after",
-            //    new ParagraphBlock().AddChildren(
-            //        new TextRunInline { Text = "before" },
-            //        new CodeRunInline().AddChildren(
-            //            new TextRunInline { Text = " middle " }),
-            //        new TextRunInline { Text = "after" }));
+            AssertEqual("before` middle `after",
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "before" },
+                    new CodeInline().AddChildren(
+                        new TextRunInline { Text = " middle " }),
+                    new TextRunInline { Text = "after" }));
         }
 
         [UITestMethod]
@@ -38,12 +36,30 @@ namespace UniversalMarkdownUnitTests.Parse
         public void Code_Inline_Formatting()
         {
             // Formatting is ignored inside code.
-            Assert.Fail("Not supported.");
-            //AssertEqual("Here is some `ignored **formatting** inside code`",
-            //    new ParagraphBlock().AddChildren(
-            //        new TextRunInline { Text = "Here is some " },
-            //        new CodeRunInline().AddChildren(
-            //            new TextRunInline { Text = " ignored **formatting** inside code " }));
+            AssertEqual("Here is some `ignored **formatting** inside code`",
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "Here is some " },
+                    new CodeInline().AddChildren(
+                        new TextRunInline { Text = "ignored **formatting** inside code" })));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void Code_Inline_Escape()
+        {
+            // Formatting is ignored inside code.
+            AssertEqual(@"Here is some \`escaped code`",
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "Here is some `escaped code`" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void Code_Inline_Negative_CannotBeEmpty()
+        {
+            AssertEqual("before ``` after",
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "before ``` after" }));
         }
 
         [UITestMethod]

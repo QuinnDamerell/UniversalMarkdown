@@ -33,9 +33,10 @@ namespace UniversalMarkdown.Parse.Elements
         /// Returns the chars that if found means we might have a match.
         /// </summary>
         /// <returns></returns>
-        internal static InlineTripCharHelper GetTripChars()
+        internal static void AddTripChars(List<InlineTripCharHelper> tripCharHelpers)
         {
-            return new InlineTripCharHelper() { FirstChar = '*', Type = MarkdownInlineType.Italic };
+            tripCharHelpers.Add(new InlineTripCharHelper() { FirstChar = '*', Type = MarkdownInlineType.Italic });
+            tripCharHelpers.Add(new InlineTripCharHelper() { FirstChar = '_', Type = MarkdownInlineType.Italic });
         }
 
         /// <summary>
@@ -49,30 +50,26 @@ namespace UniversalMarkdown.Parse.Elements
         /// <returns></returns>
         internal override int Parse(ref string markdown, int startingPos, int endingPos)
         {
-            int italicStart = Common.IndexOf(ref markdown, '*', startingPos, endingPos);
-            // These should always be =
-            if(italicStart != startingPos)
+            var innerStart = startingPos + 1;
+            if (markdown[startingPos] != '*' && markdown[startingPos] != '_')
             {
-                DebuggingReporter.ReportCriticalError("italic parse didn't find * in at the starting pos");
+                DebuggingReporter.ReportCriticalError("Parse didn't find * or _ in at the starting pos");
             }
-            italicStart++;
 
-            // Find the ending
-            int italicEnd = Common.IndexOf(ref markdown, '*', italicStart, endingPos, true);
-            if (italicEnd + 1 != endingPos)
+            var innerEnd = endingPos - 1;
+            if (markdown[innerEnd] != '*' && markdown[innerEnd] != '_')
             {
-                DebuggingReporter.ReportCriticalError("italic parse didn't find * in at the end pos");
+                DebuggingReporter.ReportCriticalError("Parse didn't find * or _ in at the end pos");
             }
 
             // Make sure there is something to parse, and not just dead space
-            if (italicEnd > italicStart)
+            if (innerEnd > innerStart)
             {
-                // Parse any children of this bold element
-                ParseInlineChildren(ref markdown, italicStart, italicEnd);
+                // Parse any children.
+                ParseInlineChildren(ref markdown, innerStart, innerEnd);
             }
 
-            // Return the point after the *
-            return italicEnd + 1;
+            return endingPos;
         }
 
         /// <summary>
@@ -86,26 +83,33 @@ namespace UniversalMarkdown.Parse.Elements
         /// <returns></returns>
         public static bool VerifyMatch(ref string markdown, int startingPos, int maxEndingPos, ref int elementStartingPos, ref int elementEndingPos)
         {
-            // Do an sanity check
-            if (markdown[startingPos] == '*')
-            {
-                // We might have one, try to find the ending that is in the current endingPos
-                // We need to loop and keep looking for * not followed by another * (bold)
-                int italicEndPos = Common.IndexOf(ref markdown, '*', startingPos + 1, maxEndingPos);
-                while (italicEndPos != -1 && italicEndPos + 1 < markdown.Length && markdown[italicEndPos + 1] == '*')
-                {
-                    italicEndPos = Common.IndexOf(ref markdown, '*', italicEndPos + 2, maxEndingPos);
-                }
+            // Do a sanity check.
+            char startChar = markdown[startingPos];
+            if (startChar != '*' && startChar != '_')
+                return false;
 
-                // If we found it and it is the next closest ending pos use it!
-                if (italicEndPos != -1)
-                {
-                    elementStartingPos = startingPos;
-                    elementEndingPos = italicEndPos + 1;
-                    return true;
-                }
-            }
-            return false;
+            // Find the end of the span.  The end character (either '*' or '_') must be the same as
+            // the start character.
+            int innerEnd = Common.IndexOf(ref markdown, startChar, startingPos + 1, maxEndingPos);
+            if (innerEnd == -1)
+                return false;
+
+            // The span must contain at least one character.
+            var innerStart = startingPos + 1;
+            if (innerStart == innerEnd)
+                return false;
+
+            // The first character inside the span must NOT be a space.
+            if (char.IsWhiteSpace(markdown[innerStart]))
+                return false;
+
+            // The last character inside the span must NOT be a space.
+            if (char.IsWhiteSpace(markdown[innerEnd - 1]))
+                return false;
+
+            elementStartingPos = startingPos;
+            elementEndingPos = innerEnd + 1;
+            return true;
         }
     }
 }

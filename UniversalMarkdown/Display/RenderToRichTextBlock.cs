@@ -132,6 +132,9 @@ namespace UniversalMarkdown.Display
                 case MarkdownInlineType.Superscript:
                     RenderSuperscriptRun((SuperscriptTextInline)element, currentInlines, ref trimTextStart);
                     break;
+                case MarkdownInlineType.Code:
+                    RenderCodeRun((SuperscriptTextInline)element, currentInlines, ref trimTextStart);
+                    break;
             }
         }
 
@@ -525,6 +528,24 @@ namespace UniversalMarkdown.Display
         {
             Span span = new Span();
             Typography.SetVariants(span, FontVariants.Superscript);
+
+            // Render the children into the inline.
+            RenderInlineChildren(element, span.Inlines, ref trimTextStart);
+
+            // Add it to the current inlines
+            currentInlines.Add(span);
+        }
+
+        /// <summary>
+        /// Renders a code element
+        /// </summary>
+        /// <param name="element"></param>
+        /// <param name="currentInlines"></param>
+        /// <param name="trimTextStart">If true this element should trin the start of the text and set to fales.</param>
+        private void RenderCodeRun(SuperscriptTextInline element, InlineCollection currentInlines, ref bool trimTextStart)
+        {
+            Span span = new Span();
+            span.FontFamily = new FontFamily("Consolas");
 
             // Render the children into the inline.
             RenderInlineChildren(element, span.Inlines, ref trimTextStart);

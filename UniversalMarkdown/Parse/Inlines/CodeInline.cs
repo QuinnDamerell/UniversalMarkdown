@@ -22,14 +22,11 @@ using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
 {
-    public class RawHyperlinkInline : MarkdownInline
+    public class CodeInline : MarkdownInline
     {
-        public string Url { get; set; }
-
-        public RawHyperlinkInline()
-            : base(MarkdownInlineType.RawHyperlink)
+        public CodeInline()
+            : base(MarkdownInlineType.Code)
         { }
-
 
         /// <summary>
         /// Returns the chars that if found means we might have a match.
@@ -37,7 +34,7 @@ namespace UniversalMarkdown.Parse.Elements
         /// <returns></returns>
         internal static void AddTripChars(List<InlineTripCharHelper> tripCharHelpers)
         {
-            tripCharHelpers.Add(new InlineTripCharHelper() { FirstChar = 'h', FirstCharSuffix = "ttp", Type = MarkdownInlineType.RawHyperlink });
+            tripCharHelpers.Add(new InlineTripCharHelper() { FirstChar = '`', Type = MarkdownInlineType.Code });
         }
 
         /// <summary>
@@ -51,32 +48,30 @@ namespace UniversalMarkdown.Parse.Elements
         /// <returns></returns>
         internal override int Parse(ref string markdown, int startingPos, int endingPos)
         {
-            int httpStart = Common.IndexOf(ref markdown, "http://", startingPos, endingPos);
-            int httpsStart = Common.IndexOf(ref markdown, "https://", startingPos, endingPos);
-
-            // Make -1 huge.
-            httpStart = httpStart == -1 ? int.MaxValue : httpStart;
-            httpsStart = httpsStart == -1 ? int.MaxValue : httpsStart;
-
-            // Figure out the pos of the link
-            int linkStart = Math.Min(httpStart, httpsStart);
-            int linkEnd = Common.FindNextWhiteSpace(ref markdown, linkStart, endingPos, true);
-
-            // These should always be =
-            if (linkStart != startingPos)
+            int start = Common.IndexOf(ref markdown, '`', startingPos, endingPos);
+            // These should always be equal
+            if (start != startingPos)
             {
-                DebuggingReporter.ReportCriticalError("raw link parse didn't find http in at the starting pos");
+                DebuggingReporter.ReportCriticalError("Parse didn't find ` in at the starting pos");
             }
-            if (linkEnd != endingPos)
+            start++;
+
+            // Find the ending
+            int end = Common.IndexOf(ref markdown, '`', start, endingPos, true);
+            if (start + 1 != endingPos)
             {
-                DebuggingReporter.ReportCriticalError("raw link parse didn't find the same ending pos");
+                DebuggingReporter.ReportCriticalError("Parse didn't find ` in at the end pos");
             }
 
-            // Grab the link text
-            Url = markdown.Substring(linkStart, linkEnd - linkStart);
+            // Make sure there is something to parse, and not just dead space
+            if (end > start)
+            {
+                // Parse any children of this bold element
+                Children.Add(new TextRunInline { Text = markdown.Substring(start, end - start) });
+            }
 
-            // Return the point after the end
-            return linkEnd + 1;
+            // Return the point after the inline.
+            return end + 1;
         }
 
         /// <summary>
@@ -90,28 +85,23 @@ namespace UniversalMarkdown.Parse.Elements
         /// <returns></returns>
         public static bool VerifyMatch(ref string markdown, int startingPos, int maxEndingPos, ref int elementStartingPos, ref int elementEndingPos)
         {
-            // Sanity check
-            if(markdown[startingPos] == 'h')
-            {
-                int httpStart = Common.IndexOf(ref markdown, "http://", startingPos, maxEndingPos);
-                int httpsStart = Common.IndexOf(ref markdown, "https://", startingPos, maxEndingPos);
+            // Do a sanity check.
+            if (markdown[startingPos] != '`')
+                return false;
 
-                if (httpsStart != -1 || httpStart != -1)
-                {
-                    // Make -1 huge.
-                    httpStart = httpStart == -1 ? int.MaxValue : httpStart;
-                    httpsStart = httpsStart == -1 ? int.MaxValue : httpsStart;
+            // Find the end of the span.
+            int innerEnd = Common.IndexOf(ref markdown, '`', startingPos + 1, maxEndingPos);
+            if (innerEnd == -1)
+                return false;
 
-                    // Figure out the pos of the link
-                    int foundLinkStart = Math.Min(httpStart, httpsStart);
+            // The span must contain at least one character.
+            var innerStart = startingPos + 1;
+            if (innerStart == innerEnd)
+                return false;
 
-                    // Set the start and end
-                    elementStartingPos = startingPos;
-                    elementEndingPos = Common.FindNextWhiteSpace(ref markdown, foundLinkStart, maxEndingPos, true);
-                    return true;
-                }
-            }
-            return false;
+            elementStartingPos = startingPos;
+            elementEndingPos = innerEnd + 1;
+            return true;
         }
     }
 }

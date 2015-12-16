@@ -55,7 +55,7 @@ namespace UniversalMarkdownUnitTests.Parse
                 new TextRunInline { Text = "before" },
                 new BoldTextInline().AddChildren(
                     new TextRunInline { Text = "middle" }),
-                new TextRunInline { Text = " end" }));
+                new TextRunInline { Text = "end" }));
         }
 
         [UITestMethod]
@@ -72,6 +72,15 @@ namespace UniversalMarkdownUnitTests.Parse
         {
             AssertEqual("before** middle**end", new ParagraphBlock().AddChildren(
                 new TextRunInline { Text = "before** middle**end" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void Bold_Negative_CannotBeEmpty()
+        {
+            AssertEqual("before ****** after",
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "before ****** after" }));
         }
     }
 }

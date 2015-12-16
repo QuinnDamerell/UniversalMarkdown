@@ -32,9 +32,9 @@ namespace UniversalMarkdown.Parse.Elements
         /// Returns the chars that if found means we might have a match.
         /// </summary>
         /// <returns></returns>
-        internal static InlineTripCharHelper GetTripChars()
+        internal static void AddTripChars(List<InlineTripCharHelper> tripCharHelpers)
         {
-            return new InlineTripCharHelper() { FirstChar = '^', FirstCharSuffix = null, Type = MarkdownInlineType.Superscript};
+            tripCharHelpers.Add(new InlineTripCharHelper() { FirstChar = '^', Type = MarkdownInlineType.Superscript });
         }
 
         /// <summary>

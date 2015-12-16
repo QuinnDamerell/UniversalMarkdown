@@ -47,6 +47,27 @@ namespace UniversalMarkdownUnitTests.Parse
 
         [UITestMethod]
         [TestCategory("Parse - inline")]
+        public void Superscript_StartOfLine()
+        {
+            // Start of the line is okay.
+            AssertEqual("^Test",
+                new ParagraphBlock().AddChildren(
+                    new SuperscriptTextInline().AddChildren(
+                        new TextRunInline { Text = "Test" })));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void Superscript_Escape()
+        {
+            // Escaped caret.
+            AssertEqual(@"\^Test",
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "^Test" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void Superscript_Negative()
         {
             AssertEqual("Using the carot sign ^ incorrectly",

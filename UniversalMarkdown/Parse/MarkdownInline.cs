@@ -32,6 +32,7 @@ namespace UniversalMarkdown.Parse
         RawSubreddit,
         Strikethrough,
         Superscript,
+        Code,
     };
 
     public abstract class MarkdownInline : MarkdownElement

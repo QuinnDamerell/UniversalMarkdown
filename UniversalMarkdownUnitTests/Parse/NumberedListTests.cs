@@ -39,5 +39,14 @@ namespace UniversalMarkdownUnitTests.Parse
             AssertEqual("1.List", new ParagraphBlock().AddChildren(
                 new TextRunInline { Text = "1.List" }));
         }
+
+        [UITestMethod]
+        [TestCategory("Parse - block")]
+        public void NumberedList_Negative_NoLetters()
+        {
+            // Only digits can make a numbered list.
+            AssertEqual("a. List", new ParagraphBlock().AddChildren(
+                new TextRunInline { Text = "a. List" }));
+        }
     }
 }

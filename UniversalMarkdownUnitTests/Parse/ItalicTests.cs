@@ -82,8 +82,9 @@ namespace UniversalMarkdownUnitTests.Parse
         [TestCategory("Parse - inline")]
         public void Italic_Escape()
         {
-            AssertEqual(@"\*escape the formatting syntax\*", new ParagraphBlock().AddChildren(
-                new TextRunInline { Text = "*escape the formatting syntax*" }));
+            AssertEqual(@"\*escape the formatting syntax\*",
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "*escape the formatting syntax*" }));
         }
 
         [UITestMethod]
@@ -127,6 +128,15 @@ namespace UniversalMarkdownUnitTests.Parse
                     new TextRunInline { Text = "italics *doesn't" }),
                 new ParagraphBlock().AddChildren(
                     new TextRunInline { Text = "apply* across paragraphs" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void Italic_Negative_CannotBeEmpty()
+        {
+            AssertEqual("before *** after",
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "before *** after" }));
         }
     }
 }

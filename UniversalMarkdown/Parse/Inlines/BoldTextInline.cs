@@ -32,9 +32,10 @@ namespace UniversalMarkdown.Parse.Elements
         /// Returns the chars that if found means we might have a match.
         /// </summary>
         /// <returns></returns>
-        internal static InlineTripCharHelper GetTripChars()
+        internal static void AddTripChars(List<InlineTripCharHelper> tripCharHelpers)
         {
-            return new InlineTripCharHelper() { FirstChar = '*', FirstCharSuffix = "*", Type = MarkdownInlineType.Bold};
+            tripCharHelpers.Add(new InlineTripCharHelper() { FirstChar = '*', FirstCharSuffix = "*", Type = MarkdownInlineType.Bold });
+            tripCharHelpers.Add(new InlineTripCharHelper() { FirstChar = '_', FirstCharSuffix = "_", Type = MarkdownInlineType.Bold });
         }
 
         /// <summary>
@@ -48,30 +49,26 @@ namespace UniversalMarkdown.Parse.Elements
         /// <returns></returns>
         internal override int Parse(ref string markdown, int startingPos, int endingPos)
         {
-            int boldStart = Common.IndexOf(ref markdown, "**", startingPos, endingPos);
-            // These should always be =
-            if(boldStart != startingPos)
+            var innerStart = startingPos + 2;
+            if (markdown.Substring(startingPos, 2) != "**" && markdown.Substring(startingPos, 2) != "__")
             {
-                DebuggingReporter.ReportCriticalError("bold parse didn't find ** in at the starting pos");
+                DebuggingReporter.ReportCriticalError("Parse didn't find ** or __ in at the starting pos");
             }
-            boldStart += 2;
 
-            // Find the ending
-            int boldEnding = Common.IndexOf(ref markdown, "**", boldStart, endingPos, true);
-            if (boldEnding + 2 != endingPos)
+            var innerEnd = endingPos - 2;
+            if (markdown.Substring(innerEnd, 2) != "**" && markdown.Substring(innerEnd, 2) != "__")
             {
-                DebuggingReporter.ReportCriticalError("bold parse didn't find ** in at the end pos");
+                DebuggingReporter.ReportCriticalError("Parse didn't find ** or __ in at the end pos");
             }
 
             // Make sure there is something to parse, and not just dead space
-            if (boldEnding > boldStart)
+            if (innerEnd > innerStart)
             {
-                // Parse any children of this bold element
-                ParseInlineChildren(ref markdown, boldStart, boldEnding);
+                // Parse any children.
+                ParseInlineChildren(ref markdown, innerStart, innerEnd);
             }
 
-            // Return the point after the **
-            return boldEnding + 2;
+            return endingPos;
         }
 
         /// <summary>
@@ -85,21 +82,33 @@ namespace UniversalMarkdown.Parse.Elements
         /// <returns></returns>
         public static bool VerifyMatch(ref string markdown, int startingPos, int maxEndingPos, ref int elementStartingPos, ref int elementEndingPos)
         {
-            // Sanity check
-            if (markdown[startingPos] == '*' && markdown[startingPos + 1] == '*')
-            {
-                // We might have one, try to find the ending that is in the current endingPos
-                int boldEndingPos = Common.IndexOf(ref markdown, "**", startingPos + 2, maxEndingPos);
+            // Do a sanity check.
+            string startSequence = markdown.Substring(startingPos, 2);
+            if (startSequence != "**" && startSequence != "__")
+                return false;
 
-                // If we found it and it is the next closest ending pos use it!
-                if (boldEndingPos != -1)
-                {
-                    elementStartingPos = startingPos;
-                    elementEndingPos = boldEndingPos + 2;
-                    return true;
-                }
-            }
-            return false;
+            // Find the end of the span.  The end sequence (either '**' or '__') must be the same
+            // as the start sequence.
+            int innerEnd = Common.IndexOf(ref markdown, startSequence, startingPos + 2, maxEndingPos);
+            if (innerEnd == -1)
+                return false;
+
+            // The span must contain at least one character.
+            var innerStart = startingPos + 2;
+            if (innerStart == innerEnd)
+                return false;
+
+            // The first character inside the span must NOT be a space.
+            if (char.IsWhiteSpace(markdown[innerStart]))
+                return false;
+
+            // The last character inside the span must NOT be a space.
+            if (char.IsWhiteSpace(markdown[innerEnd - 1]))
+                return false;
+
+            elementStartingPos = startingPos;
+            elementEndingPos = innerEnd + 2;
+            return true;
         }
     }
 }

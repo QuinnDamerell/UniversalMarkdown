@@ -53,13 +53,14 @@ namespace UniversalMarkdown.Helpers
             {
                 if (s_tripCharList.Count == 0)
                 {
-                    s_tripCharList.Add(BoldTextInline.GetTripChars());
-                    s_tripCharList.Add(ItalicTextInline.GetTripChars());
-                    s_tripCharList.Add(MarkdownLinkInline.GetTripChars());
-                    s_tripCharList.Add(RawHyperlinkInline.GetTripChars());
-                    s_tripCharList.Add(RawSubredditInline.GetTripChars());
-                    s_tripCharList.Add(StrikethroughTextInline.GetTripChars());
-                    s_tripCharList.Add(SuperscriptTextInline.GetTripChars());
+                    BoldTextInline.AddTripChars(s_tripCharList);
+                    ItalicTextInline.AddTripChars(s_tripCharList);
+                    MarkdownLinkInline.AddTripChars(s_tripCharList);
+                    RawHyperlinkInline.AddTripChars(s_tripCharList);
+                    RawSubredditInline.AddTripChars(s_tripCharList);
+                    StrikethroughTextInline.AddTripChars(s_tripCharList);
+                    SuperscriptTextInline.AddTripChars(s_tripCharList);
+                    CodeInline.AddTripChars(s_tripCharList);
                     // Text run doesn't have one.
                 }
             }
@@ -81,31 +82,31 @@ namespace UniversalMarkdown.Helpers
             {
                 char currentChar = Char.ToLower(markdown[i]);
 
-                // Try to match each trip char to the char
+                // Try to match each trip char to the char.
                 foreach (InlineTripCharHelper currentTripChar in tripChars)
                 {
-                    // Check if our current char matches the sufex char.
+                    // Check if our current char matches the suffix char.
                     if (currentChar == currentTripChar.FirstChar)
                     {
 
                         // We have a match! See if there is a suffix and if so if it matches.
                         if (currentTripChar.FirstCharSuffix != null)
                         {
-                            // We need to loop through the sufex and see if it matches the next n chars in the markdown.
-                            int suffexCharCounter = i + 1;
-                            bool suffexFound = true;
+                            // We need to loop through the suffix and see if it matches the next n chars in the markdown.
+                            int suffixCharCounter = i + 1;
+                            bool suffixFound = true;
                             foreach (char suffexChar in currentTripChar.FirstCharSuffix)
                             {
-                                char test = Char.ToLower(markdown[suffexCharCounter]);
-                                if (suffexCharCounter >= endingPos || suffexChar != Char.ToLower(markdown[suffexCharCounter]))
+                                char test = Char.ToLower(markdown[suffixCharCounter]);
+                                if (suffixCharCounter >= endingPos || suffexChar != char.ToLower(markdown[suffixCharCounter]))
                                 {
-                                    suffexFound = false;
+                                    suffixFound = false;
                                     break;
                                 }
-                                suffexCharCounter++;
+                                suffixCharCounter++;
                             }
-                            // If the suffex didn't match this isn't a possibility.
-                            if (!suffexFound)
+                            // If the suffix didn't match this isn't a possibility.
+                            if (!suffixFound)
                             {
                                 continue;
                             }
@@ -158,13 +159,19 @@ namespace UniversalMarkdown.Helpers
                                     return new SuperscriptTextInline();
                                 }
                                 break;
+                            case MarkdownInlineType.Code:
+                                if (CodeInline.VerifyMatch(ref markdown, i, endingPos, ref nextElementStart, ref nextElementEnd))
+                                {
+                                    return new CodeInline();
+                                }
+                                break;
                         }
                     }
                 }
             }
 
             // If we didn't find any elements we have a normal text block.
-            // Let is consume the entire range.
+            // Let us consume the entire range.
             nextElementStart = startingPos;
             nextElementEnd = endingPos;
             return new TextRunInline();

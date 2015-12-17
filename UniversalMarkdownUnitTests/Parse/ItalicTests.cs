@@ -68,9 +68,8 @@ namespace UniversalMarkdownUnitTests.Parse
         public void Italic_MultiLine()
         {
             // Does work across lines.
-            AssertEqual(CollapseWhitespace(@"
-                italics *does  
-                work* across line breaks"),
+            AssertEqual("italics *does\r\n" +
+                "work* across line breaks",
                 new ParagraphBlock().AddChildren(
                     new TextRunInline { Text = "italics " },
                     new ItalicTextInline().AddChildren(

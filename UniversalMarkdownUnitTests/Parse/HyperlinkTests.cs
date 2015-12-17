@@ -18,11 +18,151 @@ namespace UniversalMarkdownUnitTests.Parse
 
         [UITestMethod]
         [TestCategory("Parse - inline")]
+        public void Hyperlink_Http_Uppercase()
+        {
+            AssertEqual("HTTP://reddit.com",
+                new ParagraphBlock().AddChildren(
+                    new RawHyperlinkInline { Url = "HTTP://reddit.com" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void Hyperlink_Http_Inline()
+        {
+            AssertEqual("The best site (http://reddit.com) goes well with http://www.wikipedia.com, don't you think?",
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "The best site (" },
+                    new RawHyperlinkInline { Url = "http://reddit.com" },
+                    new TextRunInline { Text = ") goes well with " },
+                    new RawHyperlinkInline { Url = "http://www.wikipedia.com" },
+                    new TextRunInline { Text = ", don't you think?" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void Hyperlink_Https()
         {
             AssertEqual("https://reddit.com",
                 new ParagraphBlock().AddChildren(
                     new RawHyperlinkInline { Url = "https://reddit.com" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void Hyperlink_AngleBrackets()
+        {
+            AssertEqual("<http://reddit.com>",
+                new ParagraphBlock().AddChildren(
+                    new RawHyperlinkInline { Url = "http://reddit.com" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void Hyperlink_EndCharacters()
+        {
+            AssertEqual(CollapseWhitespace(@"
+                http://reddit.com)
+
+                http://reddit.com)a
+
+                http://reddit.com}
+
+                http://reddit.com}a
+
+                http://reddit.com]
+
+                http://reddit.com]a
+
+                http://reddit.com>
+
+                http://reddit.com|
+
+                http://reddit.com`
+
+                http://reddit.com^
+
+                http://reddit.com~
+
+                http://reddit.com[
+
+                http://reddit.com(
+
+                http://reddit.com{
+
+                http://reddit.com<
+
+                http://reddit.com<a
+
+                http://reddit.com#
+
+                http://reddit.com%
+
+                http://reddit.com!
+
+                http://reddit.com!a
+
+                http://reddit.com;
+
+                http://reddit.com;a
+
+                http://reddit.com.
+
+                http://reddit.com.a
+
+                http://reddit.com-
+
+                http://reddit.com+
+
+                http://reddit.com=
+
+                http://reddit.com_
+
+                http://reddit.com*
+
+                http://reddit.com&
+
+                http://reddit.com?
+
+                http://reddit.com?a
+
+                http://reddit.com,
+
+                http://reddit.com,a"),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com" }, new TextRunInline { Text = ")" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com)a" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com" }, new TextRunInline { Text = "}" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com}a" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com" }, new TextRunInline { Text = "]" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com]a" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com>" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com|" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com`" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com^" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com~" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com[" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com(" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com{" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com" }, new TextRunInline { Text = "<" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com" }, new TextRunInline { Text = "<a" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com#" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com%" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com" }, new TextRunInline { Text = "!" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com!a" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com" }, new TextRunInline { Text = ";" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com;a" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com" }, new TextRunInline { Text = "." }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com.a" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com-" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com+" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com=" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com_" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com*" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com&" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com" }, new TextRunInline { Text = "?" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com?a" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com" }, new TextRunInline { Text = "," }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com,a" }));
         }
 
         [UITestMethod]
@@ -39,7 +179,7 @@ namespace UniversalMarkdownUnitTests.Parse
         [TestCategory("Parse - inline")]
         public void Hyperlink_RelativeLink()
         {
-            AssertEqual("[reddit] (/blog)",
+            AssertEqual("[reddit] ( /blog )",
                 new ParagraphBlock().AddChildren(
                     new MarkdownLinkInline { Url = "/blog" }.AddChildren(     // Should the URL be https://www.reddit.com/blog?
                         new TextRunInline { Text = "reddit" })));

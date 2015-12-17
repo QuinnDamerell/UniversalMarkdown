@@ -85,21 +85,31 @@ namespace UniversalMarkdown.Parse.Elements
         /// <returns></returns>
         public static bool VerifyMatch(ref string markdown, int startingPos, int maxEndingPos, ref int elementStartingPos, ref int elementEndingPos)
         {
-            // Sanity check
-            if (markdown[startingPos] == '~' && markdown[startingPos + 1] == '~')
-            {
-                // We might have one, try to find the ending that is in the current endingPos
-                int strikethroughEnding = Common.IndexOf(ref markdown, "~~", startingPos + 2, maxEndingPos);
+            // Do a sanity check.
+            if (markdown.Substring(startingPos, 2) != "~~")
+                return false;
 
-                // If we found it and it is the next closest ending pos use it!
-                if (strikethroughEnding != -1)
-                {
-                    elementStartingPos = startingPos;
-                    elementEndingPos = strikethroughEnding + 2;
-                    return true;
-                }
-            }
-            return false;
+            // Find the end of the span.
+            int innerEnd = Common.IndexOf(ref markdown, "~~", startingPos + 2, maxEndingPos);
+            if (innerEnd == -1)
+                return false;
+
+            // The span must contain at least one character.
+            var innerStart = startingPos + 2;
+            if (innerStart == innerEnd)
+                return false;
+
+            // The first character inside the span must NOT be a space.
+            if (char.IsWhiteSpace(markdown[innerStart]))
+                return false;
+
+            // The last character inside the span must NOT be a space.
+            if (char.IsWhiteSpace(markdown[innerEnd - 1]))
+                return false;
+
+            elementStartingPos = startingPos;
+            elementEndingPos = innerEnd + 2;
+            return true;
         }
     }
 }

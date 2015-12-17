@@ -49,6 +49,15 @@ namespace UniversalMarkdownUnitTests.Parse
 
         [UITestMethod]
         [TestCategory("Parse - inline")]
+        public void Strikethrough_Negative_CannotBeEmpty()
+        {
+            AssertEqual(@"~~~~",
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "~~~~" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void Strikethrough_Escape_1()
         {
             AssertEqual(@"\~~strike~~",

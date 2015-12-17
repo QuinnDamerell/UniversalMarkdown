@@ -36,7 +36,7 @@ namespace UniversalMarkdown.Parse.Elements
         /// <returns></returns>
         internal static void AddTripChars(List<InlineTripCharHelper> tripCharHelpers)
         {
-            tripCharHelpers.Add(new InlineTripCharHelper() { FirstChar = 'r', FirstCharSuffix = "/", Type = MarkdownInlineType.RawSubreddit });
+            tripCharHelpers.Add(new InlineTripCharHelper() { FirstChar = 'r', FirstCharSuffix = "/", Type = MarkdownInlineType.RawSubreddit, IgnoreEscapeChar = true });
         }
 
         /// <summary>

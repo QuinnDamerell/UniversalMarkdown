@@ -110,7 +110,7 @@ namespace UniversalMarkdown.Parse.Elements
 
             // Grab the link
             linkOpen++;
-            Url = markdown.Substring(linkOpen, linkClose - linkOpen);
+            Url = markdown.Substring(linkOpen, linkClose - linkOpen).Trim();
 
             // Return the point after the )
             return linkClose + 1;

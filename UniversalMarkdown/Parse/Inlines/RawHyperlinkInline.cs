@@ -37,7 +37,8 @@ namespace UniversalMarkdown.Parse.Elements
         /// <returns></returns>
         internal static void AddTripChars(List<InlineTripCharHelper> tripCharHelpers)
         {
-            tripCharHelpers.Add(new InlineTripCharHelper() { FirstChar = 'h', FirstCharSuffix = "ttp", Type = MarkdownInlineType.RawHyperlink });
+            tripCharHelpers.Add(new InlineTripCharHelper() { FirstChar = 'h', FirstCharSuffix = "ttp", Type = MarkdownInlineType.RawHyperlink, IgnoreEscapeChar = true });
+            tripCharHelpers.Add(new InlineTripCharHelper() { FirstChar = '<', Type = MarkdownInlineType.RawHyperlink });
         }
 
         /// <summary>

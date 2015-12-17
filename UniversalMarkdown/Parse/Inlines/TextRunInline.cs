@@ -94,6 +94,16 @@ namespace UniversalMarkdown.Parse.Elements
                     // Jump the count ahead, don't forget the for loop will +1 by itself.
                     currentMarkdownPos += 5;
                 }
+                // Handle escape characters.
+                else if (currentChar == '\\' && currentMarkdownPos + 1 < maxEndingPos && (
+                    markdown[currentMarkdownPos + 1] == '*' ||
+                    markdown[currentMarkdownPos + 1] == '_' ||
+                    markdown[currentMarkdownPos + 1] == '^' ||
+                    markdown[currentMarkdownPos + 1] == '~' ||
+                    markdown[currentMarkdownPos + 1] == '`'))
+                {
+                    // Remove the backslash.
+                }
                 // If we have anything else add it and reset the space count.
                 else
                 {

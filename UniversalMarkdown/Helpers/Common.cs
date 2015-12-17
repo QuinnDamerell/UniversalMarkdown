@@ -35,6 +35,7 @@ namespace UniversalMarkdown.Helpers
         public char FirstChar;
         public string FirstCharSuffix = null;
         public MarkdownInlineType Type;
+        public bool IgnoreEscapeChar;
     }
 
 
@@ -88,6 +89,9 @@ namespace UniversalMarkdown.Helpers
                     // Check if our current char matches the suffix char.
                     if (currentChar == currentTripChar.FirstChar)
                     {
+                        // Don't match if the previous character was a backslash.
+                        if (i > startingPos && markdown[i - 1] == '\\' && currentTripChar.IgnoreEscapeChar == false)
+                            continue;
 
                         // We have a match! See if there is a suffix and if so if it matches.
                         if (currentTripChar.FirstCharSuffix != null)

@@ -45,6 +45,18 @@ namespace UniversalMarkdownUnitTests.Parse
 
         [UITestMethod]
         [TestCategory("Parse - inline")]
+        public void Code_Inline_CollapseWhitespace()
+        {
+            // White space IS collapsed, weirdly enough.
+            AssertEqual("Here is some `text with lots of       space`",
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "Here is some " },
+                    new CodeInline().AddChildren(
+                        new TextRunInline { Text = "text with lots of space" })));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void Code_Inline_Escape()
         {
             // Formatting is ignored inside code.

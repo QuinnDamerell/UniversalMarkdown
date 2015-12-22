@@ -102,11 +102,11 @@ namespace UniversalMarkdown.Parse
                 startingPos++;
             }
 
-            if(CodeBlock.CanHandleBlock(ref markdown, startingPos, endingPos, spaceCount))
+            if (CodeBlock.CanHandleBlock(ref markdown, startingPos, endingPos, spaceCount))
             {
                 return new CodeBlock();
             }
-            if(QuoteBlock.CanHandleBlock(ref markdown, startingPos, endingPos))
+            if (QuoteBlock.CanHandleBlock(ref markdown, startingPos, endingPos))
             {
                 return new QuoteBlock();
             }

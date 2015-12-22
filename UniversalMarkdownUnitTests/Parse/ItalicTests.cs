@@ -73,8 +73,8 @@ namespace UniversalMarkdownUnitTests.Parse
                 new ParagraphBlock().AddChildren(
                     new TextRunInline { Text = "italics " },
                     new ItalicTextInline().AddChildren(
-                        new TextRunInline { Text = "does\r\nwork" },
-                    new TextRunInline { Text = " across line breaks" })));
+                        new TextRunInline { Text = "does work" }),
+                    new TextRunInline { Text = " across line breaks" }));
         }
 
         [UITestMethod]

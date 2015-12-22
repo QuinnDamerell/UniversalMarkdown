@@ -13,11 +13,7 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace UniversalMarkdown.Parse.Elements
 {
@@ -52,36 +48,37 @@ namespace UniversalMarkdown.Parse.Elements
             // new line.
             int continuousSpaceCount = 0;
 
-            // loop through from start to end.
-
+            // Loop through from start to end.
             for (int currentMarkdownPos = startingPos; currentMarkdownPos < maxEndingPos; currentMarkdownPos++)
             {
                 char currentChar = markdown[currentMarkdownPos];
-                if(currentChar == '\n' || currentChar == '\r')
+                if (currentChar == '\n' || currentChar == '\r')
                 {
                     // If we have two spaces before add it as normal.
-                    if(continuousSpaceCount > 1)
+                    if (continuousSpaceCount >= 2)
                     {
                         strBuilder.Append(currentChar);
                     }
                     else
                     {
-                        // Check if we have a space before this one. If so don't
-                        // bother inserting another.
-                        if(currentMarkdownPos == 0 || markdown[currentMarkdownPos - 1] != ' ')
+                        // Check if we have a space before this one. If so don't bother inserting another.
+                        if (currentMarkdownPos == 0 || !char.IsWhiteSpace(markdown[currentMarkdownPos - 1]))
                         {
                             strBuilder.Append(' ');
-                        }                         
-                    }                    
+                        }
+                    }
                 }
                 // If we have a space keep track of it.
-                else if(currentChar == ' ')
-                {                    
-                    strBuilder.Append(currentChar);
+                else if (currentChar == ' ')
+                {
+                    // Collapse multiple spaces.  TODO: collapse all types of whitespace, like how HTML does it.
+                    // collapses all white space.
+                    if (continuousSpaceCount == 0)
+                        strBuilder.Append(currentChar);
                     continuousSpaceCount++;
                 }
                 // Also remove any non breaking spaces (&nbsp;)
-                else if(currentChar == '&' && currentMarkdownPos + 5 < maxEndingPos && 
+                else if (currentChar == '&' && currentMarkdownPos + 5 < maxEndingPos && 
                         markdown[currentMarkdownPos + 1] == 'n' &&
                         markdown[currentMarkdownPos + 2] == 'b' &&
                         markdown[currentMarkdownPos + 3] == 's' &&

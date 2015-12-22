@@ -15,9 +15,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UniversalMarkdown.Parse;
 using UniversalMarkdown.Parse.Elements;
 
@@ -245,19 +242,13 @@ namespace UniversalMarkdown.Helpers
                     return doubleNewLinePos;
                 }
 
-                // If we have 4+ spaces it is code.
-                if (spaceCount > 3)
-                {
-                    return singleNewLinePos;
-                }
-
                 // If its a > or # we have a quote or header
                 if (markdown[investigatePos] == '>' || markdown[investigatePos] == '#')
                 {
                     return singleNewLinePos;
                 }
 
-                // We need to check for a rule, this can be * or - or _ or = 3 or more times
+                // We need to check for a horizontal rule, this can be * or - or _ or = 3 or more times
                 if (markdown[investigatePos] == '*' || markdown[investigatePos] == '-' || markdown[investigatePos] == '_' || markdown[investigatePos] == '=')
                 {
                     // Make sure there are at least 2 more of them.
@@ -268,37 +259,8 @@ namespace UniversalMarkdown.Helpers
                     }
                 }
 
-                // Now we need to check for a list. This is either * or - followed by a space, or any letter or digit (s) followed by a .
-                bool potentialListStart = true; ;
-                while (investigatePos < endingPos)
-                {
-                    // Check for a * or a - followed by a space
-                    if (investigatePos + 1 < endingPos && (markdown[investigatePos] == '*' || markdown[investigatePos] == '-') && markdown[investigatePos + 1] == ' ')
-                    {
-                        // This is our line break
-                        return singleNewLinePos;
-                    }
-                    // If this is a char we might have a new list start. Note the position and loop.
-                    else if (Char.IsLetterOrDigit(markdown[investigatePos]))
-                    {
-                        potentialListStart = true;
-                        investigatePos++;
-                    }
-                    // If we find a . and we have a potential list start then we matched.
-                    else if (potentialListStart && markdown[investigatePos] == '.')
-                    {
-                        // This is our line break
-                        return singleNewLinePos;
-                    }
-                    else
-                    {
-                        // Not a list
-                        break;
-                    }
-                }
-
                 // We didn't get any matches, try the next single line break
-                singleNewLinePos = FindNextSingleNewLine(ref markdown, singleNewLinePos + 1, endingPos);
+                singleNewLinePos = FindNextSingleNewLine(ref markdown, investigatePos, endingPos);
             }
 
             // If we got to the end none of the single breaks worked out. Return the double.

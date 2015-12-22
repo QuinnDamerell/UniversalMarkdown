@@ -14,10 +14,6 @@
 
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
@@ -48,15 +44,15 @@ namespace UniversalMarkdown.Parse.Elements
             while (listStart < markdown.Length && listStart < maxEndingPos)
             {
                 // We have a bullet list
-                if (markdown[listStart] == '*' || markdown[listStart] == '-')
+                if (markdown[listStart] == '*' || markdown[listStart] == '-' || markdown[listStart] == '+')
                 {
                     ListBullet = "•";
                     // +1 to move past the ' '
                     listStart++;
                     break;
                 }
-                // We have a letter or digit list, start grabbing the bullet
-                else if(Char.IsLetterOrDigit(markdown[listStart]))
+                // We have a numbered list, start grabbing the bullet
+                else if (char.IsDigit(markdown[listStart]))
                 {
                     // Grab the list letter, but keep going to get the rest.
                     ListBullet += markdown[listStart];
@@ -91,19 +87,19 @@ namespace UniversalMarkdown.Parse.Elements
             while (nextSingleBreak < nextDoubleBreak && nextSingleBreak + 2 < maxEndingPos)
             {
                 // Ignore spaces unless we are tracking a potential list start
-                if(potentialListStart == -1 && markdown[nextSingleBreak + 1] == ' ')
+                if (potentialListStart == -1 && markdown[nextSingleBreak + 1] == ' ')
                 {
                     nextSingleBreak++;
                 }
-                // Check for a * or a - followed by a space
-                else if((markdown[nextSingleBreak + 1] == '*' || markdown[nextSingleBreak + 1] == '-' ) && markdown[nextSingleBreak + 2] == ' ')
+                // Check for a * or - or + followed by a space
+                else if ((markdown[nextSingleBreak + 1] == '*' || markdown[nextSingleBreak + 1] == '-' || markdown[nextSingleBreak + 1] == '+') && markdown[nextSingleBreak + 2] == ' ')
                 {
                     // This is our line break
                     listEnd = nextSingleBreak;
                     break;
                 }
-                // If this is a char we might have a new list start. Note the position and loop.
-                else if(Char.IsLetterOrDigit(markdown[nextSingleBreak + 1]))
+                // If this is a digit we might have a new list start. Note the position and loop.
+                else if (char.IsDigit(markdown[nextSingleBreak + 1]))
                 {
                     if (potentialListStart == -1)
                     {
@@ -112,7 +108,7 @@ namespace UniversalMarkdown.Parse.Elements
                     nextSingleBreak++;
                 }
                 // If we find a . and we have a potential list start then we matched.
-                else if(potentialListStart != -1 && markdown[nextSingleBreak + 1] == '.')
+                else if (potentialListStart != -1 && markdown[nextSingleBreak + 1] == '.')
                 {
                     // This is our line break
                     listEnd = potentialListStart;
@@ -147,7 +143,7 @@ namespace UniversalMarkdown.Parse.Elements
             }
 
             // Trim off any extra line endings, except ' ' otherwise we can't do code blocks
-            while (listEnd < markdown.Length && listEnd < maxEndingPos && Char.IsWhiteSpace(markdown[listEnd]) && markdown[listEnd] != ' ')
+            while (listEnd < markdown.Length && listEnd < maxEndingPos && char.IsWhiteSpace(markdown[listEnd]) && markdown[listEnd] != ' ')
             {
                 listEnd++;
             }
@@ -165,39 +161,26 @@ namespace UniversalMarkdown.Parse.Elements
         /// <returns></returns>
         public static bool CanHandleBlock(ref string markdown, int nextCharPos, int endingPos)
         {
-            if (markdown.Length > nextCharPos + 1 && endingPos > nextCharPos + 1)
+            // Check if we have reached the end of the input.
+            if (nextCharPos + 1 >= markdown.Length || nextCharPos + 1 >= endingPos)
+                return false;
+
+            // Check for '*', '-' or '+', followed by a space.
+            if ((markdown[nextCharPos] == '*' || markdown[nextCharPos] == '-' || markdown[nextCharPos] == '+') && markdown[nextCharPos + 1] == ' ')
             {
-                // Check for * and - followed by space
-                char test = markdown[nextCharPos + 1];
-                if ((markdown[nextCharPos] == '*' || markdown[nextCharPos] == '-') && markdown[nextCharPos + 1] == ' ')
-                {
-                    return true;
-                }
-
-                // We need to also look for 1. or a. or 100. So first jump past any letters or digits.
-                // Note reddit only allows single letters though like a. or b. not aa.
-                int currentCount = nextCharPos;
-                bool hasLettter = false;
-                while(currentCount < endingPos && Char.IsLetterOrDigit(markdown[currentCount]))
-                {
-                    if(hasLettter)
-                    {
-                        return false;
-                    }
-                    if(Char.IsLetter(markdown[currentCount]))
-                    {
-                        hasLettter = true;
-                    }
-                    currentCount++;
-                }
-
-                // If we found at least one letter or digit and this is a . we have a list.
-                if(currentCount != nextCharPos && currentCount < endingPos && markdown[currentCount] == '.')
-                {
-                    return true;
-                }
+                return true;
             }
-            return false;
+
+            // We need to also look for a numbered list ("1. test" or "100. test").
+            // Loop past any digits.
+            int pos = nextCharPos;
+            while (pos < endingPos && char.IsDigit(markdown[pos]))
+            {
+                pos++;
+            }
+
+            // We found a numbered list if there was at least one digit and the next two characters are a dot and a space.
+            return pos > nextCharPos && pos + 1 < endingPos && markdown[pos] == '.' && markdown[pos + 1] == ' ';
         }
     }
 }

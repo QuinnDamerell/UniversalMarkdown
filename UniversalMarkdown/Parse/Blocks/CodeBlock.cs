@@ -39,7 +39,7 @@ namespace UniversalMarkdown.Parse.Elements
         /// <param name="startingPos"></param>
         /// <param name="maxEndingPos"></param>
         /// <returns></returns>
-        internal override int Parse(ref string markdown, int startingPos, int maxEndingPos)
+        internal override int Parse(string markdown, int startingPos, int maxEndingPos)
         {
             // Find where the code begins, since we are given the line after the last space we actually need
             // to go backwards.
@@ -74,7 +74,7 @@ namespace UniversalMarkdown.Parse.Elements
             }
 
             // Find the end of code, note code breaks with a single new line no matter what.
-            int codeEnd = Common.FindNextSingleNewLine(ref markdown, startingPos, maxEndingPos);
+            int codeEnd = Common.FindNextSingleNewLine(markdown, startingPos, maxEndingPos);
             if(codeEnd == -1)
             {
                 DebuggingReporter.ReportCriticalError("Tried to code quote that didn't have an end");
@@ -88,7 +88,7 @@ namespace UniversalMarkdown.Parse.Elements
             if (codeEnd > startingPos)
             {
                 // Parse the children of this quote
-                ParseInlineChildren(ref markdown, startingPos, codeEnd);
+                ParseInlineChildren(markdown, startingPos, codeEnd);
             }
 
             // Trim off any extra line endings, except ' ' otherwise we can't do code blocks
@@ -109,7 +109,7 @@ namespace UniversalMarkdown.Parse.Elements
         /// <param name="endingPos"></param>
         /// <param name="spaceCount"></param>
         /// <returns></returns>
-        public static bool CanHandleBlock(ref string markdown, int nextCharPos, int endingPos, int spaceCount)
+        public static bool CanHandleBlock(string markdown, int nextCharPos, int endingPos, int spaceCount)
         {
             // Check the spaces and ensure the next char isn't a list element or quote.
             return spaceCount > 3 && markdown[nextCharPos] != '*' && markdown[nextCharPos] != '-' && markdown[nextCharPos] != '>';

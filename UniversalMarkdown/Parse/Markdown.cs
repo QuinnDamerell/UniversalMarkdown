@@ -44,7 +44,7 @@ namespace UniversalMarkdown.Parse
             markdownText += "\n\n";
 
             // Parse us.
-            Parse(ref markdownText, 0, markdownText.Length);
+            Parse(markdownText, 0, markdownText.Length);
         }
 
         /// <summary>
@@ -54,7 +54,7 @@ namespace UniversalMarkdown.Parse
         /// <param name="startingPos"></param>
         /// <param name="maxEndingPos"></param>
         /// <returns></returns>
-        internal override int Parse(ref string markdown, int startingPos, int maxEndingPos)
+        internal override int Parse(string markdown, int startingPos, int maxEndingPos)
         {
             // We are the only thing that can parse blocks, and we should be the only thing to hold blocks.
             // So start off by parsing our block children.
@@ -65,7 +65,7 @@ namespace UniversalMarkdown.Parse
                 int elementStartingPos = currentParsePosition;
 
                 // Find the next element, note this can change the elementStartingPos param
-                MarkdownBlock element = FindNextBlock(ref markdown, ref elementStartingPos, maxEndingPos);
+                MarkdownBlock element = FindNextBlock(markdown, ref elementStartingPos, maxEndingPos);
 
                 // If our next start is our end then we are done.
                 if(maxEndingPos == elementStartingPos)
@@ -74,7 +74,7 @@ namespace UniversalMarkdown.Parse
                 }
 
                 // Ask it to parse, it will return us the ending pos of itself.
-                currentParsePosition = element.Parse(ref markdown, elementStartingPos, maxEndingPos);
+                currentParsePosition = element.Parse(markdown, elementStartingPos, maxEndingPos);
 
                 // Add it the the children
                 Children.Add(element);
@@ -90,7 +90,7 @@ namespace UniversalMarkdown.Parse
         /// <param name="startingPos"></param>
         /// <param name="endingPost"></param>
         /// <returns></returns>
-        public static MarkdownBlock FindNextBlock(ref string markdown, ref int startingPos, int endingPos)
+        public static MarkdownBlock FindNextBlock(string markdown, ref int startingPos, int endingPos)
         {
             // We need to look at the start of this current block and figure out what type it is.
             // Find the next char that isn't a \n, \r, or ' ', keep track of white space
@@ -102,29 +102,33 @@ namespace UniversalMarkdown.Parse
                 startingPos++;
             }
 
-            if (CodeBlock.CanHandleBlock(ref markdown, startingPos, endingPos, spaceCount))
+            if (CodeBlock.CanHandleBlock(markdown, startingPos, endingPos, spaceCount))
             {
                 return new CodeBlock();
             }
-            if (QuoteBlock.CanHandleBlock(ref markdown, startingPos, endingPos))
+            if (QuoteBlock.CanHandleBlock(markdown, startingPos, endingPos))
             {
                 return new QuoteBlock();
             }
-            if (HeaderBlock.CanHandleBlock(ref markdown, startingPos, endingPos))
+            if (HeaderBlock.CanHandleBlock(markdown, startingPos, endingPos))
             {
                 return new HeaderBlock();
             }
-            if (ListElementBlock.CanHandleBlock(ref markdown, startingPos, endingPos))
+            if (ListElementBlock.CanHandleBlock(markdown, startingPos, endingPos))
             {
                 return new ListElementBlock();
             }
-            if (HorizontalRuleBlock.CanHandleBlock(ref markdown, startingPos, endingPos))
+            if (HorizontalRuleBlock.CanHandleBlock(markdown, startingPos, endingPos))
             {
                 return new HorizontalRuleBlock();
             }
-            if (LineBreakBlock.CanHandleBlock(ref markdown, startingPos, endingPos))
+            if (LineBreakBlock.CanHandleBlock(markdown, startingPos, endingPos))
             {
                 return new LineBreakBlock();
+            }
+            if (TableBlock.CanHandleBlock(markdown, startingPos, endingPos))
+            {
+                return new TableBlock();
             }
 
             // If we can't match any of these just make a new paragraph.

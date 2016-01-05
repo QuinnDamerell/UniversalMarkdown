@@ -37,7 +37,7 @@ namespace UniversalMarkdown.Parse.Elements
         /// <param name="startingPos"></param>
         /// <param name="maxEndingPos"></param>
         /// <returns></returns>
-        internal override int Parse(ref string markdown, int startingPos, int maxEndingPos)
+        internal override int Parse(string markdown, int startingPos, int maxEndingPos)
         {
             // Find out what the list is and where it begins.
             int listStart = startingPos;
@@ -80,8 +80,8 @@ namespace UniversalMarkdown.Parse.Elements
             // This is hard becasue of all of our list types. For * and - we just check if the next two chars
             // are * or and a ' ' if so we matched. For letters and digits, once we find one we keep looping until
             // we find a '.'. If we find a . we get a match, if anything else we fail.
-            int nextDoubleBreak = Common.FindNextDoubleNewLine(ref markdown, listStart, maxEndingPos);
-            int nextSingleBreak = Common.FindNextSingleNewLine(ref markdown, listStart, maxEndingPos);
+            int nextDoubleBreak = Common.FindNextDoubleNewLine(markdown, listStart, maxEndingPos);
+            int nextSingleBreak = Common.FindNextSingleNewLine(markdown, listStart, maxEndingPos);
             int potentialListStart = -1;
             int listEnd = nextDoubleBreak;
             while (nextSingleBreak < nextDoubleBreak && nextSingleBreak + 2 < maxEndingPos)
@@ -117,7 +117,7 @@ namespace UniversalMarkdown.Parse.Elements
                 else
                 {
                     // We failed with this new line, try to get the next one.
-                    nextSingleBreak = Common.FindNextSingleNewLine(ref markdown, nextSingleBreak + 1, maxEndingPos);
+                    nextSingleBreak = Common.FindNextSingleNewLine(markdown, nextSingleBreak + 1, maxEndingPos);
                     potentialListStart = -1;
                 }
             }
@@ -139,7 +139,7 @@ namespace UniversalMarkdown.Parse.Elements
             if (listEnd > listStart)
             {
                 // Parse the children of this list
-                ParseInlineChildren(ref markdown, listStart, listEnd);
+                ParseInlineChildren(markdown, listStart, listEnd);
             }
 
             // Trim off any extra line endings, except ' ' otherwise we can't do code blocks
@@ -159,7 +159,7 @@ namespace UniversalMarkdown.Parse.Elements
         /// <param name="nextCharPos"></param>
         /// <param name="endingPos"></param>
         /// <returns></returns>
-        public static bool CanHandleBlock(ref string markdown, int nextCharPos, int endingPos)
+        public static bool CanHandleBlock(string markdown, int nextCharPos, int endingPos)
         {
             // Check if we have reached the end of the input.
             if (nextCharPos + 1 >= markdown.Length || nextCharPos + 1 >= endingPos)

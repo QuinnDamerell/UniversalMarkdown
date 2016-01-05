@@ -121,6 +121,7 @@
     <Compile Include="Parse\Blocks\LinkBreakBlock.cs" />
     <Compile Include="Parse\Blocks\ListElementBlock.cs" />
     <Compile Include="Parse\Blocks\HorizontalRuleBlock.cs" />
+    <Compile Include="Parse\Blocks\TableBlock.cs" />
     <Compile Include="Parse\Blocks\QuoteBlock.cs" />
     <Compile Include="Parse\Inlines\CodeInline.cs" />
     <Compile Include="Parse\Inlines\SuperscriptTextInline.cs" />

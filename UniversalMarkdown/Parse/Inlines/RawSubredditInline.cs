@@ -48,7 +48,7 @@ namespace UniversalMarkdown.Parse.Elements
         /// <param name="startingPos">Where the parse should start</param>
         /// <param name="endingPos">Where the parse should end</param>
         /// <returns></returns>
-        internal override int Parse(ref string markdown, int startingPos, int endingPos)
+        internal override int Parse(string markdown, int startingPos, int endingPos)
         {
             // Do a sanity check.
             if((Char.ToLower(markdown[startingPos]) != 'r' || markdown[startingPos + 1] != '/') &&
@@ -70,7 +70,7 @@ namespace UniversalMarkdown.Parse.Elements
             }
 
             // While we didn't hit the end && (it is a char or digit or _ )
-            subredditEnd = Common.FindNextNonLetterDigitOrUnderscore(ref markdown, subredditEnd, endingPos, true);
+            subredditEnd = Common.FindNextNonLetterDigitOrUnderscore(markdown, subredditEnd, endingPos, true);
 
             // Validate
             if(subredditEnd != endingPos)
@@ -94,7 +94,7 @@ namespace UniversalMarkdown.Parse.Elements
         /// <param name="maxEndingPos">The max length to look in.</param>
         /// <param name="elementEndingPos">If found, the ending pos of the element found.</param>
         /// <returns></returns>
-        public static bool VerifyMatch(ref string markdown, int startingPos, int maxEndingPos, ref int elementStartingPos, ref int elementEndingPos)
+        public static bool VerifyMatch(string markdown, int startingPos, int maxEndingPos, ref int elementStartingPos, ref int elementEndingPos)
         {
             // Sanity Check
             if(Char.ToLower(markdown[startingPos]) == 'r')
@@ -116,7 +116,7 @@ namespace UniversalMarkdown.Parse.Elements
 
                         // Send the info off!
                         elementStartingPos = subredditStart;
-                        elementEndingPos = Common.FindNextNonLetterDigitOrUnderscore(ref markdown, subredditStart + beginEndSearchOffset, maxEndingPos, true);
+                        elementEndingPos = Common.FindNextNonLetterDigitOrUnderscore(markdown, subredditStart + beginEndSearchOffset, maxEndingPos, true);
                         return true;
                     }
                 }

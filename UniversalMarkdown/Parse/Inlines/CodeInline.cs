@@ -46,9 +46,9 @@ namespace UniversalMarkdown.Parse.Elements
         /// <param name="startingPos">Where the parse should start</param>
         /// <param name="endingPos">Where the parse should end</param>
         /// <returns></returns>
-        internal override int Parse(ref string markdown, int startingPos, int endingPos)
+        internal override int Parse(string markdown, int startingPos, int endingPos)
         {
-            int start = Common.IndexOf(ref markdown, '`', startingPos, endingPos);
+            int start = Common.IndexOf(markdown, '`', startingPos, endingPos);
             // These should always be equal
             if (start != startingPos)
             {
@@ -57,7 +57,7 @@ namespace UniversalMarkdown.Parse.Elements
             start++;
 
             // Find the ending
-            int end = Common.IndexOf(ref markdown, '`', start, endingPos, true);
+            int end = Common.IndexOf(markdown, '`', start, endingPos, true);
             if (start + 1 != endingPos)
             {
                 DebuggingReporter.ReportCriticalError("Parse didn't find ` in at the end pos");
@@ -83,14 +83,14 @@ namespace UniversalMarkdown.Parse.Elements
         /// <param name="maxEndingPos">The max length to look in.</param>
         /// <param name="elementEndingPos">If found, the ending pos of the element found.</param>
         /// <returns></returns>
-        public static bool VerifyMatch(ref string markdown, int startingPos, int maxEndingPos, ref int elementStartingPos, ref int elementEndingPos)
+        public static bool VerifyMatch(string markdown, int startingPos, int maxEndingPos, ref int elementStartingPos, ref int elementEndingPos)
         {
             // Do a sanity check.
             if (markdown[startingPos] != '`')
                 return false;
 
             // Find the end of the span.
-            int innerEnd = Common.IndexOf(ref markdown, '`', startingPos + 1, maxEndingPos);
+            int innerEnd = Common.IndexOf(markdown, '`', startingPos + 1, maxEndingPos);
             if (innerEnd == -1)
                 return false;
 

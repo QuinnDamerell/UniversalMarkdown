@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using Windows.ApplicationModel;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Windows.Storage;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
@@ -31,6 +33,18 @@ namespace UniversalMarkdownTestApp
         private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             MarkdownTextBlock.Markdown = TextBox.Text;
+        }
+
+        private async void Page_Loaded(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                TextBox.Text = await FileIO.ReadTextAsync(await Package.Current.InstalledLocation.GetFileAsync("InitialContent.md"));
+            }
+            catch (Exception ex)
+            {
+                TextBox.Text = ex.Message;
+            }
         }
     }
 }

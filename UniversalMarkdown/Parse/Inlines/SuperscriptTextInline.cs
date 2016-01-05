@@ -46,7 +46,7 @@ namespace UniversalMarkdown.Parse.Elements
         /// <param name="maxEndingPos">The max length to look in.</param>
         /// <param name="elementEndingPos">If found, the ending pos of the element found.</param>
         /// <returns></returns>
-        public static bool VerifyMatch(ref string markdown, int startingPos, int maxEndingPos, ref int elementStartingPos, ref int elementEndingPos)
+        public static bool VerifyMatch(string markdown, int startingPos, int maxEndingPos, ref int elementStartingPos, ref int elementEndingPos)
         {
             // Sanity check
             if (markdown[startingPos] == '^')
@@ -57,7 +57,7 @@ namespace UniversalMarkdown.Parse.Elements
                 {
                     // Find the end parenthesis.
                     contentStart++;
-                    int contentEnd = Common.IndexOf(ref markdown, ')', contentStart, maxEndingPos);
+                    int contentEnd = Common.IndexOf(markdown, ')', contentStart, maxEndingPos);
                     if (contentEnd == -1)
                         return false;
 
@@ -68,7 +68,7 @@ namespace UniversalMarkdown.Parse.Elements
                 }
 
                 // Search for the next whitespace character.
-                int whitespacePos = Common.FindNextWhiteSpace(ref markdown, contentStart, maxEndingPos, ifNotFoundReturnLength: true);
+                int whitespacePos = Common.FindNextWhiteSpace(markdown, contentStart, maxEndingPos, ifNotFoundReturnLength: true);
                 if (whitespacePos == contentStart)
                     return false;   // No match if the character after the caret is a space.
 
@@ -88,9 +88,9 @@ namespace UniversalMarkdown.Parse.Elements
         /// <param name="startingPos">Where the parse should start</param>
         /// <param name="endingPos">Where the parse should end</param>
         /// <returns></returns>
-        internal override int Parse(ref string markdown, int startingPos, int endingPos)
+        internal override int Parse(string markdown, int startingPos, int endingPos)
         {
-            int contentStart = Common.IndexOf(ref markdown, '^', startingPos, endingPos);
+            int contentStart = Common.IndexOf(markdown, '^', startingPos, endingPos);
             // These should always be =
             if (contentStart != startingPos)
             {
@@ -104,7 +104,7 @@ namespace UniversalMarkdown.Parse.Elements
             {
                 // Find the end parenthesis.
                 contentStart++;
-                contentEnd = Common.IndexOf(ref markdown, ')', contentStart, endingPos);
+                contentEnd = Common.IndexOf(markdown, ')', contentStart, endingPos);
                 if (contentEnd == -1)
                 {
                     DebuggingReporter.ReportCriticalError("superscript parse didn't find ending )");
@@ -112,14 +112,14 @@ namespace UniversalMarkdown.Parse.Elements
             }
             else
             {
-                contentEnd = Common.FindNextWhiteSpace(ref markdown, contentStart, endingPos, ifNotFoundReturnLength: true);
+                contentEnd = Common.FindNextWhiteSpace(markdown, contentStart, endingPos, ifNotFoundReturnLength: true);
             }
 
             // Make sure there is something to parse, and not just dead space
             if (contentEnd > contentStart)
             {
                 // Parse any children of this superscript element
-                ParseInlineChildren(ref markdown, contentStart, contentEnd);
+                ParseInlineChildren(markdown, contentStart, contentEnd);
             }
 
             return endingPos;

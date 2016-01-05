@@ -37,7 +37,7 @@ namespace UniversalMarkdown.Parse.Elements
         /// <param name="startingPos"></param>
         /// <param name="maxEndingPos"></param>
         /// <returns></returns>
-        internal override int Parse(ref string markdown, int startingPos, int maxEndingPos)
+        internal override int Parse(string markdown, int startingPos, int maxEndingPos)
         {
             // Figure out what char we are processing.
             int horzStart = startingPos;
@@ -92,7 +92,7 @@ namespace UniversalMarkdown.Parse.Elements
         /// <param name="nextCharPos"></param>
         /// <param name="endingPos"></param>
         /// <returns></returns>
-        public static bool CanHandleBlock(ref string markdown, int nextCharPos, int endingPos)
+        public static bool CanHandleBlock(string markdown, int nextCharPos, int endingPos)
         {
             return markdown.IndexOf("***", nextCharPos) == nextCharPos || markdown.IndexOf("---", nextCharPos) == nextCharPos || markdown.IndexOf("===", nextCharPos) == nextCharPos || markdown.IndexOf("___", nextCharPos) == nextCharPos;
         }

@@ -48,7 +48,7 @@ namespace UniversalMarkdown.Parse.Elements
         /// <param name="startingPos">Where the parse should start</param>
         /// <param name="endingPos">Where the parse should end</param>
         /// <returns></returns>
-        internal override int Parse(ref string markdown, int startingPos, int endingPos)
+        internal override int Parse(string markdown, int startingPos, int endingPos)
         {
             var innerStart = startingPos + 1;
             if (markdown[startingPos] != '*' && markdown[startingPos] != '_')
@@ -66,7 +66,7 @@ namespace UniversalMarkdown.Parse.Elements
             if (innerEnd > innerStart)
             {
                 // Parse any children.
-                ParseInlineChildren(ref markdown, innerStart, innerEnd);
+                ParseInlineChildren(markdown, innerStart, innerEnd);
             }
 
             return endingPos;
@@ -81,7 +81,7 @@ namespace UniversalMarkdown.Parse.Elements
         /// <param name="maxEndingPos">The max length to look in.</param>
         /// <param name="elementEndingPos">If found, the ending pos of the element found.</param>
         /// <returns></returns>
-        public static bool VerifyMatch(ref string markdown, int startingPos, int maxEndingPos, ref int elementStartingPos, ref int elementEndingPos)
+        public static bool VerifyMatch(string markdown, int startingPos, int maxEndingPos, ref int elementStartingPos, ref int elementEndingPos)
         {
             // Do a sanity check.
             char startChar = markdown[startingPos];
@@ -90,7 +90,7 @@ namespace UniversalMarkdown.Parse.Elements
 
             // Find the end of the span.  The end character (either '*' or '_') must be the same as
             // the start character.
-            int innerEnd = Common.IndexOf(ref markdown, startChar, startingPos + 1, maxEndingPos);
+            int innerEnd = Common.IndexOf(markdown, startChar, startingPos + 1, maxEndingPos);
             if (innerEnd == -1)
                 return false;
 

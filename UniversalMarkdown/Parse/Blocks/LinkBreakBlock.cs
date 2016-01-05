@@ -37,10 +37,10 @@ namespace UniversalMarkdown.Parse.Elements
         /// <param name="startingPos"></param>
         /// <param name="maxEndingPos"></param>
         /// <returns></returns>
-        internal override int Parse(ref string markdown, int startingPos, int maxEndingPos)
+        internal override int Parse(string markdown, int startingPos, int maxEndingPos)
         {
             // Get the end.
-            int nbspEnd = TryToFindNbsp(ref markdown, startingPos, maxEndingPos);
+            int nbspEnd = TryToFindNbsp(markdown, startingPos, maxEndingPos);
 
             // Sanity check
             if (nbspEnd == -1)
@@ -66,9 +66,9 @@ namespace UniversalMarkdown.Parse.Elements
         /// <param name="nextCharPos"></param>
         /// <param name="endingPos"></param>
         /// <returns></returns>
-        public static bool CanHandleBlock(ref string markdown, int nextCharPos, int endingPos)
+        public static bool CanHandleBlock(string markdown, int nextCharPos, int endingPos)
         {
-            return TryToFindNbsp(ref markdown, nextCharPos, endingPos) != -1;
+            return TryToFindNbsp(markdown, nextCharPos, endingPos) != -1;
         }
 
         /// <summary>
@@ -78,7 +78,7 @@ namespace UniversalMarkdown.Parse.Elements
         /// <param name="startingPos"></param>
         /// <param name="endingPos"></param>
         /// <returns></returns>
-        private static int TryToFindNbsp(ref string markdown, int startingPos, int endingPos)
+        private static int TryToFindNbsp(string markdown, int startingPos, int endingPos)
         {
             int currentPos = startingPos;
             bool nonBreakingSpaceFound = false;

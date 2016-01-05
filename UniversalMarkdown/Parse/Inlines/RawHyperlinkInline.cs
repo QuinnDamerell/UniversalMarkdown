@@ -50,10 +50,10 @@ namespace UniversalMarkdown.Parse.Elements
         /// <param name="startingPos">Where the parse should start</param>
         /// <param name="endingPos">Where the parse should end</param>
         /// <returns></returns>
-        internal override int Parse(ref string markdown, int startingPos, int endingPos)
+        internal override int Parse(string markdown, int startingPos, int endingPos)
         {
-            int httpStart = Common.IndexOf(ref markdown, "http://", startingPos, endingPos);
-            int httpsStart = Common.IndexOf(ref markdown, "https://", startingPos, endingPos);
+            int httpStart = Common.IndexOf(markdown, "http://", startingPos, endingPos);
+            int httpsStart = Common.IndexOf(markdown, "https://", startingPos, endingPos);
 
             // Make -1 huge.
             httpStart = httpStart == -1 ? int.MaxValue : httpStart;
@@ -61,7 +61,7 @@ namespace UniversalMarkdown.Parse.Elements
 
             // Figure out the pos of the link
             int linkStart = Math.Min(httpStart, httpsStart);
-            int linkEnd = Common.FindNextWhiteSpace(ref markdown, linkStart, endingPos, true);
+            int linkEnd = Common.FindNextWhiteSpace(markdown, linkStart, endingPos, true);
 
             // These should always be =
             if (linkStart != startingPos)
@@ -89,13 +89,13 @@ namespace UniversalMarkdown.Parse.Elements
         /// <param name="maxEndingPos">The max length to look in.</param>
         /// <param name="elementEndingPos">If found, the ending pos of the element found.</param>
         /// <returns></returns>
-        public static bool VerifyMatch(ref string markdown, int startingPos, int maxEndingPos, ref int elementStartingPos, ref int elementEndingPos)
+        public static bool VerifyMatch(string markdown, int startingPos, int maxEndingPos, ref int elementStartingPos, ref int elementEndingPos)
         {
             // Sanity check
             if(markdown[startingPos] == 'h')
             {
-                int httpStart = Common.IndexOf(ref markdown, "http://", startingPos, maxEndingPos);
-                int httpsStart = Common.IndexOf(ref markdown, "https://", startingPos, maxEndingPos);
+                int httpStart = Common.IndexOf(markdown, "http://", startingPos, maxEndingPos);
+                int httpsStart = Common.IndexOf(markdown, "https://", startingPos, maxEndingPos);
 
                 if (httpsStart != -1 || httpStart != -1)
                 {
@@ -108,7 +108,7 @@ namespace UniversalMarkdown.Parse.Elements
 
                     // Set the start and end
                     elementStartingPos = startingPos;
-                    elementEndingPos = Common.FindNextWhiteSpace(ref markdown, foundLinkStart, maxEndingPos, true);
+                    elementEndingPos = Common.FindNextWhiteSpace(markdown, foundLinkStart, maxEndingPos, true);
                     return true;
                 }
             }

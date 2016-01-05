@@ -37,16 +37,16 @@ namespace UniversalMarkdown.Parse.Elements
         /// <param name="startingPos"></param>
         /// <param name="maxEndingPos"></param>
         /// <returns></returns>
-        internal override int Parse(ref string markdown, int startingPos, int maxEndingPos)
+        internal override int Parse(string markdown, int startingPos, int maxEndingPos)
         {
             // Find the end of paragraph, read the summary of the function for details.
-            int endingPos = Common.FindNextParagraphLineBreak(ref markdown, startingPos, maxEndingPos);
+            int endingPos = Common.FindNextParagraphLineBreak(markdown, startingPos, maxEndingPos);
 
             // Make sure there is something to parse, and not just dead space
             if (endingPos > startingPos)
             {
                 // Parse the children of this paragraph
-                ParseInlineChildren(ref markdown, startingPos, endingPos);
+                ParseInlineChildren(markdown, startingPos, endingPos);
             }
 
             // Trim off any extra line endings, except ' ' otherwise we can't do code blocks

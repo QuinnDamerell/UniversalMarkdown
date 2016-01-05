@@ -39,7 +39,7 @@ namespace UniversalMarkdown.Parse.Elements
         /// <param name="startingPos"></param>
         /// <param name="maxEndingPos"></param>
         /// <returns></returns>
-        internal override int Parse(ref string markdown, int startingPos, int maxEndingPos)
+        internal override int Parse(string markdown, int startingPos, int maxEndingPos)
         {
             // Do a quick check
             int headerStart = startingPos;
@@ -49,7 +49,7 @@ namespace UniversalMarkdown.Parse.Elements
             }
 
             // Find the end of header, note that headers break with a single new line no matter what.
-            int headerEnd = Common.FindNextSingleNewLine(ref markdown, headerStart, maxEndingPos);
+            int headerEnd = Common.FindNextSingleNewLine(markdown, headerStart, maxEndingPos);
             if (headerEnd == -1)
             {
                 DebuggingReporter.ReportCriticalError("Tried to parse header that didn't have an end");
@@ -78,7 +78,7 @@ namespace UniversalMarkdown.Parse.Elements
             if (endOfInlines > headerStart)
             {
                 // Parse the children of this quote
-                ParseInlineChildren(ref markdown, headerStart, endOfInlines);
+                ParseInlineChildren(markdown, headerStart, endOfInlines);
             }
 
             // Trim off any extra line endings, except ' ' otherwise we can't do code blocks
@@ -99,7 +99,7 @@ namespace UniversalMarkdown.Parse.Elements
         /// <param name="nextCharPos"></param>
         /// <param name="endingPos"></param>
         /// <returns></returns>
-        public static bool CanHandleBlock(ref string markdown, int nextCharPos, int endingPos)
+        public static bool CanHandleBlock(string markdown, int nextCharPos, int endingPos)
         {
             return markdown.Length > nextCharPos && endingPos > nextCharPos && markdown[nextCharPos] == '#';
         }

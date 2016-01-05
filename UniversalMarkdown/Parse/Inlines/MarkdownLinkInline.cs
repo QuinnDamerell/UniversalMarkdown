@@ -51,13 +51,13 @@ namespace UniversalMarkdown.Parse.Elements
         /// <param name="startingPos">Where the parse should start</param>
         /// <param name="endingPos">Where the parse should end</param>
         /// <returns></returns>
-        internal override int Parse(ref string markdown, int startingPos, int endingPos)
+        internal override int Parse(string markdown, int startingPos, int endingPos)
         {
             // Find all of the link parts
-            int linkTextOpen = Common.IndexOf(ref markdown, '[', startingPos, endingPos);
-            int linkTextClose = Common.IndexOf(ref markdown, ']', linkTextOpen, endingPos);
-            int linkOpen = Common.IndexOf(ref markdown, '(', linkTextClose, endingPos);
-            int linkClose = Common.IndexOf(ref markdown, ')', linkOpen, endingPos);
+            int linkTextOpen = Common.IndexOf(markdown, '[', startingPos, endingPos);
+            int linkTextClose = Common.IndexOf(markdown, ']', linkTextOpen, endingPos);
+            int linkOpen = Common.IndexOf(markdown, '(', linkTextClose, endingPos);
+            int linkClose = Common.IndexOf(markdown, ')', linkOpen, endingPos);
 
             // These should always be =
             if (linkTextOpen != startingPos)
@@ -74,7 +74,7 @@ namespace UniversalMarkdown.Parse.Elements
             if (linkTextClose > linkTextOpen)
             {
                 // Parse any children of this link element
-                ParseInlineChildren(ref markdown, linkTextOpen, linkTextClose);
+                ParseInlineChildren(markdown, linkTextOpen, linkTextClose);
             }
 
             // We can't render links in links. So if anything in the children of this is a link
@@ -125,21 +125,21 @@ namespace UniversalMarkdown.Parse.Elements
         /// <param name="maxEndingPos">The max length to look in.</param>
         /// <param name="elementEndingPos">If found, the ending pos of the element found.</param>
         /// <returns></returns>
-        public static bool VerifyMatch(ref string markdown, int startingPos, int maxEndingPos, ref int elementStartingPos, ref int elementEndingPos)
+        public static bool VerifyMatch(string markdown, int startingPos, int maxEndingPos, ref int elementStartingPos, ref int elementEndingPos)
         {
             // Sanity check
             if(markdown[startingPos] == '[')
             {
                 int linkTextOpen = startingPos;
                 // Ensure we have a link
-                int linkTextClose = Common.IndexOf(ref markdown, ']', linkTextOpen, maxEndingPos);
+                int linkTextClose = Common.IndexOf(markdown, ']', linkTextOpen, maxEndingPos);
                 if (linkTextClose != -1)
                 {
-                    int linkOpen = Common.IndexOf(ref markdown, '(', linkTextClose, maxEndingPos);
+                    int linkOpen = Common.IndexOf(markdown, '(', linkTextClose, maxEndingPos);
                     if (linkOpen != -1)
                     {
                         char test = markdown[maxEndingPos];
-                        int linkClose = Common.IndexOf(ref markdown, ')', linkOpen, maxEndingPos);
+                        int linkClose = Common.IndexOf(markdown, ')', linkOpen, maxEndingPos);
                         if (linkClose != -1)
                         {
                             // Make sure the order is correct

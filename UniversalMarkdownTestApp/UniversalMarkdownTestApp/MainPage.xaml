@@ -6,7 +6,8 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       xmlns:univeralMarkdown="using:UniversalMarkdown"
       mc:Ignorable="d"
-      RequestedTheme="Dark">
+      RequestedTheme="Dark"
+      Loaded="Page_Loaded">
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
@@ -20,8 +21,13 @@
 
         <TextBox x:Name="TextBox"
                  Grid.Row="1"
-                 TextChanged="TextBox_TextChanged" AcceptsReturn="true" MinHeight="50" />
+                 TextChanged="TextBox_TextChanged"
+                 AcceptsReturn="true"
+                 MinHeight="50"
+                 TextWrapping="Wrap"/>
 
-        <univeralMarkdown:MarkdownTextBlock x:Name="MarkdownTextBlock" Grid.Row="2" Margin="12" />
+        <ScrollViewer Grid.Row="2">
+            <univeralMarkdown:MarkdownTextBlock x:Name="MarkdownTextBlock" Margin="12" />
+        </ScrollViewer>
     </Grid>
 </Page>

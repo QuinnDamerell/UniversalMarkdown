@@ -37,7 +37,7 @@ namespace UniversalMarkdown.Parse.Elements
         /// <param name="startingPos">Where the parse should start</param>
         /// <param name="endingPos">Where the parse should end</param>
         /// <returns></returns>
-        internal override int Parse(ref string markdown, int startingPos, int maxEndingPos)
+        internal override int Parse(string markdown, int startingPos, int maxEndingPos)
         {
             // We need to go though all of the text and remove any newlines and returns if they aren't needed
             // the most efficient way to do this is to use a string builder to build the new string as normal.

@@ -93,6 +93,7 @@
     <Content Include="ApplicationInsights.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="InitialContent.md" />
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>

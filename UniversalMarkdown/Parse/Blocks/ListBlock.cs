@@ -14,19 +14,43 @@
 
 
 using System;
+using System.Collections.Generic;
 using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
 {
-    public class ListElementBlock : MarkdownBlock
+    public enum ListStyle
     {
+        Bulleted,
+        Numbered,
+    }
+
+    public class ListItemBlock : MarkdownBlock
+    {
+        /// <summary>
+        /// The contents of the block.
+        /// </summary>
+        public IList<MarkdownInline> Inlines { get; set; }
+
+        public ListItemBlock() : base(MarkdownBlockType.ListItem)
+        {
+        }
+    }
+
+    public class ListBlock : MarkdownBlock
+    {
+        /// <summary>
+        /// The list items.
+        /// </summary>
+        public IList<ListItemBlock> Items { get; set; }
+
         public int ListIndent = 0;
 
-        public string ListBullet = String.Empty;
+        public ListStyle Style;
 
-        public ListElementBlock()
-            : base(MarkdownBlockType.ListElement)
-        { }
+        public ListBlock() : base(MarkdownBlockType.List)
+        {
+        }
 
         /// <summary>
         /// Called when this block type should parse out the goods. Given the markdown, a starting point, and a max ending point
@@ -46,7 +70,7 @@ namespace UniversalMarkdown.Parse.Elements
                 // We have a bullet list
                 if (markdown[listStart] == '*' || markdown[listStart] == '-' || markdown[listStart] == '+')
                 {
-                    ListBullet = "•";
+                    Style = ListStyle.Bulleted;
                     // +1 to move past the ' '
                     listStart++;
                     break;
@@ -55,12 +79,11 @@ namespace UniversalMarkdown.Parse.Elements
                 else if (char.IsDigit(markdown[listStart]))
                 {
                     // Grab the list letter, but keep going to get the rest.
-                    ListBullet += markdown[listStart];
+                    Style = ListStyle.Numbered;
                 }
                 // We finished the letter list.
                 else if(markdown[listStart] == '.')
                 {
-                    ListBullet += '.';
                     break;
                 }
                 listStart++;
@@ -138,8 +161,10 @@ namespace UniversalMarkdown.Parse.Elements
             // Make sure there is something to parse, and not just dead space
             if (listEnd > listStart)
             {
-                // Parse the children of this list
-                ParseInlineChildren(markdown, listStart, listEnd);
+                // Parse the children of this list.
+                var item = new ListItemBlock();
+                item.Inlines = ParseInlineChildren(markdown, listStart, listEnd);
+                Items.Add(item);
             }
 
             // Trim off any extra line endings, except ' ' otherwise we can't do code blocks

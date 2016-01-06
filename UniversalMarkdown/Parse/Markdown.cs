@@ -28,9 +28,15 @@ namespace UniversalMarkdown.Parse
     /// </summary>
     public class Markdown : MarkdownBlock
     {
+        /// <summary>
+        /// Holds the list of block elements.
+        /// </summary>
+        public IList<MarkdownBlock> Blocks { get; set; }
+
         public Markdown()
             : base(MarkdownBlockType.Root)
-        { }
+        {
+        }
 
         public void Parse(string markdownText)
         {
@@ -60,6 +66,7 @@ namespace UniversalMarkdown.Parse
             // So start off by parsing our block children.
             int currentParsePosition = 0;
 
+            Blocks = new List<MarkdownBlock>();
             while (currentParsePosition < maxEndingPos)
             {
                 int elementStartingPos = currentParsePosition;
@@ -77,7 +84,7 @@ namespace UniversalMarkdown.Parse
                 currentParsePosition = element.Parse(markdown, elementStartingPos, maxEndingPos);
 
                 // Add it the the children
-                Children.Add(element);
+                Blocks.Add(element);
             }
 
             return maxEndingPos;
@@ -122,9 +129,9 @@ namespace UniversalMarkdown.Parse
             {
                 return new HorizontalRuleBlock();
             }
-            if (ListElementBlock.CanHandleBlock(markdown, startingPos, endingPos))
+            if (ListBlock.CanHandleBlock(markdown, startingPos, endingPos))
             {
-                return new ListElementBlock();
+                return new ListBlock();
             }
             if (LineBreakBlock.CanHandleBlock(markdown, startingPos, endingPos))
             {

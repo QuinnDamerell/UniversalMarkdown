@@ -22,6 +22,11 @@ namespace UniversalMarkdown.Parse.Elements
     public class TableBlock : MarkdownBlock
     {
         /// <summary>
+        /// The table rows.
+        /// </summary>
+        public IList<TableRow> Rows { get; set; }
+
+        /// <summary>
         /// Describes the columns in the table.  Rows can have more or less cells than the number
         /// of columns.  Rows with fewer cells should be padded with empty cells.  For rows with
         /// more cells, the extra cells should be hidden.
@@ -44,19 +49,21 @@ namespace UniversalMarkdown.Parse.Elements
         /// <returns></returns>
         internal override int Parse(string markdown, int startingPos, int maxEndingPos)
         {
+            Rows = new List<TableRow>();
+
             // Parse the first row.
             var firstRow = new TableRow();
             startingPos = firstRow.Parse(markdown, startingPos, maxEndingPos);
-            Children.Add(firstRow);
+            Rows.Add(firstRow);
 
             // Parse the second row.
             var secondRowContents = new List<string>();
             startingPos = TableRow.ParseContents(markdown, startingPos, maxEndingPos, requireVerticalBar: false,
-                contentParser: (markdown2, startingPos2, maxEndingPos2) => secondRowContents.Add(markdown2.Substring(startingPos2, maxEndingPos2 - startingPos2)));
+                contentParser: (startingPos2, maxEndingPos2) => secondRowContents.Add(markdown.Substring(startingPos2, maxEndingPos2 - startingPos2)));
 
             // The number of cells in the first row determines how many columns there are.
-            var columnDefinitions = new List<TableColumnDefinition>(firstRow.Children.Count);
-            for (int i = 0; i < firstRow.Children.Count; i++)
+            var columnDefinitions = new List<TableColumnDefinition>(firstRow.Cells.Count);
+            for (int i = 0; i < firstRow.Cells.Count; i++)
             {
                 var columnDefinition = new TableColumnDefinition();
                 var cellContent = secondRowContents[i];
@@ -75,9 +82,9 @@ namespace UniversalMarkdown.Parse.Elements
             {
                 var row = new TableRow();
                 startingPos = row.Parse(markdown, startingPos, maxEndingPos);
-                if (row.Children.Count == 0)
+                if (row.Cells.Count == 0)
                     break;
-                Children.Add(row);
+                Rows.Add(row);
             }
 
             return startingPos;
@@ -106,12 +113,12 @@ namespace UniversalMarkdown.Parse.Elements
             // Note: we already know there is a vertical bar.
             int firstRowColumnCount = 0;
             int secondLineStart = TableRow.ParseContents(markdown, nextCharPos, endingPos, requireVerticalBar: true,
-                contentParser: (markdown2, startingPos, maxEndingPos) => firstRowColumnCount++);
+                contentParser: (startingPos, maxEndingPos) => firstRowColumnCount++);
 
             // Parse the contents of the second row.
             var secondRowContents = new List<string>();
             TableRow.ParseContents(markdown, secondLineStart, endingPos, requireVerticalBar: false,
-                contentParser: (markdown2, startingPos, maxEndingPos) => secondRowContents.Add(markdown2.Substring(startingPos, maxEndingPos - startingPos)));
+                contentParser: (startingPos, maxEndingPos) => secondRowContents.Add(markdown.Substring(startingPos, maxEndingPos - startingPos)));
 
             // There must be at least as many columns in the second row as in the first row.
             if (secondRowContents.Count < firstRowColumnCount)
@@ -180,6 +187,11 @@ namespace UniversalMarkdown.Parse.Elements
     /// </summary>
     public class TableRow : MarkdownBlock
     {
+        /// <summary>
+        /// The table cells.
+        /// </summary>
+        public IList<TableCell> Cells { get; set; }
+
         public TableRow()
             : base(MarkdownBlockType.TableRow)
         {
@@ -196,7 +208,14 @@ namespace UniversalMarkdown.Parse.Elements
         /// <returns></returns>
         internal override int Parse(string markdown, int startingPos, int maxEndingPos)
         {
-            return ParseContents(markdown, startingPos, maxEndingPos, requireVerticalBar: true, contentParser: ParseInlineChildren);
+            Cells = new List<TableCell>();
+            return ParseContents(markdown, startingPos, maxEndingPos, requireVerticalBar: true,
+                contentParser: (startingPos2, maxEndingPos2) =>
+                {
+                    var cell = new TableCell();
+                    cell.Inlines = ParseInlineChildren(markdown, startingPos2, maxEndingPos2);
+                    Cells.Add(cell);
+                });
         }
 
         /// <summary>
@@ -208,7 +227,7 @@ namespace UniversalMarkdown.Parse.Elements
         /// <param name="requireVerticalBar"> Indicates whether the line must contain a vertical bar. </param>
         /// <param name="contentParser"> Called for each cell. </param>
         /// <returns> The position of the start of the next line. </returns>
-        internal static int ParseContents(string markdown, int startingPos, int maxEndingPos, bool requireVerticalBar, Action<string, int, int> contentParser)
+        internal static int ParseContents(string markdown, int startingPos, int maxEndingPos, bool requireVerticalBar, Action<int, int> contentParser)
         {
             // If the line starts with a '|' character, skip it.
             bool lineHasVerticalBar = false;
@@ -258,7 +277,7 @@ namespace UniversalMarkdown.Parse.Elements
                 if (endOfLineFound == false || endOfCellContent > startOfCellContent)
                 {
                     // Parse the contents of the cell.
-                    contentParser(markdown, startOfCellContent, endOfCellContent);
+                    contentParser(startOfCellContent, endOfCellContent);
                 }
 
                 // Move to the next cell, or the next line.
@@ -270,6 +289,22 @@ namespace UniversalMarkdown.Parse.Elements
             }
 
             return pos;
+        }
+    }
+
+    /// <summary>
+    /// Represents a cell in the table.
+    /// </summary>
+    public class TableCell : MarkdownBlock
+    {
+        /// <summary>
+        /// The cell contents.
+        /// </summary>
+        public IList<MarkdownInline> Inlines { get; set; }
+
+        public TableCell()
+            : base(MarkdownBlockType.TableCell)
+        {
         }
     }
 }

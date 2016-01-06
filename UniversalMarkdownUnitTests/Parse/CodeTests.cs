@@ -14,8 +14,7 @@ namespace UniversalMarkdownUnitTests.Parse
             AssertEqual("Here is some `inline code` lol",
                 new ParagraphBlock().AddChildren(
                     new TextRunInline { Text = "Here is some " },
-                    new CodeInline().AddChildren(
-                        new TextRunInline { Text = "inline code" }),
+                    new CodeInline { Text = "inline code" },
                     new TextRunInline { Text = " lol" }));
         }
 
@@ -26,8 +25,7 @@ namespace UniversalMarkdownUnitTests.Parse
             AssertEqual("before` middle `after",
                 new ParagraphBlock().AddChildren(
                     new TextRunInline { Text = "before" },
-                    new CodeInline().AddChildren(
-                        new TextRunInline { Text = " middle " }),
+                    new CodeInline { Text = " middle " },
                     new TextRunInline { Text = "after" }));
         }
 
@@ -39,8 +37,7 @@ namespace UniversalMarkdownUnitTests.Parse
             AssertEqual("Here is some `ignored **formatting** inside code`",
                 new ParagraphBlock().AddChildren(
                     new TextRunInline { Text = "Here is some " },
-                    new CodeInline().AddChildren(
-                        new TextRunInline { Text = "ignored **formatting** inside code" })));
+                    new CodeInline { Text = "ignored **formatting** inside code" }));
         }
 
         [UITestMethod]
@@ -51,8 +48,7 @@ namespace UniversalMarkdownUnitTests.Parse
             AssertEqual("Here is some `text with lots of       space`",
                 new ParagraphBlock().AddChildren(
                     new TextRunInline { Text = "Here is some " },
-                    new CodeInline().AddChildren(
-                        new TextRunInline { Text = "text with lots of space" })));
+                    new CodeInline { Text = "text with lots of space" }));
         }
 
         [UITestMethod]

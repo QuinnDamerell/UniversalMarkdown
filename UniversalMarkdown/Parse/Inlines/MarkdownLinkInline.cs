@@ -24,6 +24,11 @@ namespace UniversalMarkdown.Parse.Elements
 {
     public class MarkdownLinkInline : MarkdownInline
     {
+        /// <summary>
+        /// The contents of the inline.
+        /// </summary>
+        public IList<MarkdownInline> Inlines { get; set; }
+
         public string Url { get; set; }
 
         public string Tooltip { get; set; }
@@ -74,29 +79,29 @@ namespace UniversalMarkdown.Parse.Elements
             if (linkTextClose > linkTextOpen)
             {
                 // Parse any children of this link element
-                ParseInlineChildren(markdown, linkTextOpen, linkTextClose);
+                Inlines = ParseInlineChildren(markdown, linkTextOpen, linkTextClose);
             }
 
             // We can't render links in links. So if anything in the children of this is a link
             // we have to remove it
-            for(int count = 0; count < Children.Count; count++)
+            for(int count = 0; count < Inlines.Count; count++)
             {
                 // Look through the children for a link, if found grab the text
-                MarkdownInlineType type = ((MarkdownInline)Children[count]).Type;
+                MarkdownInlineType type = ((MarkdownInline)Inlines[count]).Type;
                 string replaceText = null;
                 if (type == MarkdownInlineType.MarkdownLink)
                 {
                     // If it is a link just grab the URL. Ideally we would grab the text
                     // but that is too hard and this will never happen.
-                    replaceText = ((MarkdownLinkInline)Children[count]).Url;
+                    replaceText = ((MarkdownLinkInline)Inlines[count]).Url;
                 }
                 else if (type == MarkdownInlineType.RawHyperlink)
                 {
-                    replaceText = ((RawHyperlinkInline)Children[count]).Url;
+                    replaceText = ((RawHyperlinkInline)Inlines[count]).Url;
                 }
                 else if (type == MarkdownInlineType.RawSubreddit)
                 {
-                    replaceText = ((RawSubredditInline)Children[count]).Text;
+                    replaceText = ((RawSubredditInline)Inlines[count]).Text;
                 }
 
                 // If we found text to replace add a new text element as the text.
@@ -104,7 +109,7 @@ namespace UniversalMarkdown.Parse.Elements
                 {
                     TextRunInline textRun = new TextRunInline();
                     textRun.Text = replaceText;
-                    Children[count] = textRun;
+                    Inlines[count] = textRun;
                 }
             }
 

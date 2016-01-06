@@ -24,6 +24,11 @@ namespace UniversalMarkdown.Parse.Elements
 {
     public class ItalicTextInline : MarkdownInline
     {
+        /// <summary>
+        /// The contents of the inline.
+        /// </summary>
+        public IList<MarkdownInline> Inlines { get; set; }
+
         public ItalicTextInline()
             : base(MarkdownInlineType.Italic)
         { }
@@ -66,7 +71,7 @@ namespace UniversalMarkdown.Parse.Elements
             if (innerEnd > innerStart)
             {
                 // Parse any children.
-                ParseInlineChildren(markdown, innerStart, innerEnd);
+                Inlines = ParseInlineChildren(markdown, innerStart, innerEnd);
             }
 
             return endingPos;

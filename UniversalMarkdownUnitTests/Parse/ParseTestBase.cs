@@ -21,7 +21,7 @@ namespace UniversalMarkdownUnitTests.Parse
             parser.Parse(markdown);
 
             var actual = new StringBuilder();
-            foreach (var block in parser.Children)
+            foreach (var block in parser.Blocks)
             {
                 SerializeElement(actual, block, indentLevel: 0);
             }

@@ -24,6 +24,11 @@ namespace UniversalMarkdown.Parse.Elements
 {
     public class StrikethroughTextInline : MarkdownInline
     {
+        /// <summary>
+        /// The contents of the inline.
+        /// </summary>
+        public IList<MarkdownInline> Inlines { get; set; }
+
         public StrikethroughTextInline()
             : base(MarkdownInlineType.Strikethrough)
         { }
@@ -67,7 +72,7 @@ namespace UniversalMarkdown.Parse.Elements
             if (strikethroughEnding > strikethroughStart)
             {
                 // Parse any children of this bold element
-                ParseInlineChildren(markdown, strikethroughStart, strikethroughEnding);
+                Inlines = ParseInlineChildren(markdown, strikethroughStart, strikethroughEnding);
             }
 
             // Return the point after the ~~

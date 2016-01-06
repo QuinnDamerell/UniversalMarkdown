@@ -24,6 +24,11 @@ namespace UniversalMarkdown.Parse.Elements
 {
     public class HeaderBlock : MarkdownBlock
     {
+        /// <summary>
+        /// The contents of the block.
+        /// </summary>
+        public IList<MarkdownInline> Inlines { get; set; }
+
         public int HeaderLevel { get; set; }
 
         public HeaderBlock()
@@ -77,8 +82,8 @@ namespace UniversalMarkdown.Parse.Elements
             // Make sure there is something to parse, and not just dead space
             if (endOfInlines > headerStart)
             {
-                // Parse the children of this quote
-                ParseInlineChildren(markdown, headerStart, endOfInlines);
+                // Parse the children of this header
+                Inlines = ParseInlineChildren(markdown, headerStart, endOfInlines);
             }
 
             // Trim off any extra line endings, except ' ' otherwise we can't do code blocks

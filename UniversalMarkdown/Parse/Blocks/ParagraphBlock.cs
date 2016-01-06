@@ -24,6 +24,11 @@ namespace UniversalMarkdown.Parse.Elements
 {
     public class ParagraphBlock : MarkdownBlock
     {
+        /// <summary>
+        /// The contents of the block.
+        /// </summary>
+        public IList<MarkdownInline> Inlines { get; set; }
+
         public ParagraphBlock()
             : base(MarkdownBlockType.Paragraph)
         { }
@@ -46,7 +51,7 @@ namespace UniversalMarkdown.Parse.Elements
             if (endingPos > startingPos)
             {
                 // Parse the children of this paragraph
-                ParseInlineChildren(markdown, startingPos, endingPos);
+                Inlines = ParseInlineChildren(markdown, startingPos, endingPos);
             }
 
             // Trim off any extra line endings, except ' ' otherwise we can't do code blocks

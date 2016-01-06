@@ -119,7 +119,7 @@
     <Compile Include="Parse\Blocks\CodeBlock.cs" />
     <Compile Include="Parse\Blocks\HeaderBlock.cs" />
     <Compile Include="Parse\Blocks\LinkBreakBlock.cs" />
-    <Compile Include="Parse\Blocks\ListElementBlock.cs" />
+    <Compile Include="Parse\Blocks\ListBlock.cs" />
     <Compile Include="Parse\Blocks\HorizontalRuleBlock.cs" />
     <Compile Include="Parse\Blocks\TableBlock.cs" />
     <Compile Include="Parse\Blocks\QuoteBlock.cs" />

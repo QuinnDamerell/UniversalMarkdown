@@ -24,6 +24,11 @@ namespace UniversalMarkdown.Parse.Elements
 {
     public class SuperscriptTextInline : MarkdownInline
     {
+        /// <summary>
+        /// The contents of the inline.
+        /// </summary>
+        public IList<MarkdownInline> Inlines { get; set; }
+
         public SuperscriptTextInline()
             : base(MarkdownInlineType.Superscript)
         { }
@@ -119,7 +124,7 @@ namespace UniversalMarkdown.Parse.Elements
             if (contentEnd > contentStart)
             {
                 // Parse any children of this superscript element
-                ParseInlineChildren(markdown, contentStart, contentEnd);
+                Inlines = ParseInlineChildren(markdown, contentStart, contentEnd);
             }
 
             return endingPos;

@@ -60,7 +60,7 @@ namespace UniversalMarkdown.Display
             m_richTextBlock.Blocks.Clear();
 
             // For the root, loop through the block types and render them
-            foreach (MarkdownBlock element in markdownTree.Children)
+            foreach (MarkdownBlock element in markdownTree.Blocks)
             {
                 RenderBlock(element, m_richTextBlock.Blocks);
             }
@@ -76,7 +76,7 @@ namespace UniversalMarkdown.Display
             switch (element.Type)
             {
                 case MarkdownBlockType.Paragraph:
-                    RenderPargraph((ParagraphBlock)element, currentBlocks);
+                    RenderParagraph((ParagraphBlock)element, currentBlocks);
                     break;
                 case MarkdownBlockType.Quote:
                     RenderQuote((QuoteBlock)element, currentBlocks);
@@ -87,8 +87,8 @@ namespace UniversalMarkdown.Display
                 case MarkdownBlockType.Header:
                     RenderHeader((HeaderBlock)element, currentBlocks);
                     break;
-                case MarkdownBlockType.ListElement:
-                    RenderListElement((ListElementBlock)element, currentBlocks);
+                case MarkdownBlockType.List:
+                    RenderListElement((ListBlock)element, currentBlocks);
                     break;
                 case MarkdownBlockType.HorizontalRule:
                     RenderHorizontalRule((HorizontalRuleBlock)element, currentBlocks);
@@ -144,12 +144,12 @@ namespace UniversalMarkdown.Display
         /// <summary>
         /// Renders all of the children for the given element.
         /// </summary>
-        /// <param name="rootElemnet">The root element to render children of</param>
+        /// <param name="inlineElements">The inline elements to render</param>
         /// <param name="currentInlines">The inlines where they should go</param>
         /// <param name="trimTextStart">If true the first text box start will be trimed so there is no leading space</param>
-        private void RenderInlineChildren(MarkdownElement rootElemnet, InlineCollection currentInlines, ref bool trimTextStart)
+        private void RenderInlineChildren(IList<MarkdownInline> inlineElements, InlineCollection currentInlines, ref bool trimTextStart)
         {
-            foreach (MarkdownInline element in rootElemnet.Children)
+            foreach (MarkdownInline element in inlineElements)
             {
                 RenderInline(element, currentInlines, ref trimTextStart);
             }
@@ -162,7 +162,7 @@ namespace UniversalMarkdown.Display
         /// </summary>
         /// <param name="element"></param>
         /// <param name="currentBlocks"></param>
-        private void RenderPargraph(ParagraphBlock element, BlockCollection currentBlocks)
+        private void RenderParagraph(ParagraphBlock element, BlockCollection currentBlocks)
         {
             // Make a new paragraph
             Paragraph paragraph = new Paragraph();
@@ -175,7 +175,7 @@ namespace UniversalMarkdown.Display
 
             // Render the children into the para inline.
             bool trimTextStart = true;
-            RenderInlineChildren(element, paragraph.Inlines, ref trimTextStart);
+            RenderInlineChildren(element.Inlines, paragraph.Inlines, ref trimTextStart);
         }
 
         /// <summary>
@@ -217,7 +217,7 @@ namespace UniversalMarkdown.Display
 
             // Render the children into the para inline.
             bool trimTextStart = true;
-            RenderInlineChildren(element, headerPara.Inlines, ref trimTextStart);
+            RenderInlineChildren(element.Inlines, headerPara.Inlines, ref trimTextStart);
         }
 
         /// <summary>
@@ -225,47 +225,47 @@ namespace UniversalMarkdown.Display
         /// </summary>
         /// <param name="element"></param>
         /// <param name="currentBlocks"></param>
-        private void RenderListElement(ListElementBlock element, BlockCollection currentBlocks)
+        private void RenderListElement(ListBlock element, BlockCollection currentBlocks)
         {
-            // Create a grid for the dot and the text
-            Grid grid = new Grid();
+            //// Create a grid for the dot and the text
+            //Grid grid = new Grid();
 
-            // The first column for the dot the second for the text
-            grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Auto) });
-            grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
+            //// The first column for the dot the second for the text
+            //grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Auto) });
+            //grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
 
-            // Make the dot container and the new text box
-            TextBlock dotText = new TextBlock();
-            dotText.Text = element.ListBullet;
-            Grid.SetColumn(dotText, 0);
-            // Add the indent
-            dotText.Margin = new Thickness(12 * element.ListIndent, 2, 0, 2);
-            grid.Children.Add(dotText);
+            //// Make the dot container and the new text box
+            //TextBlock dotText = new TextBlock();
+            //dotText.Text = element.Style == ListStyle.Bulleted ? "*" : "1.";
+            //Grid.SetColumn(dotText, 0);
+            //// Add the indent
+            //dotText.Margin = new Thickness(12 * element.ListIndent, 2, 0, 2);
+            //grid.Children.Add(dotText);
 
-            RichTextBlock listText = new RichTextBlock();
-            Grid.SetColumn(listText, 1);
-            // Give the text some space from the dot and also from the top and bottom
-            listText.Margin = new Thickness(6, 2, 0, 2);
-            grid.Children.Add(listText);
+            //RichTextBlock listText = new RichTextBlock();
+            //Grid.SetColumn(listText, 1);
+            //// Give the text some space from the dot and also from the top and bottom
+            //listText.Margin = new Thickness(6, 2, 0, 2);
+            //grid.Children.Add(listText);
 
-            // Make the inline container
-            InlineUIContainer uiConainter = new InlineUIContainer();
-            uiConainter.Child = grid;
+            //// Make the inline container
+            //InlineUIContainer uiConainter = new InlineUIContainer();
+            //uiConainter.Child = grid;
 
-            // Make a paragraph to hold our list
-            Paragraph blockParagraph = new Paragraph();
-            blockParagraph.Inlines.Add(uiConainter);
+            //// Make a paragraph to hold our list
+            //Paragraph blockParagraph = new Paragraph();
+            //blockParagraph.Inlines.Add(uiConainter);
 
-            // Make a paragraph to hold our list test
-            Paragraph inlineParagraph = new Paragraph();
-            listText.Blocks.Add(inlineParagraph);
+            //// Make a paragraph to hold our list test
+            //Paragraph inlineParagraph = new Paragraph();
+            //listText.Blocks.Add(inlineParagraph);
 
-            // Add it to the blocks
-            currentBlocks.Add(blockParagraph);
+            //// Add it to the blocks
+            //currentBlocks.Add(blockParagraph);
 
-            // Render the children into the rich.
-            bool trimTextStart = true;
-            RenderInlineChildren(element, inlineParagraph.Inlines, ref trimTextStart);
+            //// Render the children into the rich.
+            //bool trimTextStart = true;
+            //RenderInlineChildren(element.Items, inlineParagraph.Inlines, ref trimTextStart);
         }
 
         /// <summary>
@@ -323,17 +323,17 @@ namespace UniversalMarkdown.Display
         /// <param name="currentBlocks"></param>
         private void RenderQuote(QuoteBlock element, BlockCollection currentBlocks)
         {
-            // Make the new quote paragraph
-            Paragraph quotePara = new Paragraph();
-            quotePara.Margin = new Thickness(element.QuoteIndent * 12, 12, 12, 12);
-            quotePara.Foreground = new SolidColorBrush(Color.FromArgb(180, 255, 255, 255));
+            //// Make the new quote paragraph
+            //Paragraph quotePara = new Paragraph();
+            //quotePara.Margin = new Thickness(element.QuoteIndent * 12, 12, 12, 12);
+            //quotePara.Foreground = new SolidColorBrush(Color.FromArgb(180, 255, 255, 255));
 
-            // Add it to the blocks
-            currentBlocks.Add(quotePara);
+            //// Add it to the blocks
+            //currentBlocks.Add(quotePara);
 
-            // Render the children into the para inline.
-            bool trimTextStart = true;
-            RenderInlineChildren(element, quotePara.Inlines, ref trimTextStart);
+            //// Render the children into the para inline.
+            //bool trimTextStart = true;
+            //RenderInlineChildren(element.Blocks, quotePara.Inlines, ref trimTextStart);
         }
 
 
@@ -344,18 +344,18 @@ namespace UniversalMarkdown.Display
         /// <param name="currentBlocks"></param>
         private void RenderCode(CodeBlock element, BlockCollection currentBlocks)
         {
-            // Make the new code paragraph
-            Paragraph codePara = new Paragraph();
-            codePara.Margin = new Thickness(12 * element.CodeIndent, 0, 0, 0);
-            codePara.Foreground = new SolidColorBrush(Color.FromArgb(180, 255, 255, 255));
-            codePara.FontFamily = new FontFamily("Courier New");
+            //// Make the new code paragraph
+            //Paragraph codePara = new Paragraph();
+            //codePara.Margin = new Thickness(12 * element.CodeIndent, 0, 0, 0);
+            //codePara.Foreground = new SolidColorBrush(Color.FromArgb(180, 255, 255, 255));
+            //codePara.FontFamily = new FontFamily("Courier New");
 
-            // Add it to the blocks
-            currentBlocks.Add(codePara);
+            //// Add it to the blocks
+            //currentBlocks.Add(codePara);
 
-            // Render the children into the para inline.
-            bool trimTextStart = true;
-            RenderInlineChildren(element, codePara.Inlines, ref trimTextStart);
+            //// Render the children into the para inline.
+            //bool trimTextStart = true;
+            //RenderInlineChildren(element, codePara.Inlines, ref trimTextStart);
         }
 
         /// <summary>
@@ -372,23 +372,23 @@ namespace UniversalMarkdown.Display
                 table.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
 
             // Set every row height to "Auto".
-            foreach (var row in element.Children)
+            foreach (var row in element.Rows)
                 table.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
 
             // Add each row.
-            for (int rowIndex = 0; rowIndex < element.Children.Count; rowIndex ++)
+            for (int rowIndex = 0; rowIndex < element.Rows.Count; rowIndex ++)
             {
-                var row = (TableRow)element.Children[rowIndex];
+                var row = element.Rows[rowIndex];
 
                 // Add each cell.
-                for (int cellIndex = 0; cellIndex < Math.Min(element.ColumnDefinitions.Count(), row.Children.Count); cellIndex ++)
+                for (int cellIndex = 0; cellIndex < Math.Min(element.ColumnDefinitions.Count(), row.Cells.Count); cellIndex ++)
                 {
-                    var cell = (MarkdownInline)row.Children[cellIndex];
+                    var cell = row.Cells[cellIndex];
 
                     var cellElement = new RichTextBlock();
                     var block = new Paragraph();
                     bool trimTextStart = true;
-                    RenderInline(cell, block.Inlines, ref trimTextStart);
+                    RenderInlineChildren(cell.Inlines, block.Inlines, ref trimTextStart);
                     cellElement.Blocks.Add(block);
 
                     Grid.SetRow(cellElement, rowIndex);
@@ -446,7 +446,7 @@ namespace UniversalMarkdown.Display
             boldSpan.FontWeight = FontWeights.Bold;
 
             // Render the children into the bold inline.
-            RenderInlineChildren(element, boldSpan.Inlines, ref trimTextStart);
+            RenderInlineChildren(element.Inlines, boldSpan.Inlines, ref trimTextStart);
 
             // Add it to the current inlines
             currentInlines.Add(boldSpan);
@@ -467,7 +467,7 @@ namespace UniversalMarkdown.Display
             m_linkRegister.RegisterNewHyperLink(link, element.Url);
 
             // Render the children into the link inline.
-            RenderInlineChildren(element, link.Inlines, ref trimTextStart);
+            RenderInlineChildren(element.Inlines, link.Inlines, ref trimTextStart);
 
             // Add it to the current inlines
             currentInlines.Add(link);
@@ -544,7 +544,7 @@ namespace UniversalMarkdown.Display
             italicSpan.FontStyle = FontStyle.Italic;
 
             // Render the children into the italic inline.
-            RenderInlineChildren(element, italicSpan.Inlines, ref trimTextStart);
+            RenderInlineChildren(element.Inlines, italicSpan.Inlines, ref trimTextStart);
 
             // Add it to the current inlines
             currentInlines.Add(italicSpan);
@@ -562,7 +562,7 @@ namespace UniversalMarkdown.Display
             Span span = new Span();
 
             // Render the children into the inline.
-            RenderInlineChildren(element, span.Inlines, ref trimTextStart);
+            RenderInlineChildren(element.Inlines, span.Inlines, ref trimTextStart);
 
             // Add it to the current inlines
             currentInlines.Add(span);
@@ -580,7 +580,7 @@ namespace UniversalMarkdown.Display
             Typography.SetVariants(span, FontVariants.Superscript);
 
             // Render the children into the inline.
-            RenderInlineChildren(element, span.Inlines, ref trimTextStart);
+            RenderInlineChildren(element.Inlines, span.Inlines, ref trimTextStart);
 
             // Add it to the current inlines
             currentInlines.Add(span);
@@ -594,14 +594,12 @@ namespace UniversalMarkdown.Display
         /// <param name="trimTextStart">If true this element should trin the start of the text and set to fales.</param>
         private void RenderCodeRun(CodeInline element, InlineCollection currentInlines, ref bool trimTextStart)
         {
-            Span span = new Span();
-            span.FontFamily = new FontFamily("Consolas");
-
-            // Render the children into the inline.
-            RenderInlineChildren(element, span.Inlines, ref trimTextStart);
+            var run = new Run();
+            run.FontFamily = new FontFamily("Consolas");
+            run.Text = element.Text;
 
             // Add it to the current inlines
-            currentInlines.Add(span);
+            currentInlines.Add(run);
         }
 
         #endregion

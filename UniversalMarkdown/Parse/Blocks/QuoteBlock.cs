@@ -24,6 +24,11 @@ namespace UniversalMarkdown.Parse.Elements
 {
     public class QuoteBlock : MarkdownBlock
     {
+        /// <summary>
+        /// The contents of the block.
+        /// </summary>
+        public IList<MarkdownBlock> Blocks { get; set; }
+
         public int QuoteIndent = 0;
 
         public QuoteBlock()

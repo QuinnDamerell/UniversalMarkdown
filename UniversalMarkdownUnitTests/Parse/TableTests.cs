@@ -15,7 +15,7 @@ namespace UniversalMarkdownUnitTests.Parse
             AssertEqual(CollapseWhitespace(@"
                 | Column 1 | Column 2 | Column 3 |
                 |----------|----------|----------|
-                | A        | B        | C        |"),
+                | A **cat**| Bob      | Chow     |"),
                 new TableBlock
                 {
                     ColumnDefinitions = new List<TableColumnDefinition>
@@ -26,13 +26,15 @@ namespace UniversalMarkdownUnitTests.Parse
                     }
                 }.AddChildren(
                     new TableRow().AddChildren(
-                        new TextRunInline { Text = "Column 1" },
-                        new TextRunInline { Text = "Column 2" },
-                        new TextRunInline { Text = "Column 3" }),
+                        new TableCell().AddChildren(new TextRunInline { Text = "Column 1" }),
+                        new TableCell().AddChildren(new TextRunInline { Text = "Column 2" }),
+                        new TableCell().AddChildren(new TextRunInline { Text = "Column 3" })),
                     new TableRow().AddChildren(
-                        new TextRunInline { Text = "A" },
-                        new TextRunInline { Text = "B" },
-                        new TextRunInline { Text = "C" })));
+                        new TableCell().AddChildren(
+                            new TextRunInline { Text = "A " },
+                            new BoldTextInline().AddChildren(new TextRunInline { Text = "cat" })),
+                        new TableCell().AddChildren(new TextRunInline { Text = "Bob" }),
+                        new TableCell().AddChildren(new TextRunInline { Text = "Chow" }))));
         }
 
         [UITestMethod]
@@ -55,21 +57,21 @@ namespace UniversalMarkdownUnitTests.Parse
                     }
                 }.AddChildren(
                     new TableRow().AddChildren(
-                        new TextRunInline { Text = "Column 1" },
-                        new TextRunInline { Text = "Column 2" },
-                        new TextRunInline { Text = "Column 3" }),
+                        new TableCell().AddChildren(new TextRunInline { Text = "Column 1" }),
+                        new TableCell().AddChildren(new TextRunInline { Text = "Column 2" }),
+                        new TableCell().AddChildren(new TextRunInline { Text = "Column 3" })),
                     new TableRow().AddChildren(
-                        new TextRunInline { Text = "You" },
-                        new TextRunInline { Text = "You" },
-                        new TextRunInline { Text = "You" }),
+                        new TableCell().AddChildren(new TextRunInline { Text = "You" }),
+                        new TableCell().AddChildren(new TextRunInline { Text = "You" }),
+                        new TableCell().AddChildren(new TextRunInline { Text = "You" })),
                     new TableRow().AddChildren(
-                        new TextRunInline { Text = "can align" },
-                        new TextRunInline { Text = "can align" },
-                        new TextRunInline { Text = "can align" }),
+                        new TableCell().AddChildren(new TextRunInline { Text = "can align" }),
+                        new TableCell().AddChildren(new TextRunInline { Text = "can align" }),
+                        new TableCell().AddChildren(new TextRunInline { Text = "can align" })),
                     new TableRow().AddChildren(
-                        new TextRunInline { Text = "left" },
-                        new TextRunInline { Text = "right" },
-                        new TextRunInline { Text = "center" })));
+                        new TableCell().AddChildren(new TextRunInline { Text = "left" }),
+                        new TableCell().AddChildren(new TextRunInline { Text = "right" }),
+                        new TableCell().AddChildren(new TextRunInline { Text = "center" }))));
         }
 
         [UITestMethod]
@@ -91,13 +93,13 @@ namespace UniversalMarkdownUnitTests.Parse
                     }
                 }.AddChildren(
                         new TableRow().AddChildren(
-                            new TextRunInline { Text = "Column A" },
-                            new TextRunInline { Text = "Column B" },
-                            new TextRunInline { Text = "Column C" }),
+                            new TableCell().AddChildren(new TextRunInline { Text = "Column A" }),
+                            new TableCell().AddChildren(new TextRunInline { Text = "Column B" }),
+                            new TableCell().AddChildren(new TextRunInline { Text = "Column C" })),
                         new TableRow().AddChildren(
-                            new TextRunInline { Text = "A1" },
-                            new TextRunInline { Text = "B1" },
-                            new TextRunInline { Text = "C1" })));
+                            new TableCell().AddChildren(new TextRunInline { Text = "A1" }),
+                            new TableCell().AddChildren(new TextRunInline { Text = "B1" }),
+                            new TableCell().AddChildren(new TextRunInline { Text = "C1" }))));
         }
 
         [UITestMethod]
@@ -115,7 +117,7 @@ namespace UniversalMarkdownUnitTests.Parse
                     }
                 }.AddChildren(
                     new TableRow().AddChildren(
-                        new TextRunInline { Text = "c" })));
+                        new TableCell().AddChildren(new TextRunInline { Text = "c" }))));
         }
 
         [UITestMethod]
@@ -133,7 +135,7 @@ namespace UniversalMarkdownUnitTests.Parse
                     }
                 }.AddChildren(
                     new TableRow().AddChildren(
-                        new TextRunInline { Text = "c" })));
+                        new TableCell().AddChildren(new TextRunInline { Text = "c" }))));
         }
 
         [UITestMethod]
@@ -152,8 +154,8 @@ namespace UniversalMarkdownUnitTests.Parse
                     }
                 }.AddChildren(
                     new TableRow().AddChildren(
-                        new TextRunInline { Text = "a" },
-                        new TextRunInline { Text = "b" })));
+                        new TableCell().AddChildren(new TextRunInline { Text = "a" }),
+                        new TableCell().AddChildren(new TextRunInline { Text = "b" }))));
         }
 
         [UITestMethod]
@@ -172,8 +174,8 @@ namespace UniversalMarkdownUnitTests.Parse
                     }
                 }.AddChildren(
                     new TableRow().AddChildren(
-                        new TextRunInline { Text = "a" },
-                        new TextRunInline { Text = "b" })));
+                        new TableCell().AddChildren(new TextRunInline { Text = "a" }),
+                        new TableCell().AddChildren(new TextRunInline { Text = "b" }))));
         }
 
         [UITestMethod]
@@ -194,11 +196,11 @@ namespace UniversalMarkdownUnitTests.Parse
                     }
                 }.AddChildren(
                     new TableRow().AddChildren(
-                        new TextRunInline { Text = "a" },
-                        new TextRunInline { Text = "b" }),
+                        new TableCell().AddChildren(new TextRunInline { Text = "a" }),
+                        new TableCell().AddChildren(new TextRunInline { Text = "b" })),
                     new TableRow().AddChildren(
-                        new TextRunInline { Text = "A" },
-                        new TextRunInline { Text = "B" })),
+                        new TableCell().AddChildren(new TextRunInline { Text = "A" }),
+                        new TableCell().AddChildren(new TextRunInline { Text = "B" }))),
                 new ParagraphBlock().AddChildren(new TextRunInline { Text = "test" }));
         }
 

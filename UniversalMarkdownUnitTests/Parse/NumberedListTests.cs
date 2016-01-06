@@ -12,7 +12,7 @@ namespace UniversalMarkdownUnitTests.Parse
         public void NumberedList_SingleLine()
         {
             AssertEqual("1. List",
-                new ListElementBlock().AddChildren(
+                new ListBlock().AddChildren(
                     new TextRunInline { Text = "List" }));
         }
 
@@ -25,7 +25,7 @@ namespace UniversalMarkdownUnitTests.Parse
                 7. List item 1
                 502. List item 2
                 502456456456456456456456456456456456. List item 3"),
-                new ListElementBlock().AddChildren(
+                new ListBlock().AddChildren(
                     new TextRunInline { Text = "List item 1" },
                     new TextRunInline { Text = "List item 2" },
                     new TextRunInline { Text = "List item 3" }));

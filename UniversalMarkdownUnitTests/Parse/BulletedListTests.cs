@@ -12,7 +12,7 @@ namespace UniversalMarkdownUnitTests.Parse
         public void BulletedList_SingleLine()
         {
             AssertEqual("- List",
-                new ListElementBlock().AddChildren(
+                new ListBlock().AddChildren(
                     new TextRunInline { Text = "List" }));
         }
 
@@ -30,7 +30,7 @@ namespace UniversalMarkdownUnitTests.Parse
                 after"),
                 new ParagraphBlock().AddChildren(
                     new TextRunInline { Text = "before" }),
-                new ListElementBlock().AddChildren(
+                new ListBlock().AddChildren(
                     new TextRunInline { Text = "List item 1" },
                     new TextRunInline { Text = "List item 2" },
                     new TextRunInline { Text = "List item 3" }),
@@ -46,9 +46,9 @@ namespace UniversalMarkdownUnitTests.Parse
                 - List item 1
                     - Nested item
                 + List item 2"),
-                new ListElementBlock().AddChildren(
+                new ListBlock().AddChildren(
                     new TextRunInline { Text = "List item 1" },
-                    new ListElementBlock().AddChildren(
+                    new ListBlock().AddChildren(
                         new TextRunInline { Text = "Nested item" }),
                     new TextRunInline { Text = "List item 2" }));
         }

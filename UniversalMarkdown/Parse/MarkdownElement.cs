@@ -27,13 +27,7 @@ namespace UniversalMarkdown.Parse
     {
         public MarkdownElement()
         {
-            Children = new List<MarkdownElement>();
         }
-
-        /// <summary>
-        /// Holds the list of children for this element
-        /// </summary>
-        public List<MarkdownElement> Children { get; private set; }
 
         /// <summary>
         /// A function that all elements must implement to parse what they own.
@@ -42,7 +36,10 @@ namespace UniversalMarkdown.Parse
         /// <param name="startingPos"></param>
         /// <param name="maxEndingPos"></param>
         /// <returns>Returns the ending position of the parse</returns>
-        abstract internal int Parse(string markdown, int startingPos, int maxEndingPos);
+        internal virtual int Parse(string markdown, int startingPos, int maxEndingPos)
+        {
+            throw new NotImplementedException();
+        }
 
         /// <summary>
         /// This function can be called by any element parsing. Given a start and stopping point this will
@@ -51,11 +48,12 @@ namespace UniversalMarkdown.Parse
         /// <param name="markdown"></param>
         /// <param name="startingPos"></param>
         /// <param name="maxEndingPos"></param>
-        protected void ParseInlineChildren(string markdown, int startingPos, int maxEndingPos)
+        /// <returns> A list of parsed inlines. </returns>
+        protected static List<MarkdownInline> ParseInlineChildren(string markdown, int startingPos, int maxEndingPos)
         {
             int currentParsePosition = startingPos;
 
-
+            var inlines = new List<MarkdownInline>();
             while (currentParsePosition < maxEndingPos)
             {
                 int nextElemntStart = 0;
@@ -70,15 +68,16 @@ namespace UniversalMarkdown.Parse
                 {
                     TextRunInline textRun = new TextRunInline();
                     textRun.Parse(markdown, currentParsePosition, nextElemntStart);
-                    Children.Add(textRun);
+                    inlines.Add(textRun);
                 }
 
                 // Ask it to parse, it will return us the ending pos of itself.
                 currentParsePosition = element.Parse(markdown, nextElemntStart, nextElementEnd);
 
                 // Add it the the children
-                Children.Add(element);
+                inlines.Add(element);
             }
+            return inlines;
         }
     }
 }

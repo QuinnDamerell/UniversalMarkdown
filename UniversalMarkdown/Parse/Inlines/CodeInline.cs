@@ -24,6 +24,11 @@ namespace UniversalMarkdown.Parse.Elements
 {
     public class CodeInline : MarkdownInline
     {
+        /// <summary>
+        /// The text to display as code.
+        /// </summary>
+        public string Text { get; set; }
+
         public CodeInline()
             : base(MarkdownInlineType.Code)
         { }
@@ -67,7 +72,7 @@ namespace UniversalMarkdown.Parse.Elements
             if (end > start)
             {
                 // Parse any children of this bold element
-                Children.Add(new TextRunInline { Text = markdown.Substring(start, end - start) });
+                Text = markdown.Substring(start, end - start);
             }
 
             // Return the point after the inline.

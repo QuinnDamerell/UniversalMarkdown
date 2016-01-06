@@ -24,6 +24,11 @@ namespace UniversalMarkdown.Parse.Elements
 {
     public class BoldTextInline : MarkdownInline
     {
+        /// <summary>
+        /// The contents of the inline.
+        /// </summary>
+        public IList<MarkdownInline> Inlines { get; set; }
+
         public BoldTextInline()
             : base(MarkdownInlineType.Bold)
         { }
@@ -65,7 +70,7 @@ namespace UniversalMarkdown.Parse.Elements
             if (innerEnd > innerStart)
             {
                 // Parse any children.
-                ParseInlineChildren(markdown, innerStart, innerEnd);
+                Inlines = ParseInlineChildren(markdown, innerStart, innerEnd);
             }
 
             return endingPos;

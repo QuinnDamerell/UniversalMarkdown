@@ -1,6 +1,4 @@
-﻿Source: https://www.reddit.com/r/reddit.com/comments/6ewgt/reddit_markdown_primer_or_how_do_you_do_all_that/c03nik6
-
-*Note: For a full list of markdown syntax, see the [official syntax guide](http://daringfireball.net/projects/markdown/syntax).  Also note that reddit doesn't support images, for which I am grateful, as that would most definitely be the catalyst needed to turn reddit into 4chan (*`/r/circlejerk/`*, which uses CSS trickery to permit some level of image posting, is a great example of the destructive power of images).*
+﻿*Note: For a full list of markdown syntax, see the [official syntax guide](http://daringfireball.net/projects/markdown/syntax).  Also note that reddit doesn't support images, for which I am grateful, as that would most definitely be the catalyst needed to turn reddit into 4chan (*`/r/circlejerk/`*, which uses CSS trickery to permit some level of image posting, is a great example of the destructive power of images).*
 
 # PARAGRAPHS
 
@@ -323,3 +321,5 @@ results in
 
 >*****
 
+
+Source: https://www.reddit.com/r/reddit.com/comments/6ewgt/reddit_markdown_primer_or_how_do_you_do_all_that/c03nik6

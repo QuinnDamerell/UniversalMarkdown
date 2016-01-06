@@ -102,5 +102,14 @@ namespace UniversalMarkdownUnitTests.Parse
                 new ParagraphBlock().AddChildren(
                     new TextRunInline { Text = "one two" }));
         }
+
+        [UITestMethod]
+        [TestCategory("Parse - block")]
+        public void Paragraph_TextEscaping()
+        {
+            AssertEqual(@"\~\`\!\@\#\$\%\^\&\*\(\)\_\+\-\=\{\}\|\[\]\\\:\""\;\'\<\>\?\,\.\/\a\A\1",
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = @"~`!\@#\$\%^&*()_+-\={}|[]\:\""\;\'<>\?\,./\a\A\1" }));
+        }
     }
 }

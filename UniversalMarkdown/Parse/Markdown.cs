@@ -110,17 +110,21 @@ namespace UniversalMarkdown.Parse
             {
                 return new QuoteBlock();
             }
+
+            // Headers must be checked before horizontal rules, so that "---" parses correctly.
             if (HeaderBlock.CanHandleBlock(markdown, startingPos, endingPos))
             {
                 return new HeaderBlock();
             }
-            if (ListElementBlock.CanHandleBlock(markdown, startingPos, endingPos))
-            {
-                return new ListElementBlock();
-            }
+
+            // Horizontal rules must be checked before lists, so that "* * *" parses correctly.
             if (HorizontalRuleBlock.CanHandleBlock(markdown, startingPos, endingPos))
             {
                 return new HorizontalRuleBlock();
+            }
+            if (ListElementBlock.CanHandleBlock(markdown, startingPos, endingPos))
+            {
+                return new ListElementBlock();
             }
             if (LineBreakBlock.CanHandleBlock(markdown, startingPos, endingPos))
             {

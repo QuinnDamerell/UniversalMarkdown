@@ -58,7 +58,7 @@ namespace UniversalMarkdown.Parse.Elements
 
             // Find the ending
             int end = Common.IndexOf(markdown, '`', start, endingPos, true);
-            if (start + 1 != endingPos)
+            if (end + 1 != endingPos)
             {
                 DebuggingReporter.ReportCriticalError("Parse didn't find ` in at the end pos");
             }

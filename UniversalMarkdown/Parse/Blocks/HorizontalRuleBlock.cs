@@ -39,50 +39,14 @@ namespace UniversalMarkdown.Parse.Elements
         /// <returns></returns>
         internal override int Parse(string markdown, int startingPos, int maxEndingPos)
         {
-            // Figure out what char we are processing.
-            int horzStart = startingPos;
-            char ruleChar = '*';
-            if (markdown[horzStart] == '*')
+            int pos = startingPos;
+            while (pos < maxEndingPos)
             {
-                ruleChar = '*';
-            }
-            else if(markdown[horzStart] == '-')
-            {
-                ruleChar = '-';
-            }
-            else if(markdown[horzStart] == '=')
-            {
-                ruleChar = '=';
-            }
-            else if (markdown[horzStart] == '_')
-            {
-                ruleChar = '_';
-            }
-            else
-            {
-                DebuggingReporter.ReportCriticalError("Tried parse horizontal rule but didn't find a * or -");
-                return maxEndingPos;
-            }
-
-            // Find the end of the line
-            int horzEnd = horzStart;
-            while (horzEnd < markdown.Length && horzEnd < maxEndingPos)
-            {
-                if (markdown[horzEnd] != ruleChar)
-                {
+                char c = markdown[pos++];
+                if (c == '\n')
                     break;
-                }
-                horzEnd++;
             }
-
-            // Trim off any extra line endings, except ' ' otherwise we can't do code blocks
-            while (horzEnd < markdown.Length && horzEnd < maxEndingPos && Char.IsWhiteSpace(markdown[horzEnd]) && markdown[horzEnd] != ' ')
-            {
-                horzEnd++;
-            }
-
-            // Return where we ended.
-            return horzEnd;
+            return pos;
         }
 
         /// <summary>
@@ -94,7 +58,30 @@ namespace UniversalMarkdown.Parse.Elements
         /// <returns></returns>
         public static bool CanHandleBlock(string markdown, int nextCharPos, int endingPos)
         {
-            return markdown.IndexOf("***", nextCharPos) == nextCharPos || markdown.IndexOf("---", nextCharPos) == nextCharPos || markdown.IndexOf("===", nextCharPos) == nextCharPos || markdown.IndexOf("___", nextCharPos) == nextCharPos;
+            // A horizontal rule is a line with at least 3 stars, optionally separated by spaces
+            // OR a line with at least 3 dashes, optionally separated by spaces
+            // OR a line with at least 3 underscores, optionally separated by spaces.
+
+            char hrChar = '\0';
+            int hrCharCount = 0;
+            while (nextCharPos < endingPos)
+            {
+                char c = markdown[nextCharPos++];
+                if (c == '*' || c == '-' || c == '_')
+                {
+                    // All of the non-whitespace characters on the line must match.
+                    if (hrCharCount > 0 && c != hrChar)
+                        return false;
+                    hrChar = c;
+                    hrCharCount++;
+                }
+                else if (c == '\n')
+                    break;
+                else if (!Common.IsWhiteSpace(c))
+                    return false;
+            }
+
+            return hrCharCount >= 3;
         }
     }
 }

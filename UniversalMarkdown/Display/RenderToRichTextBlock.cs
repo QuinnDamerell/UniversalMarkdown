@@ -96,6 +96,9 @@ namespace UniversalMarkdown.Display
                 case MarkdownBlockType.LineBreak:
                     RenderLineBreak((LineBreakBlock)element, currentBlocks);
                     break;
+                case MarkdownBlockType.Table:
+                    RenderTable((TableBlock)element, currentBlocks);
+                    break;
             }
         }
 
@@ -133,7 +136,7 @@ namespace UniversalMarkdown.Display
                     RenderSuperscriptRun((SuperscriptTextInline)element, currentInlines, ref trimTextStart);
                     break;
                 case MarkdownInlineType.Code:
-                    RenderCodeRun((SuperscriptTextInline)element, currentInlines, ref trimTextStart);
+                    RenderCodeRun((CodeInline)element, currentInlines, ref trimTextStart);
                     break;
             }
         }
@@ -355,6 +358,53 @@ namespace UniversalMarkdown.Display
             RenderInlineChildren(element, codePara.Inlines, ref trimTextStart);
         }
 
+        /// <summary>
+        /// Renders a table element.
+        /// </summary>
+        /// <param name="element"></param>
+        /// <param name="currentBlocks"></param>
+        private void RenderTable(TableBlock element, BlockCollection currentBlocks)
+        {
+            var table = new Grid();
+
+            // Set every column width to "Auto".
+            foreach (var columnDefinition in element.ColumnDefinitions)
+                table.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
+
+            // Set every row height to "Auto".
+            foreach (var row in element.Children)
+                table.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
+
+            // Add each row.
+            for (int rowIndex = 0; rowIndex < element.Children.Count; rowIndex ++)
+            {
+                var row = (TableRow)element.Children[rowIndex];
+
+                // Add each cell.
+                for (int cellIndex = 0; cellIndex < Math.Min(element.ColumnDefinitions.Count(), row.Children.Count); cellIndex ++)
+                {
+                    var cell = (MarkdownInline)row.Children[cellIndex];
+
+                    var cellElement = new RichTextBlock();
+                    var block = new Paragraph();
+                    bool trimTextStart = true;
+                    RenderInline(cell, block.Inlines, ref trimTextStart);
+                    cellElement.Blocks.Add(block);
+
+                    Grid.SetRow(cellElement, rowIndex);
+                    Grid.SetColumn(cellElement, cellIndex);
+                }
+            }
+
+            var container = new InlineUIContainer();
+            container.Child = table;
+
+            var paragraph = new Paragraph();
+            paragraph.Inlines.Add(container);
+
+            currentBlocks.Add(paragraph);
+        }
+
         #endregion
 
         #region Render Inlines
@@ -542,7 +592,7 @@ namespace UniversalMarkdown.Display
         /// <param name="element"></param>
         /// <param name="currentInlines"></param>
         /// <param name="trimTextStart">If true this element should trin the start of the text and set to fales.</param>
-        private void RenderCodeRun(SuperscriptTextInline element, InlineCollection currentInlines, ref bool trimTextStart)
+        private void RenderCodeRun(CodeInline element, InlineCollection currentInlines, ref bool trimTextStart)
         {
             Span span = new Span();
             span.FontFamily = new FontFamily("Consolas");

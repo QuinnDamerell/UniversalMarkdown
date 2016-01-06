@@ -33,6 +33,37 @@ namespace UniversalMarkdownUnitTests.Parse
 
         [UITestMethod]
         [TestCategory("Parse - block")]
+        public void HorizontalRule_Alt_BeforeAfter()
+        {
+            AssertEqual(CollapseWhitespace(@"
+                before
+
+                ---
+                after"),
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "before" }),
+                new HorizontalRuleBlock(),
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "after" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - block")]
+        public void HorizontalRule_Alt2()
+        {
+            AssertEqual(CollapseWhitespace(@"
+                before
+                ___
+                after"),
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "before" }),
+                new HorizontalRuleBlock(),
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "after" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - block")]
         public void HorizontalRule_BeforeAfter()
         {
             // Text on other lines is okay.

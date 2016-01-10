@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
@@ -25,18 +26,6 @@ namespace UniversalMarkdown.Parse.Elements
         Numbered,
     }
 
-    public class ListItemBlock : MarkdownBlock
-    {
-        /// <summary>
-        /// The contents of the block.
-        /// </summary>
-        public IList<MarkdownInline> Inlines { get; set; }
-
-        public ListItemBlock() : base(MarkdownBlockType.ListItem)
-        {
-        }
-    }
-
     public class ListBlock : MarkdownBlock
     {
         /// <summary>
@@ -44,168 +33,204 @@ namespace UniversalMarkdown.Parse.Elements
         /// </summary>
         public IList<ListItemBlock> Items { get; set; }
 
-        public int ListIndent = 0;
-
+        /// <summary>
+        /// The style of the list, either numbered or bulleted.
+        /// </summary>
         public ListStyle Style;
 
+        /// <summary>
+        /// Initializes a new list block.
+        /// </summary>
         public ListBlock() : base(MarkdownBlockType.List)
         {
         }
 
         /// <summary>
-        /// Called when this block type should parse out the goods. Given the markdown, a starting point, and a max ending point
-        /// the block should find the start of the block, find the end and parse out the middle. The end most of the time will not be
-        /// the max ending pos, but it sometimes can be. The function will return where it ended parsing the block in the markdown.
+        /// Parses a list block.
         /// </summary>
-        /// <param name="markdown"></param>
-        /// <param name="startingPos"></param>
-        /// <param name="maxEndingPos"></param>
-        /// <returns></returns>
-        internal override int Parse(string markdown, int startingPos, int maxEndingPos)
+        /// <param name="markdown"> The markdown text. </param>
+        /// <param name="start"> The location of the first character in the block. </param>
+        /// <param name="maxEnd"> The location to stop parsing. </param>
+        /// <param name="actualEnd"> Set to the end of the block when the return value is non-null. </param>
+        /// <returns> A parsed list block, or <c>null</c> if this is not a list block. </returns>
+        internal static ListBlock Parse(string markdown, int start, int maxEnd, out int actualEnd)
         {
-            // Find out what the list is and where it begins.
-            int listStart = startingPos;
-            while (listStart < markdown.Length && listStart < maxEndingPos)
+            // Attempt to parse the first list item.
+            var firstItem = ParseItemPreamble(markdown, start, maxEnd);
+            if (firstItem == null)
             {
-                // We have a bullet list
-                if (markdown[listStart] == '*' || markdown[listStart] == '-' || markdown[listStart] == '+')
-                {
-                    Style = ListStyle.Bulleted;
-                    // +1 to move past the ' '
-                    listStart++;
-                    break;
-                }
-                // We have a numbered list, start grabbing the bullet
-                else if (char.IsDigit(markdown[listStart]))
-                {
-                    // Grab the list letter, but keep going to get the rest.
-                    Style = ListStyle.Numbered;
-                }
-                // We finished the letter list.
-                else if(markdown[listStart] == '.')
-                {
-                    break;
-                }
-                listStart++;
+                actualEnd = start;
+                return null;
             }
 
-            // Now figure out how many spaces come before this list, we have to count backwards from the starting pos.
-            ListIndent = 0;
-            int currentBackCount = startingPos - 1;
-            while (currentBackCount >= 0 && markdown[currentBackCount] != '\n' && markdown[currentBackCount] != '\r')
-            {
-                ListIndent++;
-                currentBackCount--;
-            }
+            // This is definitely a valid list.
+            var result = new ListBlock { Style = firstItem.Style };
+            result.Items = new List<ListItemBlock>();
+            var listItem = new ListItemBlock();
+            int startOfLine = firstItem.ContentStartPos;
+            int endOfLine;
+            int itemContentStart = firstItem.ContentStartPos;
 
-            // A list should only single newline break if it is that start of another element in the list.
-            // So we need to loop to check for them.
-            // This is hard becasue of all of our list types. For * and - we just check if the next two chars
-            // are * or and a ' ' if so we matched. For letters and digits, once we find one we keep looping until
-            // we find a '.'. If we find a . we get a match, if anything else we fail.
-            int nextDoubleBreak = Common.FindNextDoubleNewLine(markdown, listStart, maxEndingPos);
-            int nextSingleBreak = Common.FindNextSingleNewLine(markdown, listStart, maxEndingPos);
-            int potentialListStart = -1;
-            int listEnd = nextDoubleBreak;
-            while (nextSingleBreak < nextDoubleBreak && nextSingleBreak + 2 < maxEndingPos)
+            do
             {
-                // Ignore spaces unless we are tracking a potential list start
-                if (potentialListStart == -1 && markdown[nextSingleBreak + 1] == ' ')
+                // Find the end of the line.
+                endOfLine = Common.FindNextSingleNewLine(markdown, startOfLine, maxEnd, out startOfLine);
+
+                // Attempt to parse the next line as a new list item.
+                var nextListItem = ParseItemPreamble(markdown, startOfLine, maxEnd);
+                if (nextListItem != null)
                 {
-                    nextSingleBreak++;
-                }
-                // Check for a * or - or + followed by a space
-                else if ((markdown[nextSingleBreak + 1] == '*' || markdown[nextSingleBreak + 1] == '-' || markdown[nextSingleBreak + 1] == '+') && markdown[nextSingleBreak + 2] == ' ')
-                {
-                    // This is our line break
-                    listEnd = nextSingleBreak;
-                    break;
-                }
-                // If this is a digit we might have a new list start. Note the position and loop.
-                else if (char.IsDigit(markdown[nextSingleBreak + 1]))
-                {
-                    if (potentialListStart == -1)
-                    {
-                        potentialListStart = nextSingleBreak;
-                    }
-                    nextSingleBreak++;
-                }
-                // If we find a . and we have a potential list start then we matched.
-                else if (potentialListStart != -1 && markdown[nextSingleBreak + 1] == '.')
-                {
-                    // This is our line break
-                    listEnd = potentialListStart;
-                    break;
+                    // Add the previous list item to the result.
+                    listItem.Blocks = Markdown.Parse(markdown, itemContentStart, endOfLine);
+                    result.Items.Add(listItem);
+
+                    // Start a new list item.
+                    listItem = new ListItemBlock();
+                    itemContentStart = nextListItem.ContentStartPos;
+                    startOfLine = nextListItem.ContentStartPos;
                 }
                 else
                 {
-                    // We failed with this new line, try to get the next one.
-                    nextSingleBreak = Common.FindNextSingleNewLine(markdown, nextSingleBreak + 1, maxEndingPos);
-                    potentialListStart = -1;
+                    // Okay, so the next line is not a list item.  Is the line blank?
+                    bool containsNonSpaceChar = false;
+                    int pos = startOfLine;
+                    while (pos < maxEnd)
+                    {
+                        char c = markdown[pos];
+                        if (c == '\n')
+                            break;
+                        if (!Common.IsWhiteSpace(c))
+                        {
+                            containsNonSpaceChar = true;
+                            break;
+                        }
+                        pos++;
+                    }
+                    if (containsNonSpaceChar == false)
+                    {
+                        // The line is blank, which means this is the end of the list.
+                        break;
+                    }
                 }
-            }
+            } while (startOfLine < maxEnd);
 
-            if (listEnd == -1)
-            {
-                DebuggingReporter.ReportCriticalError("Tried to parse list that didn't have an end");
-                listEnd = maxEndingPos;
-            }
+            // Close off the unfinished list item.
+            listItem.Blocks = Markdown.Parse(markdown, itemContentStart, endOfLine);
+            result.Items.Add(listItem);
 
-            // Remove one indent from the list. This doesn't work exactly like reddit's
-            // but it is close enough
-            ListIndent = Math.Max(1, ListIndent - 1);
+            // Return the result.
+            actualEnd = startOfLine;
+            return result;
+        }
 
-            // Jump past the *
-            listStart++;
-
-            // Make sure there is something to parse, and not just dead space
-            if (listEnd > listStart)
-            {
-                // Parse the children of this list.
-                var item = new ListItemBlock();
-                item.Inlines = ParseInlineChildren(markdown, listStart, listEnd);
-                Items.Add(item);
-            }
-
-            // Trim off any extra line endings, except ' ' otherwise we can't do code blocks
-            while (listEnd < markdown.Length && listEnd < maxEndingPos && char.IsWhiteSpace(markdown[listEnd]) && markdown[listEnd] != ' ')
-            {
-                listEnd++;
-            }
-
-            // Return where we ended.
-            return listEnd;
+        private class ListItemPreamble
+        {
+            public ListStyle Style;
+            public int ContentStartPos;
         }
 
         /// <summary>
-        /// Called to determine if this block type can handle the next block.
+        /// Parsing helper method.
         /// </summary>
         /// <param name="markdown"></param>
-        /// <param name="nextCharPos"></param>
-        /// <param name="endingPos"></param>
+        /// <param name="start"></param>
+        /// <param name="maxEnd"></param>
         /// <returns></returns>
-        public static bool CanHandleBlock(string markdown, int nextCharPos, int endingPos)
+        private static ListItemPreamble ParseItemPreamble(string markdown, int start, int maxEnd)
         {
-            // Check if we have reached the end of the input.
-            if (nextCharPos + 1 >= markdown.Length || nextCharPos + 1 >= endingPos)
-                return false;
-
-            // Check for '*', '-' or '+', followed by a space.
-            if ((markdown[nextCharPos] == '*' || markdown[nextCharPos] == '-' || markdown[nextCharPos] == '+') && markdown[nextCharPos + 1] == ' ')
+            // Skip any whitespace characters.
+            while (start < maxEnd)
             {
-                return true;
+                char c = markdown[start];
+                if (c != ' ' && c != '\t')
+                    break;
+                start++;
             }
+            if (start == maxEnd)
+                return null;
 
-            // We need to also look for a numbered list ("1. test" or "100. test").
-            // Loop past any digits.
-            int pos = nextCharPos;
-            while (pos < endingPos && char.IsDigit(markdown[pos]))
+            // There are two types of lists.
+            // A numbered list starts with a number, then a period ('.'), then a space.
+            // A bulleted list starts with a star ('*'), dash ('-') or plus ('+'), then a period, then a space.
+            ListStyle style;
+            if (markdown[start] == '*' || markdown[start] == '-' || markdown[start] == '+')
             {
-                pos++;
+                style = ListStyle.Bulleted;
+                start++;
             }
+            else if (markdown[start] >= '0' && markdown[start] <= '9')
+            {
+                style = ListStyle.Numbered;
+                start++;
 
-            // We found a numbered list if there was at least one digit and the next two characters are a dot and a space.
-            return pos > nextCharPos && pos + 1 < endingPos && markdown[pos] == '.' && markdown[pos + 1] == ' ';
+                // Skip any other digits.
+                while (start < maxEnd)
+                {
+                    char c = markdown[start];
+                    if (c < '0' || c > '9')
+                        break;
+                    start++;
+                }
+
+                // Next should be a period ('.').
+                if (start == maxEnd || markdown[start] != '.')
+                    return null;
+                start++;
+            }
+            else
+                return null;
+
+            // Next should be a space.
+            if (start == maxEnd || (markdown[start] != ' ' && markdown[start] != '\t'))
+                return null;
+            start++;
+
+            // This is a valid list item.
+            return new ListItemPreamble { Style = style, ContentStartPos = start };
+        }
+
+        /// <summary>
+        /// Converts the object into it's textual representation.
+        /// </summary>
+        /// <returns> The textual representation of this object. </returns>
+        public override string ToString()
+        {
+            if (Items == null)
+                return base.ToString();
+            var result = new StringBuilder();
+            for (int i = 0; i < Items.Count; i ++)
+            {
+                if (result.Length > 0)
+                    result.AppendLine();
+                switch (Style)
+                {
+                    case ListStyle.Bulleted:
+                        result.Append("* ");
+                        break;
+                    case ListStyle.Numbered:
+                        result.Append(i + 1);
+                        result.Append(".");
+                        break;
+                }
+                result.Append(" ");
+                result.Append(string.Join("\r\n", Items[i].Blocks));
+            }
+            return result.ToString();
+        }
+    }
+
+    public class ListItemBlock
+    {
+        /// <summary>
+        /// The contents of the list item.
+        /// </summary>
+        public IList<MarkdownBlock> Blocks { get; set; }
+
+        /// <summary>
+        /// Initializes a new list item.
+        /// </summary>
+        public ListItemBlock()
+        {
         }
     }
 }

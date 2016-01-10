@@ -13,75 +13,39 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 
-using System;
-using System.Collections.Generic;
-using UniversalMarkdown.Display;
-using UniversalMarkdown.Helpers;
-using UniversalMarkdown.Interfaces;
-using UniversalMarkdown.Parse;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Documents;
+using Microsoft.Graphics.Canvas.UI.Xaml;
+using Microsoft.Graphics.Canvas.UI;
+using Windows.UI;
+using UniversalMarkdown.Parse;
+using Microsoft.Graphics.Canvas;
+using System.Collections.Generic;
+using UniversalMarkdown.Parse.Elements;
+using System.Numerics;
+using Windows.Foundation;
+using Microsoft.Graphics.Canvas.Text;
+using System.Text;
+using Windows.UI.Text;
+using System;
+using UniversalMarkdown.Display;
 
 namespace UniversalMarkdown
 {
-    public class OnMarkdownReadyArgs : EventArgs        
+    public sealed partial class MarkdownTextBlock : UserControl
     {
-        public bool WasError = false;
-        public Exception Exception = null;
-    }
-
-    public class OnMarkdownLinkTappedArgs : EventArgs
-    {
-        public string Link;
-    }
-
-    public sealed partial class MarkdownTextBlock : UserControl, ILinkRegister
-    {
-        /// <summary>
-        /// Fired when the text is done parsing and formatting.
-        /// </summary>
-        public event EventHandler<OnMarkdownReadyArgs> OnMarkdownReady
-        {
-            add { m_onMarkdownReady.Add(value); }
-            remove { m_onMarkdownReady.Remove(value); }
-        }
-        SmartWeakEvent<EventHandler<OnMarkdownReadyArgs>> m_onMarkdownReady = new SmartWeakEvent<EventHandler<OnMarkdownReadyArgs>>();
+        private MarkdownRenderer renderer;
 
         /// <summary>
-        /// Fired when a link element in the markdown was tapped.
-        /// </summary>
-        public event EventHandler<OnMarkdownLinkTappedArgs> OnMarkdownLinkTapped
-        {
-            add { m_onMarkdownLinkTapped.Add(value); }
-            remove { m_onMarkdownLinkTapped.Remove(value); }
-        }
-        SmartWeakEvent<EventHandler<OnMarkdownLinkTappedArgs>> m_onMarkdownLinkTapped = new SmartWeakEvent<EventHandler<OnMarkdownLinkTappedArgs>>();
-
-        /// <summary>
-        /// Holds a list of hyper links we are listening to
-        /// </summary>
-        private List<Hyperlink> m_listeningHyperlinks = new List<Hyperlink>();
-
-        /// <summary>
-        /// This is annoying. When a user clicks a link there is no way to associate the url to the
-        /// event listener unless we set it as the URI. If we do then it will open the browser.
-        /// So we use this map to associate link text with a url.
-        /// </summary>
-        private Dictionary<Hyperlink, string> m_hyperLinkToUrl = new Dictionary<Hyperlink, string>();
-
-        /// <summary>
-        /// Creates a new markdown text block
+        /// Creates a new markdown text block.
         /// </summary>
         public MarkdownTextBlock()
         {
             this.InitializeComponent();
         }
 
-        #region Markdown Logic
-
         /// <summary>
-        /// This it how we get the post form the xmal binding.
+        /// The markdown text to display.
         /// </summary>
         public string Markdown
         {
@@ -91,8 +55,8 @@ namespace UniversalMarkdown
 
         public static readonly DependencyProperty MarkdownProperty =
             DependencyProperty.Register(
-                "Markdown",  
-                typeof(string),      
+                "Markdown",
+                typeof(string),
                 typeof(MarkdownTextBlock),
                 new PropertyMetadata("", new PropertyChangedCallback(OnMarkdownChangedStatic)
                 ));
@@ -107,97 +71,74 @@ namespace UniversalMarkdown
             }
         }
 
+
+        /// <summary>
+        /// Gets or sets the amount of space between paragraphs.
+        /// </summary>
+        public double ParagraphSpacing
+        {
+            get { return (double)GetValue(ParagraphSpacingProperty); }
+            set { SetValue(ParagraphSpacingProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for ParagraphSpacing.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty ParagraphSpacingProperty =
+            DependencyProperty.Register("ParagraphSpacing", typeof(double), typeof(MarkdownTextBlock), new PropertyMetadata(5.0));
+
+
+
+
         /// <summary>
         /// Fired when the markdown is changed. 
         /// </summary>
         /// <param name="newMarkdown"></param>
         private void OnMarkdownChanged(string newMarkdown)
         {
-            OnMarkdownReadyArgs args = new OnMarkdownReadyArgs();
+            var markdownTree = new Parse.Markdown();
+            markdownTree.Parse(Markdown);
 
-            // Clear the current content
-            CleanUpTextBlock();
+            this.renderer = new MarkdownRenderer(markdownTree);
+            this.renderer.ParagraphFontSize = FontSize;
+            this.renderer.ParagraphSpacing = ParagraphSpacing;
 
-            // Make sure we have something to parse.
-            if (!String.IsNullOrWhiteSpace(newMarkdown))
-            {
-                try
-                {
-                    // Try to parse the markdown.
-                    Markdown markdown = new Markdown();
-                    markdown.Parse(newMarkdown);
-
-                    // Now try to display it
-                    RenderToRichTextBlock rendner = new RenderToRichTextBlock(ui_richTextBox, this);
-                    rendner.Render(markdown);
-                }
-                catch (Exception e)
-                {
-                    DebuggingReporter.ReportCriticalError("Error while parsing and rendering: " + e.Message);
-                    args.WasError = true;
-                    args.Exception = e;
-                }
-            }
-
-            // #todo indicate if ready
-            m_onMarkdownReady.Raise(this, args);            
-        }
-
-        #endregion
-
-        #region Link Logic
-
-        private void CleanUpTextBlock()
-        {
-            // Clear any hyper link events if we have any
-            foreach (Hyperlink link in m_listeningHyperlinks)
-            {
-                link.Click -= Hyperlink_Click;
-            }
-
-            // Clear everything that exists
-            ui_richTextBox.Blocks.Clear();
-            m_hyperLinkToUrl.Clear();
-            m_listeningHyperlinks.Clear();
+            InvalidateMeasure();
+            Canvas.Invalidate();
         }
 
         /// <summary>
-        /// Called when the render has a link we need to listen to.
+        /// Provides the behavior for the "Measure" pass of the layout cycle. Classes can override
+        /// this method to define their own "Measure" pass behavior.
         /// </summary>
-        /// <param name="newHyperlink"></param>
-        /// <param name="linkUrl"></param>
-        public void RegisterNewHyperLink(Hyperlink newHyperlink, string linkUrl)
+        /// <param name="availableSize"> The available size that this object can give to child
+        /// objects. Infinity can be specified as a value to indicate that the object will size
+        /// to whatever content is available. </param>
+        /// <returns> The size that this object determines it needs during layout, based on its
+        /// calculations of the allocated sizes for child objects or based on other considerations
+        /// such as a fixed container size. </returns>
+        protected override Size MeasureOverride(Size availableSize)
         {
-            // Setup a listener for clicks
-            newHyperlink.Click += Hyperlink_Click;
-
-            // Add it to our list
-            m_listeningHyperlinks.Add(newHyperlink);
-
-            // Add the url and hyper link to the map
-            m_hyperLinkToUrl.Add(newHyperlink, linkUrl);
+            if (this.renderer == null)
+                return new Size(0, 0);
+            return this.renderer.Measure(CanvasDevice.GetSharedDevice(), availableSize);
         }
 
-        /// <summary>
-        /// Fired when a user taps one of the link elements
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="args"></param>
-        private void Hyperlink_Click(Hyperlink sender, HyperlinkClickEventArgs args)
+        private void Canvas_CreateResources(CanvasControl sender, CanvasCreateResourcesEventArgs args)
         {
-            if (m_hyperLinkToUrl.ContainsKey(sender))
-            {
-                string link = m_hyperLinkToUrl[sender];
 
-                OnMarkdownLinkTappedArgs eventArgs = new OnMarkdownLinkTappedArgs()
-                {
-                    Link = link
-                };
-
-                m_onMarkdownLinkTapped.Raise(this, eventArgs);
-            }
         }
 
-        #endregion
+        private void Canvas_Draw(CanvasControl sender, CanvasDrawEventArgs args)
+        {
+            this.renderer.Draw(args.DrawingSession, new Rect(Padding.Left, Padding.Top,
+                ActualWidth - Padding.Left - Padding.Right,
+                ActualHeight - Padding.Top - Padding.Bottom));
+            //args.DrawingSession.DrawGlyphRun(new Vector2(0, 16), )
+        }
+
+        private void UserControl_Unloaded(object sender, RoutedEventArgs e)
+        {
+            Canvas.RemoveFromVisualTree();
+            Canvas = null;
+        }
     }
 }

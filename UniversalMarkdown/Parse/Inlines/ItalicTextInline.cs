@@ -105,16 +105,27 @@ namespace UniversalMarkdown.Parse.Elements
                 return false;
 
             // The first character inside the span must NOT be a space.
-            if (char.IsWhiteSpace(markdown[innerStart]))
+            if (Common.IsWhiteSpace(markdown[innerStart]))
                 return false;
 
             // The last character inside the span must NOT be a space.
-            if (char.IsWhiteSpace(markdown[innerEnd - 1]))
+            if (Common.IsWhiteSpace(markdown[innerEnd - 1]))
                 return false;
 
             elementStartingPos = startingPos;
             elementEndingPos = innerEnd + 1;
             return true;
+        }
+
+        /// <summary>
+        /// Converts the object into it's textual representation.
+        /// </summary>
+        /// <returns> The textual representation of this object. </returns>
+        public override string ToString()
+        {
+            if (Inlines == null)
+                return base.ToString();
+            return "*" + string.Join(string.Empty, Inlines) + "*";
         }
     }
 }

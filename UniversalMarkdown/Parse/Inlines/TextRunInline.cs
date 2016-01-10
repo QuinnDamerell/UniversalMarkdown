@@ -115,5 +115,16 @@ namespace UniversalMarkdown.Parse.Elements
             // Return that we ate it all.
             return maxEndingPos;
         }
+
+        /// <summary>
+        /// Converts the object into it's textual representation.
+        /// </summary>
+        /// <returns> The textual representation of this object. </returns>
+        public override string ToString()
+        {
+            if (Text == null)
+                return base.ToString();
+            return Text;
+        }
     }
 }

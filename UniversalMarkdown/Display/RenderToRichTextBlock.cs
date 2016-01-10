@@ -381,7 +381,7 @@ namespace UniversalMarkdown.Display
                 var row = element.Rows[rowIndex];
 
                 // Add each cell.
-                for (int cellIndex = 0; cellIndex < Math.Min(element.ColumnDefinitions.Count(), row.Cells.Count); cellIndex ++)
+                for (int cellIndex = 0; cellIndex < Math.Min(element.ColumnDefinitions.Count, row.Cells.Count); cellIndex ++)
                 {
                     var cell = row.Cells[cellIndex];
 

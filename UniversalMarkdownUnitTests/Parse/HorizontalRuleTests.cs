@@ -85,7 +85,7 @@ namespace UniversalMarkdownUnitTests.Parse
             // Text on the same line is not.
             AssertEqual(CollapseWhitespace(@"
                 before
-                *****d
+                ****d
                 after"),
                 new ParagraphBlock().AddChildren(
                     new TextRunInline { Text = "before ****d after" }));

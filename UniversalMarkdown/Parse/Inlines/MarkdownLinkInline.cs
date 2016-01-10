@@ -160,5 +160,16 @@ namespace UniversalMarkdown.Parse.Elements
             }
             return false;
         }
+
+        /// <summary>
+        /// Converts the object into it's textual representation.
+        /// </summary>
+        /// <returns> The textual representation of this object. </returns>
+        public override string ToString()
+        {
+            if (Inlines == null || Url == null)
+                return base.ToString();
+            return string.Format("[{0}]({1})", string.Join(string.Empty, Inlines), Url);
+        }
     }
 }

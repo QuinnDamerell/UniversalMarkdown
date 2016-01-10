@@ -1,4 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestPlatform.UnitTestFramework;
+using System.Collections.Generic;
+using UniversalMarkdown.Parse;
 using UniversalMarkdown.Parse.Elements;
 using UITestMethodAttribute = Microsoft.VisualStudio.TestPlatform.UnitTestFramework.AppContainer.UITestMethodAttribute;
 
@@ -12,8 +14,8 @@ namespace UniversalMarkdownUnitTests.Parse
         public void NumberedList_SingleLine()
         {
             AssertEqual("1. List",
-                new ListBlock().AddChildren(
-                    new TextRunInline { Text = "List" }));
+                new ListBlock { Style = ListStyle.Numbered }.AddChildren(
+                    new ListItemBlock { Blocks = new List<MarkdownBlock> { new ParagraphBlock().AddChildren(new TextRunInline { Text = "List" }) } }));
         }
 
         [UITestMethod]
@@ -25,10 +27,10 @@ namespace UniversalMarkdownUnitTests.Parse
                 7. List item 1
                 502. List item 2
                 502456456456456456456456456456456456. List item 3"),
-                new ListBlock().AddChildren(
-                    new TextRunInline { Text = "List item 1" },
-                    new TextRunInline { Text = "List item 2" },
-                    new TextRunInline { Text = "List item 3" }));
+                new ListBlock { Style = ListStyle.Numbered }.AddChildren(
+                    new ListItemBlock { Blocks = new List<MarkdownBlock> { new ParagraphBlock().AddChildren(new TextRunInline { Text = "List item 1" }) } },
+                    new ListItemBlock { Blocks = new List<MarkdownBlock> { new ParagraphBlock().AddChildren(new TextRunInline { Text = "List item 2" }) } },
+                    new ListItemBlock { Blocks = new List<MarkdownBlock> { new ParagraphBlock().AddChildren(new TextRunInline { Text = "List item 3" }) } }));
         }
 
         [UITestMethod]

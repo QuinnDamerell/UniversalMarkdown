@@ -108,6 +108,7 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Display\MarkdownRenderer.cs" />
     <Compile Include="Display\RenderToRichTextBlock.cs" />
     <Compile Include="Helpers\Common.cs" />
     <Compile Include="Helpers\DebuggingReporter.cs" />
@@ -141,8 +142,8 @@
   </ItemGroup>
   <ItemGroup>
     <Page Include="MarkdownTextBlock.xaml">
-      <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">

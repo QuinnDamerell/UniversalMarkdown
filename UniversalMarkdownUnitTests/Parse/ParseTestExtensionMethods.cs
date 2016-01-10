@@ -16,14 +16,14 @@ namespace UniversalMarkdownUnitTests.Parse
         /// <param name="parent"></param>
         /// <param name="elements"></param>
         /// <returns></returns>
-        public static T AddChildren<T>(this T parent, params MarkdownElement[] elements) where T : MarkdownElement
+        public static T AddChildren<T>(this T parent, params object[] elements) where T : MarkdownElement
         {
             foreach (var child in elements)
                 AddChild(parent, child);
             return parent;
         }
 
-        private static void AddChild<T>(T parent, MarkdownElement child) where T : MarkdownElement
+        private static void AddChild<T>(T parent, object child)
         {
             if (parent is Markdown)
                 AddChild(() => ((Markdown)(object)parent).Blocks, (value) => ((Markdown)(object)parent).Blocks = value, (MarkdownBlock)child);
@@ -32,7 +32,7 @@ namespace UniversalMarkdownUnitTests.Parse
             else if (parent is ListBlock)
                 AddChild(() => ((ListBlock)(object)parent).Items, (value) => ((ListBlock)(object)parent).Items = value, (ListItemBlock)child);
             else if (parent is ListItemBlock)
-                AddChild(() => ((ListItemBlock)(object)parent).Inlines, (value) => ((ListItemBlock)(object)parent).Inlines = value, (MarkdownInline)child);
+                AddChild(() => ((ListItemBlock)(object)parent).Blocks, (value) => ((ListItemBlock)(object)parent).Blocks = value, (MarkdownBlock)child);
             else if (parent is ParagraphBlock)
                 AddChild(() => ((ParagraphBlock)(object)parent).Inlines, (value) => ((ParagraphBlock)(object)parent).Inlines = value, (MarkdownInline)child);
             else if (parent is QuoteBlock)
@@ -57,7 +57,7 @@ namespace UniversalMarkdownUnitTests.Parse
                 throw new NotSupportedException(string.Format("Unsupported type {0}", typeof(T).Name));
         }
 
-        private static void AddChild<T>(Func<IList<T>> getter, Action<IList<T>> setter, T child) where T : MarkdownElement
+        private static void AddChild<T>(Func<IList<T>> getter, Action<IList<T>> setter, T child)
         {
             var list = getter();
             if (list == null)

@@ -37,8 +37,9 @@ namespace UniversalMarkdown.Parse.Elements
         /// <returns></returns>
         internal static void AddTripChars(List<InlineTripCharHelper> tripCharHelpers)
         {
-            tripCharHelpers.Add(new InlineTripCharHelper() { FirstChar = 'h', FirstCharSuffix = "ttp", Type = MarkdownInlineType.RawHyperlink, IgnoreEscapeChar = true });
             tripCharHelpers.Add(new InlineTripCharHelper() { FirstChar = '<', Type = MarkdownInlineType.RawHyperlink });
+            tripCharHelpers.Add(new InlineTripCharHelper() { FirstChar = 'h', Type = MarkdownInlineType.RawHyperlink, IgnoreEscapeChar = true });
+            tripCharHelpers.Add(new InlineTripCharHelper() { FirstChar = 'H', Type = MarkdownInlineType.RawHyperlink, IgnoreEscapeChar = true });
         }
 
         /// <summary>
@@ -52,32 +53,13 @@ namespace UniversalMarkdown.Parse.Elements
         /// <returns></returns>
         internal override int Parse(string markdown, int startingPos, int endingPos)
         {
-            int httpStart = Common.IndexOf(markdown, "http://", startingPos, endingPos);
-            int httpsStart = Common.IndexOf(markdown, "https://", startingPos, endingPos);
-
-            // Make -1 huge.
-            httpStart = httpStart == -1 ? int.MaxValue : httpStart;
-            httpsStart = httpsStart == -1 ? int.MaxValue : httpsStart;
-
-            // Figure out the pos of the link
-            int linkStart = Math.Min(httpStart, httpsStart);
-            int linkEnd = Common.FindNextWhiteSpace(markdown, linkStart, endingPos, true);
-
-            // These should always be =
-            if (linkStart != startingPos)
-            {
-                DebuggingReporter.ReportCriticalError("raw link parse didn't find http in at the starting pos");
-            }
-            if (linkEnd != endingPos)
-            {
-                DebuggingReporter.ReportCriticalError("raw link parse didn't find the same ending pos");
-            }
-
+            int linkEnd = Common.FindNextWhiteSpace(markdown, startingPos, endingPos, true);
+            
             // Grab the link text
-            Url = markdown.Substring(linkStart, linkEnd - linkStart);
+            Url = markdown.Substring(startingPos, linkEnd - startingPos);
 
             // Return the point after the end
-            return linkEnd + 1;
+            return linkEnd;
         }
 
         /// <summary>
@@ -91,28 +73,40 @@ namespace UniversalMarkdown.Parse.Elements
         /// <returns></returns>
         public static bool VerifyMatch(string markdown, int startingPos, int maxEndingPos, ref int elementStartingPos, ref int elementEndingPos)
         {
-            // Sanity check
-            if(markdown[startingPos] == 'h')
+            // HTTP links.
+            if (maxEndingPos - startingPos >= "http://".Length)
             {
-                int httpStart = Common.IndexOf(markdown, "http://", startingPos, maxEndingPos);
-                int httpsStart = Common.IndexOf(markdown, "https://", startingPos, maxEndingPos);
-
-                if (httpsStart != -1 || httpStart != -1)
+                if (string.Equals(markdown.Substring(startingPos, "http://".Length), "http://", StringComparison.OrdinalIgnoreCase))
                 {
-                    // Make -1 huge.
-                    httpStart = httpStart == -1 ? int.MaxValue : httpStart;
-                    httpsStart = httpsStart == -1 ? int.MaxValue : httpsStart;
-
-                    // Figure out the pos of the link
-                    int foundLinkStart = Math.Min(httpStart, httpsStart);
-
-                    // Set the start and end
                     elementStartingPos = startingPos;
-                    elementEndingPos = Common.FindNextWhiteSpace(markdown, foundLinkStart, maxEndingPos, true);
+                    elementEndingPos = Common.FindNextWhiteSpace(markdown, startingPos, maxEndingPos, true);
                     return true;
                 }
             }
+
+            // HTTPS links.
+            if (maxEndingPos - startingPos >= "https://".Length)
+            {
+                if (string.Equals(markdown.Substring(startingPos, "https://".Length), "https://", StringComparison.OrdinalIgnoreCase))
+                {
+                    elementStartingPos = startingPos;
+                    elementEndingPos = Common.FindNextWhiteSpace(markdown, startingPos, maxEndingPos, true);
+                    return true;
+                }
+            }
+            
             return false;
+        }
+
+        /// <summary>
+        /// Converts the object into it's textual representation.
+        /// </summary>
+        /// <returns> The textual representation of this object. </returns>
+        public override string ToString()
+        {
+            if (Url == null)
+                return base.ToString();
+            return Url;
         }
     }
 }

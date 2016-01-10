@@ -72,6 +72,6 @@ namespace UniversalMarkdown.Parse
         public override int GetHashCode()
         {
             return base.GetHashCode() ^ Type.GetHashCode();
-        }
+        }        
     }
 }

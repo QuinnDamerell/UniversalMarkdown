@@ -129,5 +129,16 @@ namespace UniversalMarkdown.Parse.Elements
 
             return endingPos;
         }
+
+        /// <summary>
+        /// Converts the object into it's textual representation.
+        /// </summary>
+        /// <returns> The textual representation of this object. </returns>
+        public override string ToString()
+        {
+            if (Inlines == null)
+                return base.ToString();
+            return "^(" + string.Join(string.Empty, Inlines) + ")";
+        }
     }
 }

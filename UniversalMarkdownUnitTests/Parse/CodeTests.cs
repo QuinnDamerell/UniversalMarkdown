@@ -42,17 +42,6 @@ namespace UniversalMarkdownUnitTests.Parse
 
         [UITestMethod]
         [TestCategory("Parse - inline")]
-        public void Code_Inline_CollapseWhitespace()
-        {
-            // White space IS collapsed, weirdly enough.
-            AssertEqual("Here is some `text with lots of       space`",
-                new ParagraphBlock().AddChildren(
-                    new TextRunInline { Text = "Here is some " },
-                    new CodeInline { Text = "text with lots of space" }));
-        }
-
-        [UITestMethod]
-        [TestCategory("Parse - inline")]
         public void Code_Inline_Escape()
         {
             // Formatting is ignored inside code.
@@ -83,8 +72,7 @@ namespace UniversalMarkdownUnitTests.Parse
                 after"),
                 new ParagraphBlock().AddChildren(
                     new TextRunInline { Text = "before" }),
-                new CodeBlock().AddChildren(
-                    new TextRunInline { Text = "Code" }),
+                new CodeBlock { Text = "Code" },
                 new ParagraphBlock().AddChildren(
                     new TextRunInline { Text = "after" }));
         }
@@ -98,14 +86,35 @@ namespace UniversalMarkdownUnitTests.Parse
                 before
 
                     Code
-                      More code with **stars**
+                      More code with **stars** and   spacing
                     Even more code
 
                 after"),
                 new ParagraphBlock().AddChildren(
                     new TextRunInline { Text = "before" }),
-                new CodeBlock().AddChildren(
-                    new TextRunInline { Text = "Code\r\n  More code with **stars**\r\nEven more code" }),
+                new CodeBlock { Text = "Code\r\n  More code with **stars** and   spacing\r\nEven more code" },
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "after" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - block")]
+        public void Code_Block_With_Tabs()
+        {
+            // A tab character can start a code block.
+            // Tab characters inside the code are converted to 1-4 spaces.
+            AssertEqual(CollapseWhitespace(@"
+                before
+
+                " + "\t" + @"Code
+                " + "\t\t" + @"can
+                " + "\tbe\t" + @"tabbed
+                " + "\thole\t" + @"tabbed
+
+                after"),
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "before" }),
+                new CodeBlock { Text = "Code\r\n    can\r\nbe  tabbed" },
                 new ParagraphBlock().AddChildren(
                     new TextRunInline { Text = "after" }));
         }

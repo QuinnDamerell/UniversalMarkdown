@@ -36,7 +36,8 @@ namespace UniversalMarkdown.Parse.Elements
         /// <returns></returns>
         internal static void AddTripChars(List<InlineTripCharHelper> tripCharHelpers)
         {
-            tripCharHelpers.Add(new InlineTripCharHelper() { FirstChar = 'r', FirstCharSuffix = "/", Type = MarkdownInlineType.RawSubreddit, IgnoreEscapeChar = true });
+            tripCharHelpers.Add(new InlineTripCharHelper() { FirstChar = '/', Type = MarkdownInlineType.RawSubreddit });
+            tripCharHelpers.Add(new InlineTripCharHelper() { FirstChar = 'r', Type = MarkdownInlineType.RawSubreddit, IgnoreEscapeChar = true });
         }
 
         /// <summary>
@@ -50,39 +51,8 @@ namespace UniversalMarkdown.Parse.Elements
         /// <returns></returns>
         internal override int Parse(string markdown, int startingPos, int endingPos)
         {
-            // Do a sanity check.
-            if((Char.ToLower(markdown[startingPos]) != 'r' || markdown[startingPos + 1] != '/') &&
-               (markdown[startingPos] != '/' || Char.ToLower(markdown[startingPos + 1]) != 'r' || markdown[startingPos + 2] != '/'))
-            {
-                DebuggingReporter.ReportCriticalError("Trying to parse a subreddit link but didn't find a subreddit");
-                return endingPos;
-            }
-            int subredditStart = startingPos;
-
-            // Grab where to begin looking for the end.
-            int subredditEnd = subredditStart + 2;
-            int subredditTextStart = subredditStart + 2;
-
-            // If we start with a / we need to +1 to the end.
-            if (markdown[subredditStart] == '/')
-            {
-                subredditEnd++;
-            }
-
-            // While we didn't hit the end && (it is a char or digit or _ )
-            subredditEnd = Common.FindNextNonLetterDigitOrUnderscore(markdown, subredditEnd, endingPos, true);
-
-            // Validate
-            if(subredditEnd != endingPos)
-            {
-                DebuggingReporter.ReportCriticalError("Raw subreddit ending didn't match endingPos");
-            }
-
-            // Grab the text
-            Text = markdown.Substring(subredditStart, subredditEnd - subredditStart);
-
-            // Return what we consumed
-            return subredditEnd;
+            Text = markdown.Substring(startingPos, endingPos - startingPos);
+            return endingPos;
         }
 
         /// <summary>
@@ -96,32 +66,47 @@ namespace UniversalMarkdown.Parse.Elements
         /// <returns></returns>
         public static bool VerifyMatch(string markdown, int startingPos, int maxEndingPos, ref int elementStartingPos, ref int elementEndingPos)
         {
-            // Sanity Check
-            if(Char.ToLower(markdown[startingPos]) == 'r')
+            // The link may or may not start with '/'.
+            int pos = startingPos;
+            if (pos == maxEndingPos)
+                return false;
+            if (markdown[pos] == '/')
             {
-                int subredditStart = startingPos;
-                // Make sure the char before the r/ is not a letter
-                if (subredditStart == 0 || !Char.IsLetterOrDigit(markdown[subredditStart - 1]))
-                {
-                    // Make sure there is something after the r/
-                    if (subredditStart + 2 < markdown.Length && subredditStart + 2 < maxEndingPos && Char.IsLetterOrDigit(markdown[subredditStart + 2]))
-                    {
-                        // Check if there is a / before it, if so include it
-                        int beginEndSearchOffset = 2;
-                        if (subredditStart != 0 && markdown[subredditStart - 1] == '/')
-                        {
-                            subredditStart--;
-                            beginEndSearchOffset++;
-                        }
-
-                        // Send the info off!
-                        elementStartingPos = subredditStart;
-                        elementEndingPos = Common.FindNextNonLetterDigitOrUnderscore(markdown, subredditStart + beginEndSearchOffset, maxEndingPos, true);
-                        return true;
-                    }
-                }
+                pos++;
+                if (pos == maxEndingPos)
+                    return false;
             }
-            return false;
+
+            // Expect 'r'.
+            if (pos == maxEndingPos || markdown[pos] != 'r')
+                return false;
+            pos++;
+
+            // Expect '/'
+            if (pos == maxEndingPos || markdown[pos] != '/')
+                return false;
+            pos++;
+
+            // Expect at least one other letter or digit.
+            if (pos == maxEndingPos || !char.IsLetterOrDigit(markdown[pos]))
+                return false;
+            pos++;
+
+            // Good enough.
+            elementStartingPos = startingPos;
+            elementEndingPos = Common.FindNextNonLetterDigitOrUnderscore(markdown, pos, maxEndingPos, true);
+            return true;
+        }
+
+        /// <summary>
+        /// Converts the object into it's textual representation.
+        /// </summary>
+        /// <returns> The textual representation of this object. </returns>
+        public override string ToString()
+        {
+            if (Text == null)
+                return base.ToString();
+            return Text;
         }
     }
 }

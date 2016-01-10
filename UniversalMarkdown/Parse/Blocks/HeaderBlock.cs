@@ -12,101 +12,136 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
 {
     public class HeaderBlock : MarkdownBlock
     {
+        private int headerLevel;
+
+        /// <summary>
+        /// The header level (1-6).  1 is the most important header, 6 is the least important.
+        /// </summary>
+        public int HeaderLevel
+        {
+            get { return this.headerLevel; }
+            set
+            {
+                if (value < 1 || value > 6)
+                    throw new ArgumentOutOfRangeException("HeaderLevel", "The header level must be between 1 and 6 (inclusive).");
+                this.headerLevel = value;
+            }
+        }
+
         /// <summary>
         /// The contents of the block.
         /// </summary>
         public IList<MarkdownInline> Inlines { get; set; }
 
-        public int HeaderLevel { get; set; }
-
-        public HeaderBlock()
-            : base(MarkdownBlockType.Header)
-        { }
-
         /// <summary>
-        /// Called when this block type should parse out the goods. Given the markdown, a starting point, and a max ending point
-        /// the block should find the start of the block, find the end and parse out the middle. The end most of the time will not be
-        /// the max ending pos, but it sometimes can be. The function will return where it ended parsing the block in the markdown.
+        /// Initializes a new header block.
         /// </summary>
-        /// <param name="markdown"></param>
-        /// <param name="startingPos"></param>
-        /// <param name="maxEndingPos"></param>
-        /// <returns></returns>
-        internal override int Parse(string markdown, int startingPos, int maxEndingPos)
+        public HeaderBlock() : base(MarkdownBlockType.Header)
         {
-            // Do a quick check
-            int headerStart = startingPos;
-            if (markdown[headerStart] != '#')
-            {
-                DebuggingReporter.ReportCriticalError("Tried to parse a header but # wasn't found");
-            }
-
-            // Find the end of header, note that headers break with a single new line no matter what.
-            int headerEnd = Common.FindNextSingleNewLine(markdown, headerStart, maxEndingPos);
-            if (headerEnd == -1)
-            {
-                DebuggingReporter.ReportCriticalError("Tried to parse header that didn't have an end");
-                headerEnd = maxEndingPos;
-            }
-
-            // Find how many are in a row
-            while (headerStart < markdown.Length && headerStart < maxEndingPos && markdown[headerStart] == '#')
-            {
-                HeaderLevel++;
-                headerStart++;
-
-                // To match reddit's formatting if there are more than 6 we should start showing them.
-                if (HeaderLevel > 5)
-                {
-                    break;
-                }
-            }
-
-            // Strip off hash symbols from the end of the line.
-            int endOfInlines = headerEnd;
-            while (endOfInlines > headerStart && markdown[endOfInlines - 1] == '#')
-                endOfInlines--;
-
-            // Make sure there is something to parse, and not just dead space
-            if (endOfInlines > headerStart)
-            {
-                // Parse the children of this header
-                Inlines = ParseInlineChildren(markdown, headerStart, endOfInlines);
-            }
-
-            // Trim off any extra line endings, except ' ' otherwise we can't do code blocks
-            while (headerEnd < markdown.Length && headerEnd < maxEndingPos && Char.IsWhiteSpace(markdown[headerEnd]) && markdown[headerEnd] != ' ')
-            {
-                headerEnd++;
-            }
-
-            // Return where we ended.
-            return headerEnd;
         }
 
 
         /// <summary>
-        /// Called to determine if this block type can handle the next block.
+        /// Parses a header that starts with a hash.
         /// </summary>
-        /// <param name="markdown"></param>
-        /// <param name="nextCharPos"></param>
-        /// <param name="endingPos"></param>
-        /// <returns></returns>
-        public static bool CanHandleBlock(string markdown, int nextCharPos, int endingPos)
+        /// <param name="markdown"> The markdown text. </param>
+        /// <param name="start"> The location of the first hash character. </param>
+        /// <param name="end"> The location of the end of the line. </param>
+        /// <returns> A parsed header block, or <c>null</c> if this is not a header. </returns>
+        internal static HeaderBlock ParseHashPrefixedHeader(string markdown, int start, int end)
         {
-            return markdown.Length > nextCharPos && endingPos > nextCharPos && markdown[nextCharPos] == '#';
+            // This type of header starts with one or more '#' characters, followed by the header
+            // text, optionally followed by any number of hash characters.
+
+            var result = new HeaderBlock();
+
+            // Figure out how many consecutive hash characters there are.
+            int pos = start;
+            while (pos < end && markdown[pos] == '#' && pos - start < 6)
+                pos++;
+            result.HeaderLevel = pos - start;
+            if (result.HeaderLevel == 0)
+                return null;
+
+            // Ignore any hashes at the end of the line.
+            while (pos < end && markdown[end - 1] == '#')
+                end--;
+
+            // Parse the inline content.
+            result.Inlines = ParseInlineChildren(markdown, pos, end);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Parses a two-line header.
+        /// </summary>
+        /// <param name="markdown"> The markdown text. </param>
+        /// <param name="firstLineStart"> The location of the start of the first line. </param>
+        /// <param name="firstLineEnd"> The location of the end of the first line. </param>
+        /// <param name="secondLineStart"> The location of the start of the second line. </param>
+        /// <param name="secondLineEnd"> The location of the end of the second line. </param>
+        /// <returns> A parsed header block, or <c>null</c> if this is not a header. </returns>
+        internal static HeaderBlock ParseUnderlineStyleHeader(string markdown, int firstLineStart, int firstLineEnd, int secondLineStart, int secondLineEnd)
+        {
+            // This type of header starts with some text on the first line, followed by one or more
+            // underline characters ('=' or '-') on the second line.
+            // The second line can have whitespace after the underline characters, but not before
+            // or between each character.
+
+            // Check the second line is valid.
+            if (secondLineEnd <= secondLineStart)
+                return null;
+
+            // Figure out what the underline character is ('=' or '-').
+            char underlineChar = markdown[secondLineStart];
+            if (underlineChar != '=' && underlineChar != '-')
+                return null;
+
+            // Read past consecutive underline characters.
+            int pos = secondLineStart + 1;
+            for (; pos < secondLineEnd; pos++)
+            {
+                char c = markdown[pos];
+                if (c != underlineChar)
+                    break;
+                pos++;
+            }
+
+            // The rest of the line must be whitespace.
+            for (; pos < secondLineEnd; pos++)
+            {
+                char c = markdown[pos];
+                if (c != ' ' && c != '\t')
+                    return null;
+                pos++;
+            }
+
+            var result = new HeaderBlock();
+            result.HeaderLevel = underlineChar == '=' ? 1 : 2;
+
+            // Parse the inline content.
+            result.Inlines = ParseInlineChildren(markdown, firstLineStart, firstLineEnd);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Converts the object into it's textual representation.
+        /// </summary>
+        /// <returns> The textual representation of this object. </returns>
+        public override string ToString()
+        {
+            if (Inlines == null)
+                return base.ToString();
+            return string.Join(string.Empty, Inlines);
         }
     }
 }

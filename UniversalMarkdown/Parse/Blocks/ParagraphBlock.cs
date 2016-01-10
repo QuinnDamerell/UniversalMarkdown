@@ -34,34 +34,28 @@ namespace UniversalMarkdown.Parse.Elements
         { }
 
         /// <summary>
-        /// Called when this block type should parse out the goods. Given the markdown, a starting point, and a max ending point
-        /// the block should find the start of the block, find the end and parse out the middle. The end most of the time will not be
-        /// the max ending pos, but it sometimes can be. The function will return where it ended parsing the block in the markdown.
+        /// Parses paragraph text.
         /// </summary>
-        /// <param name="markdown"></param>
-        /// <param name="startingPos"></param>
-        /// <param name="maxEndingPos"></param>
-        /// <returns></returns>
-        internal override int Parse(string markdown, int startingPos, int maxEndingPos)
+        /// <param name="markdown"> The markdown text. </param>
+        /// <param name="start"> The location of the start of the paragraph. </param>
+        /// <param name="end"> The location of the end of the paragraph. </param>
+        /// <returns> A parsed paragraph. </returns>
+        internal static ParagraphBlock Parse(string markdown, int start, int end)
         {
-            // Find the end of paragraph, read the summary of the function for details.
-            int endingPos = Common.FindNextParagraphLineBreak(markdown, startingPos, maxEndingPos);
+            var result = new ParagraphBlock();
+            result.Inlines = ParseInlineChildren(markdown, start, end);
+            return result;
+        }
 
-            // Make sure there is something to parse, and not just dead space
-            if (endingPos > startingPos)
-            {
-                // Parse the children of this paragraph
-                Inlines = ParseInlineChildren(markdown, startingPos, endingPos);
-            }
-
-            // Trim off any extra line endings, except ' ' otherwise we can't do code blocks
-            while (endingPos < markdown.Length && endingPos < maxEndingPos && Char.IsWhiteSpace(markdown[endingPos]) && markdown[endingPos] != ' ')
-            {
-                endingPos++;
-            }
-
-            // Return where we ended.
-            return endingPos;
+        /// <summary>
+        /// Converts the object into it's textual representation.
+        /// </summary>
+        /// <returns> The textual representation of this object. </returns>
+        public override string ToString()
+        {
+            if (Inlines == null)
+                return base.ToString();
+            return string.Join(string.Empty, Inlines);
         }
     }
 }

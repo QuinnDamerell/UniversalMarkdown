@@ -1,4 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestPlatform.UnitTestFramework;
+using System.Collections.Generic;
+using UniversalMarkdown.Parse;
 using UniversalMarkdown.Parse.Elements;
 using UITestMethodAttribute = Microsoft.VisualStudio.TestPlatform.UnitTestFramework.AppContainer.UITestMethodAttribute;
 
@@ -118,7 +120,7 @@ namespace UniversalMarkdownUnitTests.Parse
         public void Header_1_Empty()
         {
             AssertEqual("#",
-                new HeaderBlock { HeaderLevel = 1 });
+                new HeaderBlock { HeaderLevel = 1, Inlines = new List<MarkdownInline>() });
         }
 
         [UITestMethod]
@@ -135,7 +137,7 @@ namespace UniversalMarkdownUnitTests.Parse
         public void Header_6_Empty()
         {
             AssertEqual("#######",
-                new HeaderBlock { HeaderLevel = 6 });
+                new HeaderBlock { HeaderLevel = 6, Inlines = new List<MarkdownInline>() });
         }
 
         [UITestMethod]
@@ -173,9 +175,9 @@ namespace UniversalMarkdownUnitTests.Parse
             // The second line after a heading must not start with a space
             AssertEqual(CollapseWhitespace(@"
                 Header 1
-                    ="),
+                  ="),
                 new ParagraphBlock().AddChildren(
-                    new TextRunInline { Text = "Header 1 =" }));
+                    new TextRunInline { Text = "Header 1  =" }));
         }
     }
 }

@@ -72,11 +72,18 @@ namespace UniversalMarkdown.Parse.Elements
                 DebuggingReporter.ReportCriticalError("raw link parse didn't find the same ending pos");
             }
 
+            // Special cases for links, they can't end in a special char like . ? or !
+            if(markdown[linkEnd - 1] == '.')
+            {
+                linkEnd--;
+            }
+
+
             // Grab the link text
             Url = markdown.Substring(linkStart, linkEnd - linkStart);
 
             // Return the point after the end
-            return linkEnd + 1;
+            return linkEnd;
         }
 
         /// <summary>

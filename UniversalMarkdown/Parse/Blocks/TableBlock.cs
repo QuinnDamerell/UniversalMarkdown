@@ -160,17 +160,12 @@ namespace UniversalMarkdown.Parse.Elements
     /// <summary>
     /// Represents a single row in the table.
     /// </summary>
-    public class TableRow : MarkdownBlock
+    public class TableRow
     {
         /// <summary>
         /// The table cells.
         /// </summary>
         public IList<TableCell> Cells { get; set; }
-
-        public TableRow()
-            : base(MarkdownBlockType.TableRow)
-        {
-        }
 
         /// <summary>
         /// Called when this block type should parse out the goods. Given the markdown, a starting point, and a max ending point
@@ -181,14 +176,14 @@ namespace UniversalMarkdown.Parse.Elements
         /// <param name="startingPos"> The start of the line. </param>
         /// <param name="maxEndingPos"> </param>
         /// <returns></returns>
-        internal override int Parse(string markdown, int startingPos, int maxEndingPos)
+        internal int Parse(string markdown, int startingPos, int maxEndingPos)
         {
             Cells = new List<TableCell>();
             return ParseContents(markdown, startingPos, maxEndingPos, requireVerticalBar: true,
                 contentParser: (startingPos2, maxEndingPos2) =>
                 {
                     var cell = new TableCell();
-                    cell.Inlines = ParseInlineChildren(markdown, startingPos2, maxEndingPos2);
+                    cell.Inlines = Common.ParseInlineChildren(markdown, startingPos2, maxEndingPos2);
                     Cells.Add(cell);
                 });
         }
@@ -274,16 +269,11 @@ namespace UniversalMarkdown.Parse.Elements
     /// <summary>
     /// Represents a cell in the table.
     /// </summary>
-    public class TableCell : MarkdownBlock
+    public class TableCell
     {
         /// <summary>
         /// The cell contents.
         /// </summary>
         public IList<MarkdownInline> Inlines { get; set; }
-
-        public TableCell()
-            : base(MarkdownBlockType.TableCell)
-        {
-        }
     }
 }

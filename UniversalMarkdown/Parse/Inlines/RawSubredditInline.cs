@@ -13,22 +13,24 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
 {
     public class RawSubredditInline : MarkdownInline
     {
+        /// <summary>
+        /// The subreddit link text e.g. "r/news" or "/r/worldnews".
+        /// </summary>
         public string Text { get; set; }
 
-        public RawSubredditInline()
-            : base(MarkdownInlineType.RawSubreddit)
-        { }
+        /// <summary>
+        /// Initializes a new subreddit link.
+        /// </summary>
+        public RawSubredditInline() : base(MarkdownInlineType.RawSubreddit)
+        {
+        }
 
         /// <summary>
         /// Returns the chars that if found means we might have a match.
@@ -41,61 +43,54 @@ namespace UniversalMarkdown.Parse.Elements
         }
 
         /// <summary>
-        /// Called when the object should parse it's goods out of the markdown. The markdown, start, and stop are given.
-        /// The start and stop are what is returned from the FindNext function below. The object should do it's parsing and
-        /// return up to the last pos it used. This can be shorter than what is given to the function in endingPos.
+        /// Attempts to parse a subreddit link e.g. "/r/news" or "r/news".
         /// </summary>
-        /// <param name="markdown">The markdown</param>
-        /// <param name="startingPos">Where the parse should start</param>
-        /// <param name="endingPos">Where the parse should end</param>
-        /// <returns></returns>
-        internal override int Parse(string markdown, int startingPos, int endingPos)
+        /// <param name="markdown"> The markdown text. </param>
+        /// <param name="start"> The location to start parsing. </param>
+        /// <param name="maxEnd"> The location to stop parsing. </param>
+        /// <param name="actualEnd"> Set to the end of the span when the return value is non-null. </param>
+        /// <returns> A parsed subreddit link, or <c>null</c> if this is not a subreddit link. </returns>
+        internal static RawSubredditInline Parse(string markdown, int start, int maxEnd, out int actualEnd)
         {
-            Text = markdown.Substring(startingPos, endingPos - startingPos);
-            return endingPos;
-        }
+            actualEnd = start;
+            if (start == maxEnd)
+                return null;
 
-        /// <summary>
-        /// Verify a match that is found in the markdown. If the match is good and the rest of the element exits the function should
-        /// return true and the element will be matched. If if is a false positive return false and we will keep looking.
-        /// </summary>
-        /// <param name="markdown">The markdown to match</param>
-        /// <param name="startingPos">Where the first trip char should be found</param>
-        /// <param name="maxEndingPos">The max length to look in.</param>
-        /// <param name="elementEndingPos">If found, the ending pos of the element found.</param>
-        /// <returns></returns>
-        public static bool VerifyMatch(string markdown, int startingPos, int maxEndingPos, ref int elementStartingPos, ref int elementEndingPos)
-        {
             // The link may or may not start with '/'.
-            int pos = startingPos;
-            if (pos == maxEndingPos)
-                return false;
+            int pos = start;
             if (markdown[pos] == '/')
             {
                 pos++;
-                if (pos == maxEndingPos)
-                    return false;
+                if (pos == maxEnd)
+                    return null;
+            }
+            else
+            {
+                // If the link doesn't start with '/', then the previous character must be
+                // non-alphanumeric i.e. "bear/trap" is not a valid subreddit link.
+                if (pos > 0 && char.IsLetterOrDigit(markdown[pos - 1]))
+                    return null;
             }
 
             // Expect 'r'.
-            if (pos == maxEndingPos || markdown[pos] != 'r')
-                return false;
+            if (pos == maxEnd || markdown[pos] != 'r')
+                return null;
             pos++;
 
             // Expect '/'
-            if (pos == maxEndingPos || markdown[pos] != '/')
-                return false;
+            if (pos == maxEnd || markdown[pos] != '/')
+                return null;
             pos++;
 
-            // Expect at least one other letter or digit.
-            if (pos == maxEndingPos || !char.IsLetterOrDigit(markdown[pos]))
-                return false;
-            pos++;
+            // Find the end of the link.
+            actualEnd = Common.FindNextNonLetterDigitOrUnderscore(markdown, pos, maxEnd, true);
 
-            // Good enough.
-            elementStartingPos = startingPos;
-            elementEndingPos = Common.FindNextNonLetterDigitOrUnderscore(markdown, pos, maxEndingPos, true);
-            return true;
+            // The subreddit name must be at least 2 characters long.
+            if (actualEnd - pos < 2)
+                return null;
+
+            // We found something!
+            return new RawSubredditInline { Text = markdown.Substring(start, actualEnd - start) };
         }
 
         /// <summary>

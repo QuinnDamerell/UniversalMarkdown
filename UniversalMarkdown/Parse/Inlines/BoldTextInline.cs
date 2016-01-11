@@ -13,11 +13,7 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
@@ -29,9 +25,12 @@ namespace UniversalMarkdown.Parse.Elements
         /// </summary>
         public IList<MarkdownInline> Inlines { get; set; }
 
-        public BoldTextInline()
-            : base(MarkdownInlineType.Bold)
-        { }
+        /// <summary>
+        /// Initializes a new bold text span.
+        /// </summary>
+        public BoldTextInline() : base(MarkdownInlineType.Bold)
+        {
+        }
 
         /// <summary>
         /// Returns the chars that if found means we might have a match.
@@ -44,76 +43,48 @@ namespace UniversalMarkdown.Parse.Elements
         }
 
         /// <summary>
-        /// Called when the object should parse it's goods out of the markdown. The markdown, start, and stop are given.
-        /// The start and stop are what is returned from the FindNext function below. The object should do it's parsing and
-        /// return up to the last pos it used. This can be shorter than what is given to the function in endingPos.
+        /// Attempts to parse a bold text span.
         /// </summary>
-        /// <param name="markdown">The markdown</param>
-        /// <param name="startingPos">Where the parse should start</param>
-        /// <param name="endingPos">Where the parse should end</param>
-        /// <returns></returns>
-        internal override int Parse(string markdown, int startingPos, int endingPos)
+        /// <param name="markdown"> The markdown text. </param>
+        /// <param name="start"> The location to start parsing. </param>
+        /// <param name="maxEnd"> The location to stop parsing. </param>
+        /// <param name="actualEnd"> Set to the end of the span when the return value is non-null. </param>
+        /// <returns> A parsed bold text span, or <c>null</c> if this is not a bold text span. </returns>
+        internal static BoldTextInline Parse(string markdown, int start, int maxEnd, out int actualEnd)
         {
-            var innerStart = startingPos + 2;
-            if (markdown.Substring(startingPos, 2) != "**" && markdown.Substring(startingPos, 2) != "__")
-            {
-                DebuggingReporter.ReportCriticalError("Parse didn't find ** or __ in at the starting pos");
-            }
+            actualEnd = start;
+            if (start >= maxEnd - 1)
+                return null;
 
-            var innerEnd = endingPos - 2;
-            if (markdown.Substring(innerEnd, 2) != "**" && markdown.Substring(innerEnd, 2) != "__")
-            {
-                DebuggingReporter.ReportCriticalError("Parse didn't find ** or __ in at the end pos");
-            }
-
-            // Make sure there is something to parse, and not just dead space
-            if (innerEnd > innerStart)
-            {
-                // Parse any children.
-                Inlines = ParseInlineChildren(markdown, innerStart, innerEnd);
-            }
-
-            return endingPos;
-        }
-
-        /// <summary>
-        /// Verify a match that is found in the markdown. If the match is good and the rest of the element exits the function should
-        /// return true and the element will be matched. If if is a false positive return false and we will keep looking.
-        /// </summary>
-        /// <param name="markdown">The markdown to match</param>
-        /// <param name="startingPos">Where the first trip char should be found</param>
-        /// <param name="maxEndingPos">The max length to look in.</param>
-        /// <param name="elementEndingPos">If found, the ending pos of the element found.</param>
-        /// <returns></returns>
-        public static bool VerifyMatch(string markdown, int startingPos, int maxEndingPos, ref int elementStartingPos, ref int elementEndingPos)
-        {
-            // Do a sanity check.
-            string startSequence = markdown.Substring(startingPos, 2);
+            // Check the start sequence.
+            string startSequence = markdown.Substring(start, 2);
             if (startSequence != "**" && startSequence != "__")
-                return false;
+                return null;
 
             // Find the end of the span.  The end sequence (either '**' or '__') must be the same
             // as the start sequence.
-            int innerEnd = Common.IndexOf(markdown, startSequence, startingPos + 2, maxEndingPos);
+            var innerStart = start + 2;
+            int innerEnd = Common.IndexOf(markdown, startSequence, innerStart, maxEnd);
             if (innerEnd == -1)
-                return false;
+                return null;
 
             // The span must contain at least one character.
-            var innerStart = startingPos + 2;
             if (innerStart == innerEnd)
-                return false;
+                return null;
 
             // The first character inside the span must NOT be a space.
             if (Common.IsWhiteSpace(markdown[innerStart]))
-                return false;
+                return null;
 
             // The last character inside the span must NOT be a space.
             if (Common.IsWhiteSpace(markdown[innerEnd - 1]))
-                return false;
+                return null;
 
-            elementStartingPos = startingPos;
-            elementEndingPos = innerEnd + 2;
-            return true;
+            // We found something!
+            actualEnd = innerEnd + 2;
+            var result = new BoldTextInline();
+            result.Inlines = Common.ParseInlineChildren(markdown, innerStart, innerEnd);
+            return result;
         }
 
         /// <summary>

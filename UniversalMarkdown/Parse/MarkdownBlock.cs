@@ -30,12 +30,8 @@ namespace UniversalMarkdown.Parse
         Code,
         Header,
         List,
-        ListItem,
         HorizontalRule,
-        LineBreak,
         Table,
-        TableRow,
-        TableCell,
     };
 
     public abstract class MarkdownBlock : MarkdownElement

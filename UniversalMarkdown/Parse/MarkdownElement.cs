@@ -13,11 +13,7 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UniversalMarkdown.Helpers;
 using UniversalMarkdown.Parse.Elements;
 
@@ -25,59 +21,5 @@ namespace UniversalMarkdown.Parse
 {
     public abstract class MarkdownElement
     {
-        public MarkdownElement()
-        {
-        }
-
-        /// <summary>
-        /// A function that all elements must implement to parse what they own.
-        /// </summary>
-        /// <param name="markdown"></param>
-        /// <param name="startingPos"></param>
-        /// <param name="maxEndingPos"></param>
-        /// <returns>Returns the ending position of the parse</returns>
-        internal virtual int Parse(string markdown, int startingPos, int maxEndingPos)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// This function can be called by any element parsing. Given a start and stopping point this will
-        /// parse all found elements out of the range.
-        /// </summary>
-        /// <param name="markdown"></param>
-        /// <param name="startingPos"></param>
-        /// <param name="maxEndingPos"></param>
-        /// <returns> A list of parsed inlines. </returns>
-        protected static List<MarkdownInline> ParseInlineChildren(string markdown, int startingPos, int maxEndingPos)
-        {
-            int currentParsePosition = startingPos;
-
-            var inlines = new List<MarkdownInline>();
-            while (currentParsePosition < maxEndingPos)
-            {
-                int nextElemntStart = 0;
-                int nextElementEnd = 0;
-
-                // Find the next element
-                MarkdownInline element = Common.FindNextInlineElement(markdown, currentParsePosition, maxEndingPos, ref nextElemntStart, ref nextElementEnd);
-
-                // If the element we found doesn't start at the position we are looking for there is text between the element and
-                // the start. We need to wrap it into a Text Run
-                if (nextElemntStart != currentParsePosition)
-                {
-                    TextRunInline textRun = new TextRunInline();
-                    textRun.Parse(markdown, currentParsePosition, nextElemntStart);
-                    inlines.Add(textRun);
-                }
-
-                // Ask it to parse, it will return us the ending pos of itself.
-                currentParsePosition = element.Parse(markdown, nextElemntStart, nextElementEnd);
-
-                // Add it the the children
-                inlines.Add(element);
-            }
-            return inlines;
-        }
     }
 }

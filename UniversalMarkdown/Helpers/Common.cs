@@ -36,7 +36,7 @@ namespace UniversalMarkdown.Helpers
     }
 
 
-    class Common
+    internal class Common
     {
         private static List<InlineTripCharHelper> s_triggerList = new List<InlineTripCharHelper>();
         private static char[] s_tripCharacters;
@@ -69,12 +69,49 @@ namespace UniversalMarkdown.Helpers
             return s_triggerList;
         }
 
+        /// <summary>
+        /// This function can be called by any element parsing. Given a start and stopping point this will
+        /// parse all found elements out of the range.
+        /// </summary>
+        /// <param name="markdown"></param>
+        /// <param name="startingPos"></param>
+        /// <param name="maxEndingPos"></param>
+        /// <returns> A list of parsed inlines. </returns>
+        public static List<MarkdownInline> ParseInlineChildren(string markdown, int startingPos, int maxEndingPos)
+        {
+            int currentParsePosition = startingPos;
+
+            var inlines = new List<MarkdownInline>();
+            while (currentParsePosition < maxEndingPos)
+            {
+                int nextElementStart;
+                int nextElementEnd;
+
+                // Find the next element
+                MarkdownInline element = Common.FindNextInlineElement(markdown, currentParsePosition, maxEndingPos, out nextElementStart, out nextElementEnd);
+
+                // If the element we found doesn't start at the position we are looking for there is text between the element and
+                // the start. We need to wrap it into a Text Run
+                if (nextElementStart != currentParsePosition)
+                {
+                    var textRun = TextRunInline.Parse(markdown, currentParsePosition, nextElementStart);
+                    inlines.Add(textRun);
+                }
+
+                // Add the parsed element.
+                inlines.Add(element);
+
+                // Update the current position.
+                currentParsePosition = nextElementEnd;
+            }
+            return inlines;
+        }
 
         /// <summary>
         /// Finds the next inline element by matching trip chars and verifying the match.
         /// </summary>
         /// <returns></returns>
-        public static MarkdownInline FindNextInlineElement(string markdown, int startingPos, int endingPos, ref int nextElementStart, ref int nextElementEnd)
+        public static MarkdownInline FindNextInlineElement(string markdown, int startingPos, int endingPos, out int nextElementStart, out int nextElementEnd)
         {
             // Get the list of triggers.
             List<InlineTripCharHelper> tripChars = GetInlineTriggersList();
@@ -99,58 +136,41 @@ namespace UniversalMarkdown.Helpers
                             continue;
 
                         // If we are here we have a possible match. Call into the inline class to verify.
-                        // Note! The order of bold and italic here is important because they both start with *
-                        // otherwise italic will consume bold's opening tag.
+                        MarkdownInline parsedElement = null;
+                        int parsedElementEnd = pos;
                         switch (currentTripChar.Type)
                         {
                             case MarkdownInlineType.Bold:
-                                if (BoldTextInline.VerifyMatch(markdown, pos, endingPos, ref nextElementStart, ref nextElementEnd))
-                                {
-                                    return new BoldTextInline();
-                                }
+                                parsedElement = BoldTextInline.Parse(markdown, pos, endingPos, out parsedElementEnd);
                                 break;
                             case MarkdownInlineType.Italic:
-                                if (ItalicTextInline.VerifyMatch(markdown, pos, endingPos, ref nextElementStart, ref nextElementEnd))
-                                {
-                                    return new ItalicTextInline();
-                                }
+                                parsedElement = ItalicTextInline.Parse(markdown, pos, endingPos, out parsedElementEnd);
                                 break;
                             case MarkdownInlineType.MarkdownLink:
-                                if (MarkdownLinkInline.VerifyMatch(markdown, pos, endingPos, ref nextElementStart, ref nextElementEnd))
-                                {
-                                    return new MarkdownLinkInline();
-                                }
+                                parsedElement = MarkdownLinkInline.Parse(markdown, pos, endingPos, out parsedElementEnd);
                                 break;
                             case MarkdownInlineType.RawHyperlink:
-                                if (RawHyperlinkInline.VerifyMatch(markdown, pos, endingPos, ref nextElementStart, ref nextElementEnd))
-                                {
-                                    return new RawHyperlinkInline();
-                                }
+                                parsedElement = RawHyperlinkInline.Parse(markdown, pos, endingPos, out parsedElementEnd);
                                 break;
                             case MarkdownInlineType.RawSubreddit:
-                                if (RawSubredditInline.VerifyMatch(markdown, pos, endingPos, ref nextElementStart, ref nextElementEnd))
-                                {
-                                    return new RawSubredditInline();
-                                }
+                                parsedElement = RawSubredditInline.Parse(markdown, pos, endingPos, out parsedElementEnd);
                                 break;
                             case MarkdownInlineType.Strikethrough:
-                                if (StrikethroughTextInline.VerifyMatch(markdown, pos, endingPos, ref nextElementStart, ref nextElementEnd))
-                                {
-                                    return new StrikethroughTextInline();
-                                }
+                                parsedElement = StrikethroughTextInline.Parse(markdown, pos, endingPos, out parsedElementEnd);
                                 break;
                             case MarkdownInlineType.Superscript:
-                                if (SuperscriptTextInline.VerifyMatch(markdown, pos, endingPos, ref nextElementStart, ref nextElementEnd))
-                                {
-                                    return new SuperscriptTextInline();
-                                }
+                                parsedElement = SuperscriptTextInline.Parse(markdown, pos, endingPos, out parsedElementEnd);
                                 break;
                             case MarkdownInlineType.Code:
-                                if (CodeInline.VerifyMatch(markdown, pos, endingPos, ref nextElementStart, ref nextElementEnd))
-                                {
-                                    return new CodeInline();
-                                }
+                                parsedElement = CodeInline.Parse(markdown, pos, endingPos, out parsedElementEnd);
                                 break;
+                        }
+
+                        if (parsedElement != null)
+                        {
+                            nextElementStart = pos;
+                            nextElementEnd = parsedElementEnd;
+                            return parsedElement;
                         }
                     }
                 }
@@ -160,7 +180,7 @@ namespace UniversalMarkdown.Helpers
             // Let us consume the entire range.
             nextElementStart = startingPos;
             nextElementEnd = endingPos;
-            return new TextRunInline();
+            return TextRunInline.Parse(markdown, startingPos, endingPos);
         }
 
 

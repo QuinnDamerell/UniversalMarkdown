@@ -15,21 +15,23 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
 {
     public class RawHyperlinkInline : MarkdownInline
     {
+        /// <summary>
+        /// The raw URL.
+        /// </summary>
         public string Url { get; set; }
 
-        public RawHyperlinkInline()
-            : base(MarkdownInlineType.RawHyperlink)
-        { }
-
+        /// <summary>
+        /// Initializes a new markdown URL.
+        /// </summary>
+        public RawHyperlinkInline() : base(MarkdownInlineType.RawHyperlink)
+        {
+        }
 
         /// <summary>
         /// Returns the chars that if found means we might have a match.
@@ -43,59 +45,65 @@ namespace UniversalMarkdown.Parse.Elements
         }
 
         /// <summary>
-        /// Called when the object should parse it's goods out of the markdown. The markdown, start, and stop are given.
-        /// The start and stop are what is returned from the FindNext function below. The object should do it's parsing and
-        /// return up to the last pos it used. This can be shorter than what is given to the function in endingPos.
+        /// Attempts to parse a URL e.g. "http://www.reddit.com".
         /// </summary>
-        /// <param name="markdown">The markdown</param>
-        /// <param name="startingPos">Where the parse should start</param>
-        /// <param name="endingPos">Where the parse should end</param>
-        /// <returns></returns>
-        internal override int Parse(string markdown, int startingPos, int endingPos)
+        /// <param name="markdown"> The markdown text. </param>
+        /// <param name="start"> The location to start parsing. </param>
+        /// <param name="maxEnd"> The location to stop parsing. </param>
+        /// <param name="actualEnd"> Set to the end of the span when the return value is non-null. </param>
+        /// <returns> A parsed URL, or <c>null</c> if this is not a URL. </returns>
+        internal static RawHyperlinkInline Parse(string markdown, int start, int maxEnd, out int actualEnd)
         {
-            int linkEnd = Common.FindNextWhiteSpace(markdown, startingPos, endingPos, true);
-            
-            // Grab the link text
-            Url = markdown.Substring(startingPos, linkEnd - startingPos);
+            actualEnd = start;
+            if (start == maxEnd)
+                return null;
 
-            // Return the point after the end
-            return linkEnd;
-        }
-
-        /// <summary>
-        /// Verify a match that is found in the markdown. If the match is good and the rest of the element exits the function should
-        /// return true and the element will be matched. If if is a false positive return false and we will keep looking.
-        /// </summary>
-        /// <param name="markdown">The markdown to match</param>
-        /// <param name="startingPos">Where the first trip char should be found</param>
-        /// <param name="maxEndingPos">The max length to look in.</param>
-        /// <param name="elementEndingPos">If found, the ending pos of the element found.</param>
-        /// <returns></returns>
-        public static bool VerifyMatch(string markdown, int startingPos, int maxEndingPos, ref int elementStartingPos, ref int elementEndingPos)
-        {
-            // HTTP links.
-            if (maxEndingPos - startingPos >= "http://".Length)
+            // Links can be inside angle brackets.
+            bool insideAngleBrackets = false;
+            if (markdown[start] == '<')
             {
-                if (string.Equals(markdown.Substring(startingPos, "http://".Length), "http://", StringComparison.OrdinalIgnoreCase))
-                {
-                    elementStartingPos = startingPos;
-                    elementEndingPos = Common.FindNextWhiteSpace(markdown, startingPos, maxEndingPos, true);
-                    return true;
-                }
+                insideAngleBrackets = true;
+                start++;
+            }
+            else
+            {
+                // The previous character must be non-alphanumeric i.e. "ahttp://t.co" is not a valid URL.
+                if (start > 0 && char.IsLetter(markdown[start - 1]))
+                    return null;
             }
 
-            // HTTPS links.
-            if (maxEndingPos - startingPos >= "https://".Length)
+            int pos = start;
+            string httpPrefix = "http://";
+            string httpsPrefix = "https://";
+            if (maxEnd - start >= httpPrefix.Length && string.Equals(markdown.Substring(start, httpPrefix.Length), httpPrefix, StringComparison.OrdinalIgnoreCase))
             {
-                if (string.Equals(markdown.Substring(startingPos, "https://".Length), "https://", StringComparison.OrdinalIgnoreCase))
-                {
-                    elementStartingPos = startingPos;
-                    elementEndingPos = Common.FindNextWhiteSpace(markdown, startingPos, maxEndingPos, true);
-                    return true;
-                }
+                // HTTP hyperlink found.
+                pos += httpPrefix.Length;
             }
-            
-            return false;
+            else if (maxEnd - start >= httpsPrefix.Length && string.Equals(markdown.Substring(start, httpsPrefix.Length), httpsPrefix, StringComparison.OrdinalIgnoreCase))
+            {
+                // HTTPS hyperlink found.
+                pos += httpsPrefix.Length;
+            }
+            else
+                return null;
+
+            // Look for the end of the link.
+            if (insideAngleBrackets)
+            {
+                // TODO: fix this.
+                int innerEnd = Common.IndexOf(markdown, '>', pos, maxEnd);
+                if (innerEnd == -1)
+                    return null;
+                actualEnd = innerEnd + 1;
+                return new RawHyperlinkInline { Url = markdown.Substring(start, innerEnd - start) };
+            }
+            else
+            {
+                // TODO: fix this.
+                actualEnd = Common.FindNextWhiteSpace(markdown, pos, maxEnd, true);
+                return new RawHyperlinkInline { Url = markdown.Substring(start, actualEnd - start) };
+            }
         }
 
         /// <summary>

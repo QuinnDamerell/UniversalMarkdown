@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
 {
@@ -75,7 +76,7 @@ namespace UniversalMarkdown.Parse.Elements
                 end--;
 
             // Parse the inline content.
-            result.Inlines = ParseInlineChildren(markdown, pos, end);
+            result.Inlines = Common.ParseInlineChildren(markdown, pos, end);
 
             return result;
         }
@@ -128,7 +129,7 @@ namespace UniversalMarkdown.Parse.Elements
             result.HeaderLevel = underlineChar == '=' ? 1 : 2;
 
             // Parse the inline content.
-            result.Inlines = ParseInlineChildren(markdown, firstLineStart, firstLineEnd);
+            result.Inlines = Common.ParseInlineChildren(markdown, firstLineStart, firstLineEnd);
 
             return result;
         }

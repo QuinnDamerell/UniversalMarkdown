@@ -43,7 +43,7 @@ namespace UniversalMarkdown.Parse.Elements
         internal static ParagraphBlock Parse(string markdown, int start, int end)
         {
             var result = new ParagraphBlock();
-            result.Inlines = ParseInlineChildren(markdown, start, end);
+            result.Inlines = Common.ParseInlineChildren(markdown, start, end);
             return result;
         }
 

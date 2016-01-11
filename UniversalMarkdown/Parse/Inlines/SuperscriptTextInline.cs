@@ -13,11 +13,7 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
@@ -29,9 +25,12 @@ namespace UniversalMarkdown.Parse.Elements
         /// </summary>
         public IList<MarkdownInline> Inlines { get; set; }
 
-        public SuperscriptTextInline()
-            : base(MarkdownInlineType.Superscript)
-        { }
+        /// <summary>
+        /// Initializes a new superscript text span.
+        /// </summary>
+        public SuperscriptTextInline() : base(MarkdownInlineType.Superscript)
+        {
+        }
 
         /// <summary>
         /// Returns the chars that if found means we might have a match.
@@ -43,91 +42,46 @@ namespace UniversalMarkdown.Parse.Elements
         }
 
         /// <summary>
-        /// Verify a match that is found in the markdown. If the match is good and the rest of the element exits the function should
-        /// return true and the element will be matched. If if is a false positive return false and we will keep looking.
+        /// Attempts to parse a superscript text span.
         /// </summary>
-        /// <param name="markdown">The markdown to match</param>
-        /// <param name="startingPos">Where the first trip char should be found</param>
-        /// <param name="maxEndingPos">The max length to look in.</param>
-        /// <param name="elementEndingPos">If found, the ending pos of the element found.</param>
-        /// <returns></returns>
-        public static bool VerifyMatch(string markdown, int startingPos, int maxEndingPos, ref int elementStartingPos, ref int elementEndingPos)
+        /// <param name="markdown"> The markdown text. </param>
+        /// <param name="start"> The location to start parsing. </param>
+        /// <param name="maxEnd"> The location to stop parsing. </param>
+        /// <param name="actualEnd"> Set to the end of the span when the return value is non-null. </param>
+        /// <returns> A parsed superscript text span, or <c>null</c> if this is not a superscript text span. </returns>
+        internal static SuperscriptTextInline Parse(string markdown, int start, int maxEnd, out int actualEnd)
         {
-            // Sanity check
-            if (markdown[startingPos] == '^')
-            {
-                // The content might be enclosed in parentheses.
-                int contentStart = startingPos + 1;
-                if (contentStart < maxEndingPos && markdown[contentStart] == '(')
-                {
-                    // Find the end parenthesis.
-                    contentStart++;
-                    int contentEnd = Common.IndexOf(markdown, ')', contentStart, maxEndingPos);
-                    if (contentEnd == -1)
-                        return false;
+            actualEnd = start;
 
-                    // Okay, found it.
-                    elementStartingPos = startingPos;
-                    elementEndingPos = contentEnd + 1;
-                    return true;
-                }
-
-                // Search for the next whitespace character.
-                int whitespacePos = Common.FindNextWhiteSpace(markdown, contentStart, maxEndingPos, ifNotFoundReturnLength: true);
-                if (whitespacePos == contentStart)
-                    return false;   // No match if the character after the caret is a space.
-
-                elementStartingPos = startingPos;
-                elementEndingPos = whitespacePos;
-                return true;
-            }
-            return false;
-        }
-
-        /// <summary>
-        /// Called when the object should parse it's goods out of the markdown. The markdown, start, and stop are given.
-        /// The start and stop are what is returned from the FindNext function below. The object should do it's parsing and
-        /// return up to the last pos it used. This can be shorter than what is given to the function in endingPos.
-        /// </summary>
-        /// <param name="markdown">The markdown</param>
-        /// <param name="startingPos">Where the parse should start</param>
-        /// <param name="endingPos">Where the parse should end</param>
-        /// <returns></returns>
-        internal override int Parse(string markdown, int startingPos, int endingPos)
-        {
-            int contentStart = Common.IndexOf(markdown, '^', startingPos, endingPos);
-            // These should always be =
-            if (contentStart != startingPos)
-            {
-                DebuggingReporter.ReportCriticalError("superscript parse didn't find ^ in at the starting pos");
-            }
-            contentStart++;
+            // Check the first character.
+            if (start == maxEnd || markdown[start] != '^')
+                return null;
 
             // The content might be enclosed in parentheses.
-            int contentEnd;
-            if (contentStart < endingPos && markdown[contentStart] == '(')
+            int innerStart = start + 1;
+            int innerEnd;
+            if (innerStart < maxEnd && markdown[innerStart] == '(')
             {
                 // Find the end parenthesis.
-                contentStart++;
-                contentEnd = Common.IndexOf(markdown, ')', contentStart, endingPos);
-                if (contentEnd == -1)
-                {
-                    DebuggingReporter.ReportCriticalError("superscript parse didn't find ending )");
-                }
+                innerStart++;
+                innerEnd = Common.IndexOf(markdown, ')', innerStart, maxEnd);
+                if (innerEnd == -1)
+                    return null;
+                actualEnd = innerEnd + 1;
             }
             else
             {
-                contentEnd = Common.FindNextWhiteSpace(markdown, contentStart, endingPos, ifNotFoundReturnLength: true);
+                // Search for the next whitespace character.
+                innerEnd = Common.FindNextWhiteSpace(markdown, innerStart, maxEnd, ifNotFoundReturnLength: true);
+                if (innerEnd == innerStart)
+                    return null;   // No match if the character after the caret is a space.
+                actualEnd = innerEnd;
             }
 
-            // Make sure there is something to parse, and not just dead space
-            if (contentEnd > contentStart)
-            {
-                // Parse any children of this superscript element
-                Inlines = ParseInlineChildren(markdown, contentStart, contentEnd);
-            }
-
-            return endingPos;
+            // We found something!
+            var result = new SuperscriptTextInline();
+            result.Inlines = Common.ParseInlineChildren(markdown, innerStart, innerEnd);
+            return result;
         }
 
         /// <summary>

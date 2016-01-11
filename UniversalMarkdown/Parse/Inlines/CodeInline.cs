@@ -13,11 +13,7 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
@@ -29,9 +25,12 @@ namespace UniversalMarkdown.Parse.Elements
         /// </summary>
         public string Text { get; set; }
 
-        public CodeInline()
-            : base(MarkdownInlineType.Code)
-        { }
+        /// <summary>
+        /// Initializes a new inline code span.
+        /// </summary>
+        public CodeInline() : base(MarkdownInlineType.Code)
+        {
+        }
 
         /// <summary>
         /// Returns the chars that if found means we might have a match.
@@ -43,70 +42,36 @@ namespace UniversalMarkdown.Parse.Elements
         }
 
         /// <summary>
-        /// Called when the object should parse it's goods out of the markdown. The markdown, start, and stop are given.
-        /// The start and stop are what is returned from the FindNext function below. The object should do it's parsing and
-        /// return up to the last pos it used. This can be shorter than what is given to the function in endingPos.
+        /// Attempts to parse an inline code span.
         /// </summary>
-        /// <param name="markdown">The markdown</param>
-        /// <param name="startingPos">Where the parse should start</param>
-        /// <param name="endingPos">Where the parse should end</param>
-        /// <returns></returns>
-        internal override int Parse(string markdown, int startingPos, int endingPos)
+        /// <param name="markdown"> The markdown text. </param>
+        /// <param name="start"> The location to start parsing. </param>
+        /// <param name="maxEnd"> The location to stop parsing. </param>
+        /// <param name="actualEnd"> Set to the end of the span when the return value is non-null. </param>
+        /// <returns> A parsed inline code span, or <c>null</c> if this is not an inline code span. </returns>
+        internal static CodeInline Parse(string markdown, int start, int maxEnd, out int actualEnd)
         {
-            int start = Common.IndexOf(markdown, '`', startingPos, endingPos);
-            // These should always be equal
-            if (start != startingPos)
-            {
-                DebuggingReporter.ReportCriticalError("Parse didn't find ` in at the starting pos");
-            }
-            start++;
+            actualEnd = start;
 
-            // Find the ending
-            int end = Common.IndexOf(markdown, '`', start, endingPos, true);
-            if (end + 1 != endingPos)
-            {
-                DebuggingReporter.ReportCriticalError("Parse didn't find ` in at the end pos");
-            }
-
-            // Make sure there is something to parse, and not just dead space
-            if (end > start)
-            {
-                // Parse any children of this bold element
-                Text = markdown.Substring(start, end - start);
-            }
-
-            // Return the point after the inline.
-            return end + 1;
-        }
-
-        /// <summary>
-        /// Verify a match that is found in the markdown. If the match is good and the rest of the element exits the function should
-        /// return true and the element will be matched. If if is a false positive return false and we will keep looking.
-        /// </summary>
-        /// <param name="markdown">The markdown to match</param>
-        /// <param name="startingPos">Where the first trip char should be found</param>
-        /// <param name="maxEndingPos">The max length to look in.</param>
-        /// <param name="elementEndingPos">If found, the ending pos of the element found.</param>
-        /// <returns></returns>
-        public static bool VerifyMatch(string markdown, int startingPos, int maxEndingPos, ref int elementStartingPos, ref int elementEndingPos)
-        {
-            // Do a sanity check.
-            if (markdown[startingPos] != '`')
-                return false;
+            // Check the first char.
+            if (start == maxEnd || markdown[start] != '`')
+                return null;
 
             // Find the end of the span.
-            int innerEnd = Common.IndexOf(markdown, '`', startingPos + 1, maxEndingPos);
+            var innerStart = start + 1;
+            int innerEnd = Common.IndexOf(markdown, '`', innerStart, maxEnd);
             if (innerEnd == -1)
-                return false;
+                return null;
 
             // The span must contain at least one character.
-            var innerStart = startingPos + 1;
             if (innerStart == innerEnd)
-                return false;
+                return null;
 
-            elementStartingPos = startingPos;
-            elementEndingPos = innerEnd + 1;
-            return true;
+            // We found something!
+            actualEnd = innerEnd + 1;
+            var result = new CodeInline();
+            result.Text = markdown.Substring(innerStart, innerEnd - innerStart);
+            return result;
         }
 
         /// <summary>

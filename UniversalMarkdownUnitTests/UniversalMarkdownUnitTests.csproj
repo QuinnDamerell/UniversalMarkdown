@@ -110,6 +110,8 @@
     <Compile Include="Display\StrikethroughTests.cs" />
     <Compile Include="Display\SuperscriptTests.cs" />
     <Compile Include="Display\TableTests.cs" />
+    <Compile Include="Parse\MarkdownLinkTests.cs" />
+    <Compile Include="Parse\SubredditLinkTests.cs" />
     <Compile Include="Parse\ParseTestExtensionMethods.cs" />
     <Compile Include="Parse\ParseTestBase.cs" />
     <Compile Include="Parse\SuperscriptTests.cs" />

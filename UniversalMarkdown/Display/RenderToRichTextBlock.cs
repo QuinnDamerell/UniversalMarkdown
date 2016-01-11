@@ -93,9 +93,6 @@ namespace UniversalMarkdown.Display
                 case MarkdownBlockType.HorizontalRule:
                     RenderHorizontalRule((HorizontalRuleBlock)element, currentBlocks);
                     break;
-                case MarkdownBlockType.LineBreak:
-                    RenderLineBreak((LineBreakBlock)element, currentBlocks);
-                    break;
                 case MarkdownBlockType.Table:
                     RenderTable((TableBlock)element, currentBlocks);
                     break;
@@ -299,21 +296,6 @@ namespace UniversalMarkdown.Display
 
             // Add it
             currentBlocks.Add(horzPara);
-        }
-
-        /// <summary>
-        /// Renders a line break element.
-        /// </summary>
-        /// <param name="element"></param>
-        /// <param name="currentBlocks"></param>
-        private void RenderLineBreak(LineBreakBlock element, BlockCollection currentBlocks)
-        {
-            // Make the new horizontal rule paragraph
-            Paragraph lineBreakPara = new Paragraph();
-            lineBreakPara.Margin = new Thickness(0, 12, 0, 12);
-
-            // Add it
-            currentBlocks.Add(lineBreakPara);
         }
 
         /// <summary>

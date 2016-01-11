@@ -24,32 +24,33 @@ namespace UniversalMarkdown.Parse.Elements
         /// </summary>
         public string Text { get; set; }
 
-        public TextRunInline() :
-            base(MarkdownInlineType.TextRun)
-        {   }
+        /// <summary>
+        /// Initializes a new text span.
+        /// </summary>
+        public TextRunInline() : base(MarkdownInlineType.TextRun)
+        {
+        }
 
         /// <summary>
-        /// Called when the object should parse it's goods out of the markdown. The markdown, start, and stop are given. 
-        /// The start and stop are what is returned from the FindNext function below. The object should do it's parsing and 
-        /// return up to the last pos it used. This can be shorter than what is given to the function in endingPos.
+        /// Parses unformatted text.
         /// </summary>
-        /// <param name="markdown">The markdown</param>
-        /// <param name="startingPos">Where the parse should start</param>
-        /// <param name="endingPos">Where the parse should end</param>
-        /// <returns></returns>
-        internal override int Parse(string markdown, int startingPos, int maxEndingPos)
+        /// <param name="markdown"> The markdown text. </param>
+        /// <param name="start"> The location to start parsing. </param>
+        /// <param name="end"> The location to stop parsing. </param>
+        /// <returns> A parsed text span. </returns>
+        internal static TextRunInline Parse(string markdown, int start, int end)
         {
             // We need to go though all of the text and remove any newlines and returns if they aren't needed
             // the most efficient way to do this is to use a string builder to build the new string as normal.
             // We need to guess at the capacity of the string builder string, the entire range should be good.
-            StringBuilder strBuilder = new StringBuilder(maxEndingPos - startingPos);
+            StringBuilder strBuilder = new StringBuilder(end - start);
 
             // We need to keep track of continuous spaces, if there are more than 2 in a row we shouldn't remove the
             // new line.
             int continuousSpaceCount = 0;
 
             // Loop through from start to end.
-            for (int currentMarkdownPos = startingPos; currentMarkdownPos < maxEndingPos; currentMarkdownPos++)
+            for (int currentMarkdownPos = start; currentMarkdownPos < end; currentMarkdownPos++)
             {
                 char currentChar = markdown[currentMarkdownPos];
                 if (currentChar == '\n' || currentChar == '\r')
@@ -78,7 +79,7 @@ namespace UniversalMarkdown.Parse.Elements
                     continuousSpaceCount++;
                 }
                 // Also remove any non breaking spaces (&nbsp;)
-                else if (currentChar == '&' && currentMarkdownPos + 5 < maxEndingPos && 
+                else if (currentChar == '&' && currentMarkdownPos + 5 < end && 
                         markdown[currentMarkdownPos + 1] == 'n' &&
                         markdown[currentMarkdownPos + 2] == 'b' &&
                         markdown[currentMarkdownPos + 3] == 's' &&
@@ -92,7 +93,7 @@ namespace UniversalMarkdown.Parse.Elements
                     currentMarkdownPos += 5;
                 }
                 // Handle escape characters.
-                else if (currentChar == '\\' && currentMarkdownPos + 1 < maxEndingPos && (
+                else if (currentChar == '\\' && currentMarkdownPos + 1 < end && (
                     markdown[currentMarkdownPos + 1] == '*' ||
                     markdown[currentMarkdownPos + 1] == '_' ||
                     markdown[currentMarkdownPos + 1] == '^' ||
@@ -109,11 +110,7 @@ namespace UniversalMarkdown.Parse.Elements
                 }
             }
 
-            // Finally set the text
-            Text = strBuilder.ToString();
-
-            // Return that we ate it all.
-            return maxEndingPos;
+            return new TextRunInline { Text = strBuilder.ToString() };
         }
 
         /// <summary>

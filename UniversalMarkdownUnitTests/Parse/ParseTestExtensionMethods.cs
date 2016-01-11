@@ -16,7 +16,7 @@ namespace UniversalMarkdownUnitTests.Parse
         /// <param name="parent"></param>
         /// <param name="elements"></param>
         /// <returns></returns>
-        public static T AddChildren<T>(this T parent, params object[] elements) where T : MarkdownElement
+        public static T AddChildren<T>(this T parent, params object[] elements)
         {
             foreach (var child in elements)
                 AddChild(parent, child);

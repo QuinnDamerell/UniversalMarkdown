@@ -52,6 +52,14 @@ namespace UniversalMarkdown.Parse.Elements
             // new line.
             int continuousSpaceCount = 0;
 
+            // Since our parser will throw out whitespace to find an element, text that leads with a white space will lose
+            // it. This results in things like 'test.comis an awesome site'. To account for this check if the char before our
+            // starting pos is a space, and if so add one in the front of the string.
+            if(startingPos > 0 && markdown[startingPos - 1] == ' ')
+            {
+                strBuilder.Append(' ');
+            }
+
             // loop through from start to end.
 
             for (int currentMarkdownPos = startingPos; currentMarkdownPos < maxEndingPos; currentMarkdownPos++)

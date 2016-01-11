@@ -73,11 +73,10 @@ namespace UniversalMarkdown.Parse.Elements
             }
 
             // Special cases for links, they can't end in a special char like . ? or !
-            if(markdown[linkEnd - 1] == '.')
+            if(Char.IsPunctuation(markdown[linkEnd - 1]))
             {
                 linkEnd--;
             }
-
 
             // Grab the link text
             Url = markdown.Substring(linkStart, linkEnd - linkStart);

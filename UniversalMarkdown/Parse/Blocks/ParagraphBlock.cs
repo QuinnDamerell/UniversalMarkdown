@@ -37,13 +37,11 @@ namespace UniversalMarkdown.Parse.Elements
         /// Parses paragraph text.
         /// </summary>
         /// <param name="markdown"> The markdown text. </param>
-        /// <param name="start"> The location of the start of the paragraph. </param>
-        /// <param name="end"> The location of the end of the paragraph. </param>
         /// <returns> A parsed paragraph. </returns>
-        internal static ParagraphBlock Parse(string markdown, int start, int end)
+        internal static ParagraphBlock Parse(string markdown)
         {
             var result = new ParagraphBlock();
-            result.Inlines = Common.ParseInlineChildren(markdown, start, end);
+            result.Inlines = Common.ParseInlineChildren(markdown, 0, markdown.Length);
             return result;
         }
 

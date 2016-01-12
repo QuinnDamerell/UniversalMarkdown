@@ -81,7 +81,8 @@ namespace UniversalMarkdown.Parse.Elements
                 if (nextListItem != null)
                 {
                     // Add the previous list item to the result.
-                    listItem.Blocks = Markdown.Parse(markdown, itemContentStart, endOfLine);
+                    int actualEnd1;
+                    listItem.Blocks = Markdown.Parse(markdown, itemContentStart, endOfLine, quoteDepth: 0, actualEnd: out actualEnd1);
                     result.Items.Add(listItem);
 
                     // Start a new list item.
@@ -115,7 +116,8 @@ namespace UniversalMarkdown.Parse.Elements
             } while (startOfLine < maxEnd);
 
             // Close off the unfinished list item.
-            listItem.Blocks = Markdown.Parse(markdown, itemContentStart, endOfLine);
+            int actualEnd2;
+            listItem.Blocks = Markdown.Parse(markdown, itemContentStart, endOfLine, quoteDepth: 0, actualEnd: out actualEnd2);
             result.Items.Add(listItem);
 
             // Return the result.

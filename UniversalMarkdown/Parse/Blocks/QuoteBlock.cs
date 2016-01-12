@@ -35,14 +35,19 @@ namespace UniversalMarkdown.Parse.Elements
         /// Parses a quote block.
         /// </summary>
         /// <param name="markdown"> The markdown text. </param>
-        /// <param name="start"> The location of the start of the line. </param>
+        /// <param name="startOfLine"> The location of the start of the line. </param>
         /// <param name="maxEnd"> The location to stop parsing. </param>
+        /// <param name="quoteDepth"> The current nesting level of quotes. </param>
         /// <param name="actualEnd"> Set to the end of the block when the return value is non-null. </param>
-        /// <returns> A parsed quote block, or <c>null</c> if this is not a quote block. </returns>
-        internal static QuoteBlock Parse(string markdown, int start, int maxEnd, out int actualEnd)
+        /// <returns> A parsed quote block. </returns>
+        internal static QuoteBlock Parse(string markdown, int startOfLine, int maxEnd, int quoteDepth, out int actualEnd)
         {
-            actualEnd = start;
-            return null;
+            var result = new QuoteBlock();
+
+            // Recursively call into the markdown block parser.
+            result.Blocks = Markdown.Parse(markdown, startOfLine, maxEnd, quoteDepth: quoteDepth + 1, actualEnd: out actualEnd);
+
+            return result;
         }
     }
 }

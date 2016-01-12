@@ -52,22 +52,46 @@ namespace UniversalMarkdown.Parse.Elements
             {
                 // Add every line that starts with a tab character or at least 4 spaces.
                 int pos = startOfLine;
-                if (markdown[pos] == '\t')
+                if (pos < maxEnd && markdown[pos] == '\t')
                     pos++;
                 else
                 {
                     int spaceCount = 0;
-                    while (spaceCount < 4 && markdown[pos++] == ' ')
-                        spaceCount++;
+                    while (pos < maxEnd && spaceCount < 4)
+                    {
+                        if (markdown[pos] == ' ')
+                            spaceCount++;
+                        else if (markdown[pos] == '\t')
+                            spaceCount += 4;
+                        else
+                            break;
+                        pos++;
+                    }
                     if (spaceCount < 4)
                     {
-                        // We found a line that doesn't start with a tab or 4 spaces, so end the code block.
-                        break;
+                        // We found a line that doesn't start with a tab or 4 spaces.
+                        // But don't end the code block until we find a non-blank line.
+                        int pos2 = pos;
+                        bool foundNonSpaceChar = false;
+                        while (pos2 < maxEnd)
+                        {
+                            char c = markdown[pos2];
+                            if (c == '\n')
+                                break;
+                            else if (!Common.IsWhiteSpace(c))
+                            {
+                                foundNonSpaceChar = true;
+                                break;
+                            }
+                            pos2++;
+                        }
+                        if (foundNonSpaceChar)
+                            break;
                     }
                 }
 
                 // Find the end of the line.
-                int endOfLine = Common.FindNextSingleNewLine(markdown, startOfLine, maxEnd, out startOfLine);
+                int endOfLine = Common.FindNextSingleNewLine(markdown, pos, maxEnd, out startOfLine);
 
                 // Separate each line of the code text.
                 if (code == null)
@@ -77,11 +101,12 @@ namespace UniversalMarkdown.Parse.Elements
 
                 // Append the code text, excluding the first tab/4 spaces, and convert tab characters into spaces.
                 string lineText = markdown.Substring(pos, endOfLine - pos);
+                int startOfLinePos = code.Length;
                 for (int i = 0; i < lineText.Length; i++)
                 {
                     char c = lineText[i];
                     if (c == '\t')
-                        code.Append(' ', 4 - (code.Length % 4));
+                        code.Append(' ', 4 - ((code.Length - startOfLinePos) % 4));
                     else
                         code.Append(c);
                 }
@@ -96,7 +121,7 @@ namespace UniversalMarkdown.Parse.Elements
 
             // Blank lines should be trimmed from the start and end.
             actualEnd = startOfLine;
-            return new CodeBlock() { Text = code.ToString().Trim() };
+            return new CodeBlock() { Text = code.ToString().Trim(' ', '\t', '\r', '\n') };
         }
 
         /// <summary>

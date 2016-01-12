@@ -50,7 +50,7 @@ namespace UniversalMarkdown.Display
         public double ParagraphFontSize { get; set; } = 13;
 
         /// <summary>
-        /// Gets or sets the amount of space above and below list.
+        /// Gets or sets the amount of space above and below lists.
         /// </summary>
         public double ListSpacing { get; set; } = 5.0;
 
@@ -124,6 +124,26 @@ namespace UniversalMarkdown.Display
         /// The amount of horizontal and vertical space within each cell.
         /// </summary>
         public Size TableCellPadding { get; set; } = new Size(9, 4);
+
+        /// <summary>
+        /// Gets or sets the amount of space above and below block quotes.
+        /// </summary>
+        public double BlockQuoteSpacing { get; set; } = 5.0;
+
+        /// <summary>
+        /// The color of the line that is displayed to the left of quotes.
+        /// </summary>
+        public Color BlockQuoteBorderColor { get; set; } = Colors.White;
+
+        /// <summary>
+        /// The thickness of the line that is displayed to the left of quotes.
+        /// </summary>
+        public double BlockQuoteBorderThickness { get; set; } = 2.0;
+
+        /// <summary>
+        /// The amount of space between the quote border and the text.
+        /// </summary>
+        public double BlockQuotePadding { get; set; } = 8.0;
 
 
         public MarkdownRenderer(Markdown markdownTree)
@@ -309,6 +329,29 @@ namespace UniversalMarkdown.Display
                     }
                     context.ApplyBlockContent(context.AvailableWidth, HorizontalRuleThickness);
                     break;
+
+                case MarkdownBlockType.Quote:
+                    {
+                        context.ApplyTopAndBottomMargins(BlockQuoteSpacing);
+
+                        // Draw the content.
+                        var quoteContext = context.Clone(context.X + BlockQuoteBorderThickness + BlockQuotePadding,
+                            context.AvailableWidth - (BlockQuoteBorderThickness + BlockQuotePadding));
+                        foreach (var itemBlock in ((QuoteBlock)block).Blocks)
+                        {
+                            RenderBlock(quoteContext, itemBlock);
+                        }
+
+                        // Draw the border.
+                        if (!context.MeasureOnly)
+                        {
+                            context.DrawingSession.FillRectangle(new Rect(context.X, context.Y, BlockQuoteBorderThickness, quoteContext.ContentHeight), BlockQuoteBorderColor);
+                        }
+
+                        // Update the content width and height.
+                        context.ApplyBlockContent(quoteContext.ContentWidth, quoteContext.ContentHeight);
+                        break;
+                    }
 
                 case MarkdownBlockType.Code:
                     {

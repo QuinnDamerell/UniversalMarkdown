@@ -42,12 +42,29 @@ namespace UniversalMarkdownUnitTests.Parse
 
         [UITestMethod]
         [TestCategory("Parse - inline")]
-        public void Code_Inline_Escape()
+        public void Code_Inline_EscapedStartChar()
         {
-            // Formatting is ignored inside code.
             AssertEqual(@"Here is some \`escaped code`",
                 new ParagraphBlock().AddChildren(
                     new TextRunInline { Text = "Here is some `escaped code`" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void Code_Inline_InnerEscapeSequence()
+        {
+            AssertEqual(@"`one\\two`",
+                new ParagraphBlock().AddChildren(
+                    new CodeInline { Text = @"one\\two" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void Code_Inline_AlternateSyntax()
+        {
+            AssertEqual(@"``There is a literal backtick (`) here.``",
+                new ParagraphBlock().AddChildren(
+                    new CodeInline { Text = @"There is a literal backtick (`) here." }));
         }
 
         [UITestMethod]

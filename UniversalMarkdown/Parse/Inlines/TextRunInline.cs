@@ -13,6 +13,7 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 
+using System;
 using System.Text;
 
 namespace UniversalMarkdown.Parse.Elements
@@ -43,7 +44,7 @@ namespace UniversalMarkdown.Parse.Elements
             // We need to go though all of the text and remove any newlines and returns if they aren't needed
             // the most efficient way to do this is to use a string builder to build the new string as normal.
             // We need to guess at the capacity of the string builder string, the entire range should be good.
-            StringBuilder strBuilder = new StringBuilder(end - start);
+            var strBuilder = new StringBuilder(end - start);
 
             // We need to keep track of continuous spaces, if there are more than 2 in a row we shouldn't remove the
             // new line.
@@ -93,14 +94,13 @@ namespace UniversalMarkdown.Parse.Elements
                     currentMarkdownPos += 5;
                 }
                 // Handle escape characters.
-                else if (currentChar == '\\' && currentMarkdownPos + 1 < end && (
-                    markdown[currentMarkdownPos + 1] == '*' ||
-                    markdown[currentMarkdownPos + 1] == '_' ||
-                    markdown[currentMarkdownPos + 1] == '^' ||
-                    markdown[currentMarkdownPos + 1] == '~' ||
-                    markdown[currentMarkdownPos + 1] == '`'))
+                else if (currentChar == '\\' && currentMarkdownPos + 1 < end &&
+                    Array.IndexOf(new char[] { '\\', '`', '*', '_', '{', '}', '[', ']', '(', ')', '#', '+', '-', '.', '!', '|', '~', '^', '&', ':', '<', '>', '/' }, markdown[currentMarkdownPos + 1]) >= 0)
                 {
                     // Remove the backslash.
+                    strBuilder.Append(markdown[currentMarkdownPos + 1]);
+                    currentMarkdownPos++;
+                    continuousSpaceCount = 0;
                 }
                 // If we have anything else add it and reset the space count.
                 else

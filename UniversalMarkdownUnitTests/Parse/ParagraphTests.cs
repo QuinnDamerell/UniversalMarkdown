@@ -107,6 +107,20 @@ namespace UniversalMarkdownUnitTests.Parse
         [TestCategory("Parse - block")]
         public void Paragraph_TextEscaping()
         {
+            // The list of escape characters from daring fireball:
+            // \   backslash
+            // `   backtick
+            // *   asterisk
+            // _   underscore
+            // { } curly braces
+            // []  square brackets
+            // ()  parentheses
+            // #   hash mark
+            // +   plus sign
+            // -   minus sign(hyphen)
+            // .   dot
+            // !   exclamation mark
+
             AssertEqual(@"\~\`\!\@\#\$\%\^\&\*\(\)\_\+\-\=\{\}\|\[\]\\\:\""\;\'\<\>\?\,\.\/\a\A\1",
                 new ParagraphBlock().AddChildren(
                     new TextRunInline { Text = @"~`!\@#\$\%^&*()_+-\={}|[]\:\""\;\'<>\?\,./\a\A\1" }));

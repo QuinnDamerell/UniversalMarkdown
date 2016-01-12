@@ -57,21 +57,48 @@ namespace UniversalMarkdown.Parse.Elements
             if (start == maxEnd || markdown[start] != '`')
                 return null;
 
-            // Find the end of the span.
+            // There is an alternate syntax that starts and ends with two backticks.
+            // e.g. ``sdf`sdf`` would be "sdf`sdf".
             var innerStart = start + 1;
-            int innerEnd = Common.IndexOf(markdown, '`', innerStart, maxEnd);
-            if (innerEnd == -1)
-                return null;
+            if (innerStart < maxEnd && markdown[innerStart] == '`')
+            {
+                // Alternate double back-tick syntax.
+                innerStart++;
 
-            // The span must contain at least one character.
-            if (innerStart == innerEnd)
-                return null;
+                // Find the end of the span.
+                int innerEnd = Common.IndexOf(markdown, "``", innerStart, maxEnd);
+                if (innerEnd == -1)
+                    return null;
 
-            // We found something!
-            actualEnd = innerEnd + 1;
-            var result = new CodeInline();
-            result.Text = markdown.Substring(innerStart, innerEnd - innerStart);
-            return result;
+                // The span must contain at least one character.
+                if (innerStart == innerEnd)
+                    return null;
+
+                // We found something!
+                actualEnd = innerEnd + 2;
+                var result = new CodeInline();
+                result.Text = markdown.Substring(innerStart, innerEnd - innerStart);
+                return result;
+            }
+            else
+            {
+                // Standard single backtick syntax.
+
+                // Find the end of the span.
+                int innerEnd = Common.IndexOf(markdown, '`', innerStart, maxEnd);
+                if (innerEnd == -1)
+                    return null;
+
+                // The span must contain at least one character.
+                if (innerStart == innerEnd)
+                    return null;
+
+                // We found something!
+                actualEnd = innerEnd + 1;
+                var result = new CodeInline();
+                result.Text = markdown.Substring(innerStart, innerEnd - innerStart);
+                return result;
+            }
         }
 
         /// <summary>

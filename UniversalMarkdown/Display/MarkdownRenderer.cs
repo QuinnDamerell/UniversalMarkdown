@@ -394,7 +394,7 @@ namespace UniversalMarkdown.Display
                                         bulletText = string.Format("{0}.", i + 1);
                                         break;
                                 }
-                                context.DrawingSession.DrawText(bulletText, new Rect(context.X - ListLeftPadding, context.Y, ListLeftPadding - ListBulletPadding, 0), ForegroundColor, bulletTextFormat);
+                                context.DrawingSession.DrawText(bulletText, new Rect(context.X, context.Y, ListLeftPadding - ListBulletPadding, 0), ForegroundColor, bulletTextFormat);
                             }
 
                             // Draw the list item contents.

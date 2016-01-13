@@ -51,9 +51,10 @@ namespace UniversalMarkdown.Parse.Elements
         /// <param name="markdown"> The markdown text. </param>
         /// <param name="start"> The location of the first character in the block. </param>
         /// <param name="maxEnd"> The location to stop parsing. </param>
+        /// <param name="quoteDepth"> The current nesting level for block quoting. </param>
         /// <param name="actualEnd"> Set to the end of the block when the return value is non-null. </param>
         /// <returns> A parsed list block, or <c>null</c> if this is not a list block. </returns>
-        internal static ListBlock Parse(string markdown, int start, int maxEnd, out int actualEnd)
+        internal static ListBlock Parse(string markdown, int start, int maxEnd, int quoteDepth, out int actualEnd)
         {
             // Attempt to parse the first list item.
             var firstItem = ParseItemPreamble(markdown, start, maxEnd);
@@ -82,7 +83,7 @@ namespace UniversalMarkdown.Parse.Elements
                 {
                     // Add the previous list item to the result.
                     int actualEnd1;
-                    listItem.Blocks = Markdown.Parse(markdown, itemContentStart, endOfLine, quoteDepth: 0, actualEnd: out actualEnd1);
+                    listItem.Blocks = Markdown.Parse(markdown, itemContentStart, endOfLine, quoteDepth, out actualEnd1);
                     result.Items.Add(listItem);
 
                     // Start a new list item.
@@ -117,7 +118,7 @@ namespace UniversalMarkdown.Parse.Elements
 
             // Close off the unfinished list item.
             int actualEnd2;
-            listItem.Blocks = Markdown.Parse(markdown, itemContentStart, endOfLine, quoteDepth: 0, actualEnd: out actualEnd2);
+            listItem.Blocks = Markdown.Parse(markdown, itemContentStart, endOfLine, quoteDepth, out actualEnd2);
             result.Items.Add(listItem);
 
             // Return the result.

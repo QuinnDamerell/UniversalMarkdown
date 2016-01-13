@@ -202,7 +202,7 @@ namespace UniversalMarkdown.Parse
                         // Some block elements must start on a new paragraph (tables, lists and code).
                         int endOfBlock = startOfNextLine;
                         if (nonSpaceChar == '*' || nonSpaceChar == '+' || nonSpaceChar == '-' || (nonSpaceChar >= '0' && nonSpaceChar <= '9'))
-                            newBlockElement = ListBlock.Parse(markdown, startOfLine, end, out endOfBlock);
+                            newBlockElement = ListBlock.Parse(markdown, startOfLine, end, quoteDepth, out endOfBlock);
                         if (newBlockElement == null && nonSpacePos > startOfLine)
                             newBlockElement = CodeBlock.Parse(markdown, startOfLine, end, out endOfBlock);
                         if (newBlockElement == null)

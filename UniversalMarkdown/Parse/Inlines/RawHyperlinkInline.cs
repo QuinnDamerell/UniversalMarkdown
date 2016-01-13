@@ -91,17 +91,34 @@ namespace UniversalMarkdown.Parse.Elements
             // Look for the end of the link.
             if (insideAngleBrackets)
             {
-                // TODO: fix this.
-                int innerEnd = Common.IndexOf(markdown, '>', pos, maxEnd);
-                if (innerEnd == -1)
+                // Angle bracket links should not have any whitespace.
+                int innerEnd = markdown.IndexOfAny(new char[] { ' ', '\t', '\r', '\n', '>' }, pos, maxEnd - pos);
+                if (innerEnd == -1 || markdown[innerEnd] != '>')
                     return null;
+
+                // There should be at least one character after the http://.
+                if (innerEnd == pos)
+                    return null;
+
                 actualEnd = innerEnd + 1;
                 return new RawHyperlinkInline { Url = markdown.Substring(start, innerEnd - start) };
             }
             else
             {
-                // TODO: fix this.
-                actualEnd = Common.FindNextWhiteSpace(markdown, pos, maxEnd, true);
+                // The URL must have at least one character after the http:// and at least one dot.
+                int dotIndex = markdown.IndexOf('.', pos, maxEnd - pos);
+                if (dotIndex == -1 || dotIndex == pos)
+                    return null;
+
+                // For some reason a less than character ends a URL...
+                actualEnd = markdown.IndexOfAny(new char[] { ' ', '\t', '\r', '\n', '<' }, dotIndex + 1, maxEnd - (dotIndex + 1));
+                if (actualEnd == -1)
+                    actualEnd = maxEnd;
+
+                // URLs can't end on a punctuation character.
+                if (Array.IndexOf(new char[] { ')', '}', ']', '!', ';', '.', '?', ',' }, markdown[actualEnd - 1]) >= 0)
+                    actualEnd--;
+
                 return new RawHyperlinkInline { Url = markdown.Substring(start, actualEnd - start) };
             }
         }

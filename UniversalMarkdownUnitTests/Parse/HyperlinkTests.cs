@@ -58,6 +58,45 @@ namespace UniversalMarkdownUnitTests.Parse
 
         [UITestMethod]
         [TestCategory("Parse - inline")]
+        public void Hyperlink_AngleBracketsNoNeedForDot()
+        {
+            AssertEqual("<http://reddit>",
+                new ParagraphBlock().AddChildren(
+                    new RawHyperlinkInline { Url = "http://reddit" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void Hyperlink_AngleBracketsCanEndWithPunctuation()
+        {
+            AssertEqual("<http://reddit.com.>",
+                new ParagraphBlock().AddChildren(
+                    new RawHyperlinkInline { Url = "http://reddit.com." }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void Hyperlink_AngleBracketsCantHaveSpaces()
+        {
+            AssertEqual("< http://reddit.com >",
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "< " },
+                    new RawHyperlinkInline { Url = "http://reddit.com" },
+                    new TextRunInline { Text = " >" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void Hyperlink_StartCharacters()
+        {
+            AssertEqual("0http://reddit.com",
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "0" },
+                    new RawHyperlinkInline { Url = "http://reddit.com" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void Hyperlink_EndCharacters()
         {
             AssertEqual(CollapseWhitespace(@"
@@ -128,7 +167,6 @@ namespace UniversalMarkdownUnitTests.Parse
                 http://reddit.com,
 
                 http://reddit.com,a"),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com" }),
                 new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com" }, new TextRunInline { Text = ")" }),
                 new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com)a" }),
                 new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com" }, new TextRunInline { Text = "}" }),
@@ -181,6 +219,33 @@ namespace UniversalMarkdownUnitTests.Parse
             AssertEqual("http://",
                 new ParagraphBlock().AddChildren(
                     new TextRunInline { Text = "http://" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void Hyperlink_Negative_NoDot()
+        {
+            AssertEqual("http://localhost",
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "http://localhost" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void Hyperlink_Negative_DotTooSoon()
+        {
+            AssertEqual("http://.com",
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "http://.com" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void Hyperlink_Negative_AngleBracketsPrefixOnly()
+        {
+            AssertEqual("<http://>",
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "<http://>" }));
         }
     }
 }

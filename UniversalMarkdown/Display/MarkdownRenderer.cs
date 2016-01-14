@@ -82,7 +82,17 @@ namespace UniversalMarkdown.Display
         /// <summary>
         /// The color of hyperlinks.
         /// </summary>
-        public Color LinkColor { get; set; } = Colors.LightBlue;
+        public Color LinkColor { get; set; } = Colors.DarkBlue;
+
+        /// <summary>
+        /// The color of hyperlinks, while the mouse is hovering over them.
+        /// </summary>
+        public Color LinkHoverColor { get; set; } = Colors.Cyan;
+
+        /// <summary>
+        /// The color of hyperlinks that have been visited before.
+        /// </summary>
+        public Color LinkVisitedColor { get; set; } = Colors.Yellow;
 
         /// <summary>
         /// The color of a horizontal rule.
@@ -145,6 +155,17 @@ namespace UniversalMarkdown.Display
         /// </summary>
         public double BlockQuotePadding { get; set; } = 8.0;
 
+        /// <summary>
+        /// A callback that can be set to implement link hovering and/or visiting.
+        /// </summary>
+        public Func<ILinkElement, LinkStatus> LinkStatusCallback { get; set; }
+
+        /// <summary>
+        /// A list of rendered link elements.  Available after calling
+        /// <see cref="Draw(CanvasDrawingSession, Windows.Foundation.Rect)"/>.
+        /// </summary>
+        public IList<RenderedLink> RenderedLinks { get; private set; }
+
 
         public MarkdownRenderer(Markdown markdownTree)
         {
@@ -152,6 +173,8 @@ namespace UniversalMarkdown.Display
                 throw new ArgumentNullException(nameof(markdownTree));
             this.markdownTree = markdownTree;
         }
+
+
 
         private class DrawingContext
         {
@@ -191,6 +214,11 @@ namespace UniversalMarkdown.Display
             /// The actual height of the content.
             /// </summary>
             public double ContentHeight { get { return Y - initialY; } }
+
+            /// <summary>
+            /// A list of rendered link elements.
+            /// </summary>
+            public List<RenderedLink> Links { get; private set; } = new List<RenderedLink>();
 
             private double initialY;
             private double previousBottomMargin;
@@ -245,7 +273,19 @@ namespace UniversalMarkdown.Display
                 result.ContentWidth = 0;
                 result.initialY = Y;
                 result.previousBottomMargin = 0;
+                result.Links = Links;
                 return result;
+            }
+
+            public void AddLinkGlyphRun(ILinkElement link, RenderedLink.GlyphRun glyphRun)
+            {
+                var renderedLink = this.Links.SingleOrDefault(rl => rl.LinkElement == link);
+                if (renderedLink == null)
+                {
+                    renderedLink = new RenderedLink(link);
+                    this.Links.Add(renderedLink);
+                }
+                renderedLink.GlyphRuns.Add(glyphRun);
             }
         }
 
@@ -256,6 +296,7 @@ namespace UniversalMarkdown.Display
             {
                 RenderBlock(context, block);
             }
+            RenderedLinks = context.Links;
         }
 
         public Size Measure(CanvasDevice device, Size availableSize)
@@ -268,6 +309,19 @@ namespace UniversalMarkdown.Display
             return new Size(context.ContentWidth, context.Y);
         }
 
+        public RenderedLink HitTest(Point point)
+        {
+            foreach (var renderedLink in this.RenderedLinks)
+            {
+                foreach (var glyphRun in renderedLink.GlyphRuns)
+                {
+                    if (glyphRun.Rect.Contains(point))
+                        return renderedLink;
+                }
+            }
+            return null;
+        }
+
         private void RenderBlock(DrawingContext context, MarkdownBlock block)
         {
             switch (block.Type)
@@ -278,6 +332,7 @@ namespace UniversalMarkdown.Display
 
                         var textFormat = new CanvasTextFormat();
                         textFormat.FontSize = (float)this.ParagraphFontSize;
+
                         RenderInlines(context, ((ParagraphBlock)block).Inlines, textFormat);
                         break;
                     }
@@ -543,6 +598,7 @@ namespace UniversalMarkdown.Display
         private class CustomBrush
         {
             public int SuperscriptLevel { get; set; }
+            public ILinkElement LinkElement { get; set; }
 
             public CustomBrush(CustomBrush previousCustomBrush)
             {
@@ -558,12 +614,18 @@ namespace UniversalMarkdown.Display
             private MarkdownRenderer renderer;
             private DrawingContext context;
             private ICanvasBrush defaultBrush;
+            private ICanvasBrush linkDefaultBrush;
+            private ICanvasBrush linkVisitedBrush;
+            private ICanvasBrush linkHoverBrush;
 
             public CustomTextRenderer(MarkdownRenderer renderer, DrawingContext context)
             {
                 this.renderer = renderer;
                 this.context = context;
                 this.defaultBrush = new CanvasSolidColorBrush(this.context.Device, this.renderer.ForegroundColor);
+                this.linkDefaultBrush = new CanvasSolidColorBrush(this.context.Device, this.renderer.LinkColor);
+                this.linkVisitedBrush = new CanvasSolidColorBrush(this.context.Device, this.renderer.LinkVisitedColor);
+                this.linkHoverBrush = new CanvasSolidColorBrush(this.context.Device, this.renderer.LinkHoverColor);
             }
 
             /// <summary>
@@ -611,7 +673,7 @@ namespace UniversalMarkdown.Display
                 if (glyphs == null)
                     return;
 
-                // Custom handling for inline code spans and superscript.
+                // Custom handling for superscript.
                 var customBrush = brush as CustomBrush;
                 if (customBrush != null)
                 {
@@ -626,13 +688,48 @@ namespace UniversalMarkdown.Display
                             multiplier *= (float)this.renderer.SuperscriptSize;
                         }
                     }
-                    
-                    //if (customBrush.RenderAsCode)
-                    //    this.context.DrawingSession.DrawRectangle()
 
+                    if (customBrush.LinkElement != null)
+                    {
+                        // Create a rect that covers all the characters.
+                        Rect rect = new Rect(point.X, point.Y - (double)(fontFace.Ascent * fontSize),
+                            glyphs.Sum(g => g.Advance), (double)((fontFace.Ascent + fontFace.Descent) * fontSize));
+
+                        // Figure out the correct brush to use.
+                        ICanvasBrush linkBrush;
+                        switch (this.renderer.LinkStatusCallback?.Invoke(customBrush.LinkElement) ?? LinkStatus.Normal)
+                        {
+                            case LinkStatus.Hover:
+                                linkBrush = this.linkHoverBrush;
+                                break;
+                            case LinkStatus.Visited:
+                                linkBrush = this.linkVisitedBrush;
+                                break;
+                            default:
+                                linkBrush = this.linkDefaultBrush;
+                                break;
+                        }
+                        brush = linkBrush;
+
+                        // Record the details of the glyph run so we can replay them later.
+                        this.context.AddLinkGlyphRun(customBrush.LinkElement, new RenderedLink.GlyphRun
+                        {
+                            Rect = rect,
+                            Point = point,
+                            FontFace = fontFace,
+                            FontSize = fontSize,
+                            Glyphs = glyphs,
+                            IsSideways = isSideways,
+                            BidiLevel = bidiLevel,
+                            Brush = linkBrush,
+                            MeasuringMode = measuringMode,
+                            LocaleName = localeName,
+                            TextString = textString,
+                            ClusterMapIndices = clusterMapIndices,
+                            CharacterIndex = characterIndex,
+                        });
+                    }
                 }
-                
-
 
                 this.context.DrawingSession.DrawGlyphRun(point, fontFace, fontSize, glyphs, isSideways, bidiLevel, brush as ICanvasBrush ?? this.defaultBrush, measuringMode, localeName, textString, clusterMapIndices, characterIndex);
             }
@@ -648,7 +745,7 @@ namespace UniversalMarkdown.Display
             /// <param name="glyphOrientation"></param>
             public void DrawInlineObject(Vector2 point, ICanvasTextInlineObject inlineObject, bool isSideways, bool isRightToLeft, object brush, CanvasGlyphOrientation glyphOrientation)
             {
-                //throw new NotImplementedException();
+                throw new NotImplementedException();
             }
 
             /// <summary>
@@ -793,16 +890,22 @@ namespace UniversalMarkdown.Display
                         break;
                     case MarkdownInlineType.MarkdownLink:
                         textLength = ComputeTextLength(((MarkdownLinkInline)inline).Inlines);
-                        textLayout.SetColor(startIndex, textLength, LinkColor);
+                        var markdownLinkBrush = new CustomBrush(textLayout.GetCustomBrush(startIndex) as CustomBrush);
+                        markdownLinkBrush.LinkElement = (ILinkElement)inline;
+                        textLayout.SetCustomBrush(startIndex, textLength, markdownLinkBrush);
                         SetTextLayoutProperties(textLayout, ((MarkdownLinkInline)inline).Inlines, startIndex);
                         break;
                     case MarkdownInlineType.RawHyperlink:
                         textLength = ((RawHyperlinkInline)inline).Url.Length;
-                        textLayout.SetColor(startIndex, textLength, LinkColor);
+                        var rawHyperlinkBrush = new CustomBrush(textLayout.GetCustomBrush(startIndex) as CustomBrush);
+                        rawHyperlinkBrush.LinkElement = (ILinkElement)inline;
+                        textLayout.SetCustomBrush(startIndex, textLength, rawHyperlinkBrush);
                         break;
                     case MarkdownInlineType.RawSubreddit:
                         textLength = ((RawSubredditInline)inline).Text.Length;
-                        textLayout.SetColor(startIndex, textLength, LinkColor);
+                        var rawSubredditBrush = new CustomBrush(textLayout.GetCustomBrush(startIndex) as CustomBrush);
+                        rawSubredditBrush.LinkElement = (ILinkElement)inline;
+                        textLayout.SetCustomBrush(startIndex, textLength, rawSubredditBrush);
                         break;
                     case MarkdownInlineType.Strikethrough:
                         textLength = ComputeTextLength(((StrikethroughTextInline)inline).Inlines);

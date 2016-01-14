@@ -108,6 +108,8 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Display\LinkStatus.cs" />
+    <Compile Include="Display\RenderedLink.cs" />
     <Compile Include="Display\MarkdownRenderer.cs" />
     <Compile Include="Display\RenderToRichTextBlock.cs" />
     <Compile Include="Helpers\Common.cs" />
@@ -124,6 +126,7 @@
     <Compile Include="Parse\Blocks\TableBlock.cs" />
     <Compile Include="Parse\Blocks\QuoteBlock.cs" />
     <Compile Include="Parse\Inlines\CodeInline.cs" />
+    <Compile Include="Parse\Inlines\ILinkElement.cs" />
     <Compile Include="Parse\Inlines\SuperscriptTextInline.cs" />
     <Compile Include="Parse\Inlines\StrikethroughTextInline.cs" />
     <Compile Include="Parse\Inlines\RawHyperlinkInline.cs" />
@@ -138,6 +141,7 @@
     <Compile Include="Parse\MarkdownInline.cs" />
     <Compile Include="Parse\Blocks\ParagraphBlock.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="MarkdownNavigateEventArgs.cs" />
   </ItemGroup>
   <ItemGroup>
     <Page Include="MarkdownTextBlock.xaml">

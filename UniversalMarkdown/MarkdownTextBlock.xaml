@@ -11,9 +11,12 @@
              Unloaded="UserControl_Unloaded">
 
     <Grid>
-        <canvas:CanvasControl x:Name="Canvas"
-                              ClearColor="Transparent"
-                              CreateResources="Canvas_CreateResources"
-                              Draw="Canvas_Draw"/>
+        <canvas:CanvasVirtualControl x:Name="Canvas"
+                                     ClearColor="Transparent"
+                                     CreateResources="Canvas_CreateResources"
+                                     RegionsInvalidated="Canvas_RegionsInvalidated"
+                                     SizeChanged="Canvas_SizeChanged"
+                                     PointerMoved="Canvas_PointerMoved"
+                                     PointerPressed="Canvas_PointerPressed"/>
     </Grid>
 </UserControl>

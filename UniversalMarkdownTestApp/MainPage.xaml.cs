@@ -86,7 +86,13 @@ namespace UniversalMarkdownTestApp
             }
             var complexTimeMs = stopWatch2.ElapsedMilliseconds / (double)complexIterations;
 
-            var dialog = new MessageDialog(string.Format("**Benchmark complete**\r\n\r\nTime to parse a simple comment: {0}ms\r\n\r\nTime to parse a complex document: {1}ms", simpleTimeMs, complexTimeMs));
+            var dialog = new MessageDialog($"**Benchmark complete**\r\n\r\nTime to parse a simple comment: {simpleTimeMs}ms\r\n\r\nTime to parse a complex document: {complexTimeMs}ms");
+            await dialog.ShowAsync();
+        }
+
+        private async void MarkdownTextBlock_Navigate(UniversalMarkdown.MarkdownTextBlock sender, UniversalMarkdown.MarkdownNavigateEventArgs args)
+        {
+            var dialog = new MessageDialog($"Link clicked: {args.Url}");
             await dialog.ShowAsync();
         }
     }

@@ -4,7 +4,7 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:local="using:UniversalMarkdownTestApp"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-      xmlns:univeralMarkdown="using:UniversalMarkdown"
+      xmlns:universalMarkdown="using:UniversalMarkdown"
       mc:Ignorable="d"
       RequestedTheme="Dark"
       Loaded="Page_Loaded">
@@ -32,7 +32,9 @@
                  TextWrapping="Wrap"/>
 
         <ScrollViewer Grid.Row="2">
-            <univeralMarkdown:MarkdownTextBlock x:Name="MarkdownTextBlock" Margin="12" />
+            <universalMarkdown:MarkdownTextBlock x:Name="MarkdownTextBlock"
+                                                 Margin="12"
+                                                 Navigate="MarkdownTextBlock_Navigate"/>
         </ScrollViewer>
     </Grid>
 </Page>

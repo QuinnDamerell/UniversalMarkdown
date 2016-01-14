@@ -18,12 +18,23 @@ using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
 {
-    public class RawSubredditInline : MarkdownInline
+    public class RawSubredditInline : MarkdownInline, ILinkElement
     {
         /// <summary>
         /// The subreddit link text e.g. "r/news" or "/r/worldnews".
         /// </summary>
         public string Text { get; set; }
+
+        /// <summary>
+        /// The link URL.  This is the same as <see cref="Text"/> except that it always has the
+        /// leading slash (i.e. the Url will be "/r/baconit" even if the text is "r/baconit").
+        /// </summary>
+        public string Url => Text.StartsWith("/") ? Text : "/" + Text;
+
+        /// <summary>
+        /// Subreddit links do not have a tooltip.
+        /// </summary>
+        string ILinkElement.Tooltip => null;
 
         /// <summary>
         /// Initializes a new subreddit link.

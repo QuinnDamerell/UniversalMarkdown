@@ -17,17 +17,8 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Microsoft.Graphics.Canvas.UI.Xaml;
 using Microsoft.Graphics.Canvas.UI;
-using Windows.UI;
-using UniversalMarkdown.Parse;
 using Microsoft.Graphics.Canvas;
-using System.Collections.Generic;
-using UniversalMarkdown.Parse.Elements;
-using System.Numerics;
 using Windows.Foundation;
-using Microsoft.Graphics.Canvas.Text;
-using System.Text;
-using Windows.UI.Text;
-using System;
 using UniversalMarkdown.Display;
 
 namespace UniversalMarkdown
@@ -85,9 +76,6 @@ namespace UniversalMarkdown
         public static readonly DependencyProperty ParagraphSpacingProperty =
             DependencyProperty.Register("ParagraphSpacing", typeof(double), typeof(MarkdownTextBlock), new PropertyMetadata(5.0));
 
-
-
-
         /// <summary>
         /// Fired when the markdown is changed. 
         /// </summary>
@@ -106,6 +94,11 @@ namespace UniversalMarkdown
         }
 
         /// <summary>
+        /// Triggered when a hyperlink is clicked.
+        /// </summary>
+        public event TypedEventHandler<MarkdownTextBlock, MarkdownNavigateEventArgs> Navigate;
+
+        /// <summary>
         /// Provides the behavior for the "Measure" pass of the layout cycle. Classes can override
         /// this method to define their own "Measure" pass behavior.
         /// </summary>
@@ -122,23 +115,92 @@ namespace UniversalMarkdown
             return this.renderer.Measure(CanvasDevice.GetSharedDevice(), availableSize);
         }
 
-        private void Canvas_CreateResources(CanvasControl sender, CanvasCreateResourcesEventArgs args)
+        private void Canvas_CreateResources(CanvasVirtualControl sender, CanvasCreateResourcesEventArgs args)
         {
 
         }
 
-        private void Canvas_Draw(CanvasControl sender, CanvasDrawEventArgs args)
+        private void Canvas_RegionsInvalidated(CanvasVirtualControl sender, CanvasRegionsInvalidatedEventArgs args)
         {
-            this.renderer.Draw(args.DrawingSession, new Rect(Padding.Left, Padding.Top,
-                ActualWidth - Padding.Left - Padding.Right,
-                ActualHeight - Padding.Top - Padding.Bottom));
-            //args.DrawingSession.DrawGlyphRun(new Vector2(0, 16), )
+            foreach (var region in args.InvalidatedRegions)
+            {
+                using (var ds = sender.CreateDrawingSession(region))
+                {
+                    this.renderer.Draw(ds, new Rect(Padding.Left, Padding.Top,
+                        ActualWidth - Padding.Left - Padding.Right,
+                        ActualHeight - Padding.Top - Padding.Bottom));
+                }
+            }
+        }
+
+        private void Canvas_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            Canvas.Invalidate();
         }
 
         private void UserControl_Unloaded(object sender, RoutedEventArgs e)
         {
             Canvas.RemoveFromVisualTree();
             Canvas = null;
+        }
+
+        private RenderedLink hoverLink;
+
+        private void Canvas_PointerMoved(object sender, Windows.UI.Xaml.Input.PointerRoutedEventArgs e)
+        {
+            // Find the link the mouse cursor is over, if any.
+            var newHoverLink = this.renderer.HitTest(e.GetCurrentPoint(Canvas).Position);
+            if (newHoverLink != this.hoverLink)
+            {
+                if (newHoverLink != null)
+                {
+                    Window.Current.CoreWindow.PointerCursor = new Windows.UI.Core.CoreCursor(Windows.UI.Core.CoreCursorType.Hand, 1);
+                    this.renderer.LinkStatusCallback = link => link == newHoverLink.LinkElement ? LinkStatus.Hover : LinkStatus.Normal;
+                }
+                else
+                {
+                    Window.Current.CoreWindow.PointerCursor = new Windows.UI.Core.CoreCursor(Windows.UI.Core.CoreCursorType.Arrow, 1);
+                    this.renderer.LinkStatusCallback = null;
+                }
+
+                // Redraw the previously hovered link.
+                if (this.hoverLink != null)
+                {
+                    foreach (var glyphRun in this.hoverLink.GlyphRuns)
+                    {
+                        using (var ds = Canvas.CreateDrawingSession(glyphRun.Rect))
+                        {
+                            glyphRun.Draw(ds, this.renderer.LinkColor);
+                        }
+                    }
+                }
+
+                // Draw the newly hovered link.
+                if (newHoverLink != null)
+                {
+                    foreach (var glyphRun in newHoverLink.GlyphRuns)
+                    {
+                        using (var ds = Canvas.CreateDrawingSession(glyphRun.Rect))
+                        {
+                            glyphRun.Draw(ds, this.renderer.LinkHoverColor);
+                        }
+                    }
+                }
+
+                // Record the new hovered link.
+                this.hoverLink = newHoverLink;
+            }
+        }
+
+        private void Canvas_PointerPressed(object sender, Windows.UI.Xaml.Input.PointerRoutedEventArgs e)
+        {
+            // Find the link the mouse cursor is over, if any.
+            var clickedLink = this.renderer.HitTest(e.GetCurrentPoint(Canvas).Position);
+            if (clickedLink == null)
+                return;
+
+            // Call the Navigate event handler.
+            Navigate?.Invoke(this, new MarkdownNavigateEventArgs(clickedLink.LinkElement.Url));
         }
     }
 }

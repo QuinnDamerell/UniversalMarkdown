@@ -102,7 +102,7 @@ namespace UniversalMarkdown.Parse.Elements
 
                 actualEnd = innerEnd + 1;
                 return new RawHyperlinkInline { Url = markdown.Substring(start, innerEnd - start) };
-            }
+        }
             else
             {
                 // The URL must have at least one character after the http:// and at least one dot.
@@ -120,8 +120,8 @@ namespace UniversalMarkdown.Parse.Elements
                     actualEnd--;
 
                 return new RawHyperlinkInline { Url = markdown.Substring(start, actualEnd - start) };
+                }
             }
-        }
 
         /// <summary>
         /// Converts the object into it's textual representation.

@@ -1,8 +1,8 @@
 ﻿// Copyright (c) 2016 Quinn Damerell
-// 
+//
 // The above copyright notice and this permission notice shall be
 // included in all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 // EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
 // OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -67,16 +67,16 @@ namespace UniversalMarkdown.Parse.Elements
                         if (currentMarkdownPos == 0 || !char.IsWhiteSpace(markdown[currentMarkdownPos - 1]))
                         {
                             strBuilder.Append(' ');
-                        }
-                    }
+                        }                         
+                    }                    
                 }
                 // If we have a space keep track of it.
                 else if (currentChar == ' ')
-                {
+                {                    
                     // Collapse multiple spaces.  TODO: collapse all types of whitespace, like how HTML does it.
                     // collapses all white space.
                     if (continuousSpaceCount == 0)
-                        strBuilder.Append(currentChar);
+                    strBuilder.Append(currentChar);
                     continuousSpaceCount++;
                 }
                 // Also remove any non breaking spaces (&nbsp;)

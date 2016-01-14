@@ -19,6 +19,11 @@
 
         <TextBlock Margin="12" Text="Todo: Make this do more. :)" />
 
+        <Button HorizontalAlignment="Right"
+                Content="Benchmark"
+                Margin="0,0,8,0"
+                Click="BenchmarkButton_Click"/>
+
         <TextBox x:Name="TextBox"
                  Grid.Row="1"
                  TextChanged="TextBox_TextChanged"

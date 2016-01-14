@@ -90,9 +90,9 @@ namespace UniversalMarkdownTestApp
             await dialog.ShowAsync();
         }
 
-        private async void MarkdownTextBlock_Navigate(UniversalMarkdown.MarkdownTextBlock sender, UniversalMarkdown.MarkdownNavigateEventArgs args)
+        private async void MarkdownTextBlock_OnMarkdownLinkTapped(object sender, UniversalMarkdown.OnMarkdownLinkTappedArgs e)
         {
-            var dialog = new MessageDialog($"Link clicked: {args.Url}");
+            var dialog = new MessageDialog($"Link clicked: {e.Link}");
             await dialog.ShowAsync();
         }
     }

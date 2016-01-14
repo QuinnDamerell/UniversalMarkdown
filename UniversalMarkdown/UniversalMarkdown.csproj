@@ -108,9 +108,6 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Display\LinkStatus.cs" />
-    <Compile Include="Display\RenderedLink.cs" />
-    <Compile Include="Display\MarkdownRenderer.cs" />
     <Compile Include="Display\RenderToRichTextBlock.cs" />
     <Compile Include="Helpers\Common.cs" />
     <Compile Include="Helpers\DebuggingReporter.cs" />

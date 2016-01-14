@@ -34,7 +34,7 @@
         <ScrollViewer Grid.Row="2">
             <universalMarkdown:MarkdownTextBlock x:Name="MarkdownTextBlock"
                                                  Margin="12"
-                                                 Navigate="MarkdownTextBlock_Navigate"/>
+                                                 OnMarkdownLinkTapped="MarkdownTextBlock_OnMarkdownLinkTapped"/>
         </ScrollViewer>
     </Grid>
 </Page>

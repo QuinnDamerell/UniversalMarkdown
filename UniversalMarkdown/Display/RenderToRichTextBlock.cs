@@ -29,6 +29,7 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Documents;
 using Windows.UI.Xaml.Media;
+using Windows.UI.Xaml.Shapes;
 
 namespace UniversalMarkdown.Display
 {
@@ -111,14 +112,14 @@ namespace UniversalMarkdown.Display
                 case MarkdownInlineType.TextRun:
                     RenderTextRun((TextRunInline)element, currentInlines, ref trimTextStart);
                     break;
+                case MarkdownInlineType.Italic:
+                    RenderItalicRun((ItalicTextInline)element, currentInlines, ref trimTextStart);
+                    break;
                 case MarkdownInlineType.Bold:
                     RenderBoldRun((BoldTextInline)element, currentInlines, ref trimTextStart);
                     break;
                 case MarkdownInlineType.MarkdownLink:
                     RenderMarkdownLink((MarkdownLinkInline)element, currentInlines, ref trimTextStart);
-                    break;
-                case MarkdownInlineType.Italic:
-                    RenderItalicRun((ItalicTextInline)element, currentInlines, ref trimTextStart);
                     break;
                 case MarkdownInlineType.RawHyperlink:
                     RenderRawHyperlink((RawHyperlinkInline)element, currentInlines, ref trimTextStart);
@@ -224,45 +225,52 @@ namespace UniversalMarkdown.Display
         /// <param name="currentBlocks"></param>
         private void RenderListElement(ListBlock element, BlockCollection currentBlocks)
         {
-            //// Create a grid for the dot and the text
-            //Grid grid = new Grid();
+            // Create a grid with two columns.
+            Grid grid = new Grid();
+            grid.Margin = new Thickness(0, 0, 0, 5);
 
-            //// The first column for the dot the second for the text
-            //grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Auto) });
-            //grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
+            // The first column for the bullet (or number) and the second for the text.
+            grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(40) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
 
-            //// Make the dot container and the new text box
-            //TextBlock dotText = new TextBlock();
-            //dotText.Text = element.Style == ListStyle.Bulleted ? "*" : "1.";
-            //Grid.SetColumn(dotText, 0);
-            //// Add the indent
-            //dotText.Margin = new Thickness(12 * element.ListIndent, 2, 0, 2);
-            //grid.Children.Add(dotText);
+            for (int rowIndex = 0; rowIndex < element.Items.Count; rowIndex ++)
+            {
+                var listItem = element.Items[rowIndex];
 
-            //RichTextBlock listText = new RichTextBlock();
-            //Grid.SetColumn(listText, 1);
-            //// Give the text some space from the dot and also from the top and bottom
-            //listText.Margin = new Thickness(6, 2, 0, 2);
-            //grid.Children.Add(listText);
+                // Add a row definition.
+                grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
-            //// Make the inline container
-            //InlineUIContainer uiConainter = new InlineUIContainer();
-            //uiConainter.Child = grid;
+                // Add the bullet or number.
+                var bullet = new TextBlock();
+                switch (element.Style)
+                {
+                    case ListStyle.Bulleted:
+                        bullet.Text = "•";
+                        break;
+                    case ListStyle.Numbered:
+                        bullet.Text = $"{rowIndex + 1}.";
+                        break;
+                }
+                bullet.HorizontalAlignment = HorizontalAlignment.Right;
+                bullet.Margin = new Thickness(0, 5, 12, 0);
+                Grid.SetRow(bullet, rowIndex);
+                grid.Children.Add(bullet);
 
-            //// Make a paragraph to hold our list
-            //Paragraph blockParagraph = new Paragraph();
-            //blockParagraph.Inlines.Add(uiConainter);
+                // Add the list item content.
+                var content = new RichTextBlock();
+                content.Margin = new Thickness(0, 5, 0, 0);
+                foreach (MarkdownBlock childBlock in listItem.Blocks)
+                {
+                    RenderBlock(childBlock, content.Blocks);
+                }
+                Grid.SetColumn(content, 1);
+                Grid.SetRow(content, rowIndex);
+                grid.Children.Add(content);
+            }
 
-            //// Make a paragraph to hold our list test
-            //Paragraph inlineParagraph = new Paragraph();
-            //listText.Blocks.Add(inlineParagraph);
-
-            //// Add it to the blocks
-            //currentBlocks.Add(blockParagraph);
-
-            //// Render the children into the rich.
-            //bool trimTextStart = true;
-            //RenderInlineChildren(element.Items, inlineParagraph.Inlines, ref trimTextStart);
+            var paragraph = new Paragraph();
+            paragraph.Inlines.Add(new InlineUIContainer { Child = grid });
+            currentBlocks.Add(paragraph);
         }
 
         /// <summary>
@@ -272,30 +280,16 @@ namespace UniversalMarkdown.Display
         /// <param name="currentBlocks"></param>
         private void RenderHorizontalRule(HorizontalRuleBlock element, BlockCollection currentBlocks)
         {
-            // This is going to be weird. To make this work we need to make a UI element
-            // and fill it with text to make it stretch. If we don't fill it with text I can't
-            // make it stretch the width of the box, so for now this is an "ok" hack.
-            InlineUIContainer contianer = new InlineUIContainer();
-            Grid grid = new Grid();
-            grid.Height = 2;
-            grid.Background = new SolidColorBrush(Color.FromArgb(255, 153, 153, 153));
+            var rectangle = new Rectangle();
+            rectangle.Width = 10000;
+            rectangle.Height = 1;
+            rectangle.Fill = new SolidColorBrush(Colors.LightGray);
+            rectangle.Margin = new Thickness(0, 7, 0, 7);
 
-            // Add the expanding text block.
-            TextBlock magicExpandingTextBlock = new TextBlock();
-            magicExpandingTextBlock.Foreground = new SolidColorBrush(Color.FromArgb(255, 153, 153, 153));
-            magicExpandingTextBlock.Text = "This is Quinn writing magic text. You will never see this. Like a ghost! I love Marilyn Welniak! This needs to be really long! RRRRREEEEEAAAAALLLLYYYYY LLLOOOONNNGGGG. This is Quinn writing magic text. You will never see this. Like a ghost! I love Marilyn Welniak! This needs to be really long! RRRRREEEEEAAAAALLLLYYYYY LLLOOOONNNGGGG";
-            grid.Children.Add(magicExpandingTextBlock);
+            var paragraph = new Paragraph();
+            paragraph.Inlines.Add(new InlineUIContainer { Child = rectangle });
 
-            // Add the grid.
-            contianer.Child = grid;
-
-            // Make the new horizontal rule paragraph
-            Paragraph horzPara = new Paragraph();
-            horzPara.Margin = new Thickness(0, 12, 0, 12);
-            horzPara.Inlines.Add(contianer);
-
-            // Add it
-            currentBlocks.Add(horzPara);
+            currentBlocks.Add(paragraph);
         }
 
         /// <summary>
@@ -305,17 +299,22 @@ namespace UniversalMarkdown.Display
         /// <param name="currentBlocks"></param>
         private void RenderQuote(QuoteBlock element, BlockCollection currentBlocks)
         {
-            //// Make the new quote paragraph
-            //Paragraph quotePara = new Paragraph();
-            //quotePara.Margin = new Thickness(element.QuoteIndent * 12, 12, 12, 12);
-            //quotePara.Foreground = new SolidColorBrush(Color.FromArgb(180, 255, 255, 255));
+            var content = new RichTextBlock();
+            foreach (MarkdownBlock quoteBlock in element.Blocks)
+            {
+                RenderBlock(quoteBlock, content.Blocks);
+            }
 
-            //// Add it to the blocks
-            //currentBlocks.Add(quotePara);
+            var border = new Border();
+            border.Margin = new Thickness(12, 5, 0, 5);
+            border.BorderBrush = Application.Current.Resources["SystemControlHighlightAccentBrush"] as SolidColorBrush;
+            border.BorderThickness = new Thickness(2, 0, 0, 0);
+            border.Padding = new Thickness(12, 0, 0, 0);
+            border.Child = content;
 
-            //// Render the children into the para inline.
-            //bool trimTextStart = true;
-            //RenderInlineChildren(element.Blocks, quotePara.Inlines, ref trimTextStart);
+            var paragraph = new Paragraph();
+            paragraph.Inlines.Add(new InlineUIContainer { Child = border });
+            currentBlocks.Add(paragraph);
         }
 
 
@@ -326,18 +325,18 @@ namespace UniversalMarkdown.Display
         /// <param name="currentBlocks"></param>
         private void RenderCode(CodeBlock element, BlockCollection currentBlocks)
         {
-            //// Make the new code paragraph
-            //Paragraph codePara = new Paragraph();
-            //codePara.Margin = new Thickness(12 * element.CodeIndent, 0, 0, 0);
-            //codePara.Foreground = new SolidColorBrush(Color.FromArgb(180, 255, 255, 255));
-            //codePara.FontFamily = new FontFamily("Courier New");
+            // Make the new code paragraph
+            Paragraph codePara = new Paragraph();
+            codePara.Margin = new Thickness(12);
+            codePara.FontFamily = new FontFamily("Consolas");
 
-            //// Add it to the blocks
-            //currentBlocks.Add(codePara);
+            // Render the children into the para inline.
+            Run textRun = new Run();
+            textRun.Text = element.Text;
+            codePara.Inlines.Add(textRun);
 
-            //// Render the children into the para inline.
-            //bool trimTextStart = true;
-            //RenderInlineChildren(element, codePara.Inlines, ref trimTextStart);
+            // Add it to the blocks
+            currentBlocks.Add(codePara);
         }
 
         /// <summary>
@@ -349,40 +348,85 @@ namespace UniversalMarkdown.Display
         {
             var table = new Grid();
 
-            // Set every column width to "Auto".
-            foreach (var columnDefinition in element.ColumnDefinitions)
+            // Set every column width to "Auto", plus one more for the border.
+            for (var i = 0; i < element.ColumnDefinitions.Count + 1; i++)
                 table.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
 
-            // Set every row height to "Auto".
-            foreach (var row in element.Rows)
+            // Set every row height to "Auto", plus one more for the border.
+            for (var i = 0; i < element.Rows.Count + 1; i ++)
                 table.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
 
             // Add each row.
-            for (int rowIndex = 0; rowIndex < element.Rows.Count; rowIndex ++)
+            for (int rowIndex = 0; rowIndex < element.Rows.Count; rowIndex++)
             {
                 var row = element.Rows[rowIndex];
 
+                // Top-of-cell border.
+                var topBorder = new Rectangle();
+                topBorder.Height = 1;
+                topBorder.Fill = new SolidColorBrush(Colors.White);
+                topBorder.VerticalAlignment = VerticalAlignment.Top;
+                Grid.SetRow(topBorder, rowIndex);
+                Grid.SetColumnSpan(topBorder, element.ColumnDefinitions.Count + 1);
+                table.Children.Add(topBorder);
+
                 // Add each cell.
-                for (int cellIndex = 0; cellIndex < Math.Min(element.ColumnDefinitions.Count, row.Cells.Count); cellIndex ++)
+                for (int cellIndex = 0; cellIndex < Math.Min(element.ColumnDefinitions.Count, row.Cells.Count); cellIndex++)
                 {
                     var cell = row.Cells[cellIndex];
 
-                    var cellElement = new RichTextBlock();
-                    var block = new Paragraph();
-                    bool trimTextStart = true;
-                    RenderInlineChildren(cell.Inlines, block.Inlines, ref trimTextStart);
-                    cellElement.Blocks.Add(block);
+                    // Left border.
+                    var leftBorder = new Rectangle();
+                    leftBorder.Width = 1;
+                    leftBorder.Fill = new SolidColorBrush(Colors.White);
+                    leftBorder.HorizontalAlignment = HorizontalAlignment.Left;
+                    Grid.SetRowSpan(leftBorder, element.Rows.Count + 1);
+                    Grid.SetColumn(leftBorder, cellIndex);
+                    table.Children.Add(leftBorder);
 
-                    Grid.SetRow(cellElement, rowIndex);
-                    Grid.SetColumn(cellElement, cellIndex);
+                    // Cell content.
+                    var cellContent = new RichTextBlock();
+                    cellContent.Margin = new Thickness(8 + 1, 8 + 1, 8, 8);
+                    Grid.SetRow(cellContent, rowIndex);
+                    Grid.SetColumn(cellContent, cellIndex);
+                    switch (element.ColumnDefinitions[cellIndex].Alignment)
+                    {
+                        case ColumnAlignment.Center:
+                            cellContent.HorizontalAlignment = HorizontalAlignment.Center;
+                            break;
+                        case ColumnAlignment.Right:
+                            cellContent.HorizontalAlignment = HorizontalAlignment.Right;
+                            break;
+                    }
+                    var cellPara = new Paragraph();
+                    if (rowIndex == 0)
+                        cellPara.FontWeight = FontWeights.Bold;
+                    bool trimTextStart = true;
+                    RenderInlineChildren(cell.Inlines, cellPara.Inlines, ref trimTextStart);
+                    cellContent.Blocks.Add(cellPara);
+                    table.Children.Add(cellContent);
                 }
+
+                // Right border.
+                var rightBorder = new Rectangle();
+                rightBorder.Width = 1;
+                rightBorder.Fill = new SolidColorBrush(Colors.White);
+                Grid.SetRowSpan(rightBorder, element.Rows.Count + 1);
+                Grid.SetColumn(rightBorder, element.ColumnDefinitions.Count);
+                table.Children.Add(rightBorder);
             }
 
-            var container = new InlineUIContainer();
-            container.Child = table;
+            // Add the bottom border.
+            var bottomBorder = new Rectangle();
+            bottomBorder.Height = 1;
+            bottomBorder.Fill = new SolidColorBrush(Colors.White);
+            Grid.SetRow(bottomBorder, element.Rows.Count);
+            Grid.SetColumnSpan(bottomBorder, element.ColumnDefinitions.Count);
+            table.Children.Add(bottomBorder);
 
             var paragraph = new Paragraph();
-            paragraph.Inlines.Add(container);
+            paragraph.Margin = new Thickness(0, 5, 0, 5);
+            paragraph.Inlines.Add(new InlineUIContainer { Child = table });
 
             currentBlocks.Add(paragraph);
         }
@@ -546,8 +590,30 @@ namespace UniversalMarkdown.Display
             // Render the children into the inline.
             RenderInlineChildren(element.Inlines, span.Inlines, ref trimTextStart);
 
+            Strikethroughize(span);
+
             // Add it to the current inlines
             currentInlines.Add(span);
+        }
+
+        private void Strikethroughize(Span span)
+        {
+            foreach (var inlineElement in span.Inlines)
+            {
+                if (inlineElement is Span)
+                    Strikethroughize((Span)inlineElement);
+                else if (inlineElement is Run)
+                {
+                    var text = ((Run)inlineElement).Text;
+                    var builder = new StringBuilder(text.Length * 2);
+                    foreach (var c in text)
+                    {
+                        builder.Append((char)0x0336);
+                        builder.Append(c);
+                    }
+                    ((Run)inlineElement).Text = builder.ToString();
+                }
+            }
         }
 
         /// <summary>
@@ -559,7 +625,7 @@ namespace UniversalMarkdown.Display
         private void RenderSuperscriptRun(SuperscriptTextInline element, InlineCollection currentInlines, ref bool trimTextStart)
         {
             Span span = new Span();
-            Typography.SetVariants(span, FontVariants.Superscript);
+            span.FontSize = span.FontSize * 0.8;
 
             // Render the children into the inline.
             RenderInlineChildren(element.Inlines, span.Inlines, ref trimTextStart);

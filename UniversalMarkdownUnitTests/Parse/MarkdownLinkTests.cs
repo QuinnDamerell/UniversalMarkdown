@@ -29,6 +29,29 @@ namespace UniversalMarkdownUnitTests.Parse
 
         [UITestMethod]
         [TestCategory("Parse - inline")]
+        public void MarkdownLink_Nested()
+        {
+            AssertEqual(CollapseWhitespace(@"
+                [http://reddit.com](http://reddit.com)
+                [one http://reddit.com two](http://reddit.com)
+                [/r/test](http://reddit.com)
+                [one /r/test two](http://reddit.com)"),
+                new ParagraphBlock().AddChildren(
+                    new MarkdownLinkInline { Url = "http://reddit.com" }.AddChildren(
+                        new TextRunInline { Text = "http://reddit.com" }),
+                    new TextRunInline { Text = " " },
+                    new MarkdownLinkInline { Url = "http://reddit.com" }.AddChildren(
+                        new TextRunInline { Text = "one http://reddit.com two" }),
+                    new TextRunInline { Text = " " },
+                    new MarkdownLinkInline { Url = "http://reddit.com" }.AddChildren(
+                        new TextRunInline { Text = "/r/test" }),
+                    new TextRunInline { Text = " " },
+                    new MarkdownLinkInline { Url = "http://reddit.com" }.AddChildren(
+                        new TextRunInline { Text = "one /r/test two" })));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void MarkdownLink_WithLabelSpacing()
         {
             AssertEqual("[reddit] (http://reddit.com)",

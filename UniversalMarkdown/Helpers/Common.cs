@@ -76,8 +76,9 @@ namespace UniversalMarkdown.Helpers
         /// <param name="markdown"></param>
         /// <param name="startingPos"></param>
         /// <param name="maxEndingPos"></param>
+        /// <param name="ignoreLinks"> Indicates whether to parse links. </param>
         /// <returns> A list of parsed inlines. </returns>
-        public static List<MarkdownInline> ParseInlineChildren(string markdown, int startingPos, int maxEndingPos)
+        public static List<MarkdownInline> ParseInlineChildren(string markdown, int startingPos, int maxEndingPos, bool ignoreLinks = false)
         {
             int currentParsePosition = startingPos;
 
@@ -88,7 +89,7 @@ namespace UniversalMarkdown.Helpers
                 int nextElementEnd;
 
                 // Find the next element
-                MarkdownInline element = Common.FindNextInlineElement(markdown, currentParsePosition, maxEndingPos, out nextElementStart, out nextElementEnd);
+                MarkdownInline element = Common.FindNextInlineElement(markdown, currentParsePosition, maxEndingPos, out nextElementStart, out nextElementEnd, ignoreLinks);
 
                 // If the element we found doesn't start at the position we are looking for there is text between the element and
                 // the start. We need to wrap it into a Text Run
@@ -110,8 +111,9 @@ namespace UniversalMarkdown.Helpers
         /// <summary>
         /// Finds the next inline element by matching trip chars and verifying the match.
         /// </summary>
+        /// <param name="ignoreLinks"> Indicates whether to parse links. </param>
         /// <returns></returns>
-        public static MarkdownInline FindNextInlineElement(string markdown, int startingPos, int endingPos, out int nextElementStart, out int nextElementEnd)
+        private static MarkdownInline FindNextInlineElement(string markdown, int startingPos, int endingPos, out int nextElementStart, out int nextElementEnd, bool ignoreLinks)
         {
             // Get the list of triggers.
             List<InlineTripCharHelper> tripChars = GetInlineTriggersList();
@@ -147,13 +149,16 @@ namespace UniversalMarkdown.Helpers
                                 parsedElement = ItalicTextInline.Parse(markdown, pos, endingPos, out parsedElementEnd);
                                 break;
                             case MarkdownInlineType.MarkdownLink:
-                                parsedElement = MarkdownLinkInline.Parse(markdown, pos, endingPos, out parsedElementEnd);
+                                if (!ignoreLinks)
+                                    parsedElement = MarkdownLinkInline.Parse(markdown, pos, endingPos, out parsedElementEnd);
                                 break;
                             case MarkdownInlineType.RawHyperlink:
-                                parsedElement = RawHyperlinkInline.Parse(markdown, pos, endingPos, out parsedElementEnd);
+                                if (!ignoreLinks)
+                                    parsedElement = RawHyperlinkInline.Parse(markdown, pos, endingPos, out parsedElementEnd);
                                 break;
                             case MarkdownInlineType.RawSubreddit:
-                                parsedElement = RawSubredditInline.Parse(markdown, pos, endingPos, out parsedElementEnd);
+                                if (!ignoreLinks)
+                                    parsedElement = RawSubredditInline.Parse(markdown, pos, endingPos, out parsedElementEnd);
                                 break;
                             case MarkdownInlineType.Strikethrough:
                                 parsedElement = StrikethroughTextInline.Parse(markdown, pos, endingPos, out parsedElementEnd);

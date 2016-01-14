@@ -36,7 +36,7 @@ namespace UniversalMarkdownUnitTests.Parse
                 line 1 
                 line 2"),
                 new ParagraphBlock().AddChildren(
-                    new TextRunInline { Text = "line 1 line 2" }));
+                    new TextRunInline { Text = "line 1  line 2" }));
         }
 
         [UITestMethod]
@@ -46,9 +46,12 @@ namespace UniversalMarkdownUnitTests.Parse
             // Two spaces at the end of the line results in a line break.
             AssertEqual(CollapseWhitespace(@"
                 line 1  
-                line 2"),
+                line 2 with *italic  
+                formatting*"),
                 new ParagraphBlock().AddChildren(
-                    new TextRunInline { Text = "line 1 \r\nline 2" }));
+                    new TextRunInline { Text = "line 1\r\nline 2 with " },
+                    new ItalicTextInline().AddChildren(
+                        new TextRunInline { Text = "italic\r\nformatting" })));
         }
 
         [UITestMethod]
@@ -95,12 +98,12 @@ namespace UniversalMarkdownUnitTests.Parse
 
         [UITestMethod]
         [TestCategory("Parse - block")]
-        public void Paragraph_SpaceCompression()
+        public void Paragraph_NoSpaceCompression()
         {
-            // Multiple spaces are collapsed into one.
+            // Multiple spaces are not collapsed; this is handled by the renderer.
             AssertEqual("one      two",
                 new ParagraphBlock().AddChildren(
-                    new TextRunInline { Text = "one two" }));
+                    new TextRunInline { Text = "one      two" }));
         }
 
         [UITestMethod]

@@ -227,7 +227,11 @@ namespace UniversalMarkdown.Parse
                         {
                             // If the previous two characters were both spaces, then append a line break.
                             if (paragraphText.Length > 2 && paragraphText[paragraphText.Length - 1] == ' ' && paragraphText[paragraphText.Length - 2] == ' ')
-                                paragraphText.Append("\r\n");
+                            {
+                                // Replace the two spaces with a line break.
+                                paragraphText[paragraphText.Length - 2] = '\r';
+                                paragraphText[paragraphText.Length - 1] = '\n';
+                            }
                             else
                                 paragraphText.Append(" ");
                         }

@@ -55,9 +55,9 @@ namespace UniversalMarkdownUnitTests.Parse
         {
             AssertEqual(@"Some     `   spacy     text    `    with spaces",
                 new ParagraphBlock().AddChildren(
-                    new TextRunInline { Text = "Some " },
+                    new TextRunInline { Text = "Some     " },
                     new CodeInline { Text = "spacy     text" },
-                    new TextRunInline { Text = " with spaces" }));
+                    new TextRunInline { Text = "    with spaces" }));
         }
 
         [UITestMethod]
@@ -170,7 +170,7 @@ namespace UniversalMarkdownUnitTests.Parse
                     Even more code
                 after"),
                 new ParagraphBlock().AddChildren(
-                    new TextRunInline { Text = "before Code More code Even more code after" }));
+                    new TextRunInline { Text = "before     Code         More code     Even more code after" }));
         }
     }
 }

@@ -37,7 +37,7 @@ namespace UniversalMarkdownUnitTests.Parse
                     new ParagraphBlock().AddChildren(
                         new TextRunInline { Text = "Single line" }),
                     new ParagraphBlock().AddChildren(
-                        new TextRunInline { Text = "Quote \r\nwith line break" }),
+                        new TextRunInline { Text = "Quote\r\nwith line break" }),
                     new ParagraphBlock().AddChildren(
                         new TextRunInline { Text = "Spaces and line continuation" })),
                 new ParagraphBlock().AddChildren(
@@ -80,7 +80,7 @@ namespace UniversalMarkdownUnitTests.Parse
                     new ParagraphBlock().AddChildren(
                         new TextRunInline { Text = " #not a header" }),
                     new ParagraphBlock().AddChildren(
-                        new TextRunInline { Text = " text" }),
+                        new TextRunInline { Text = "   text" }),
                     new CodeBlock { Text = "code" }));
         }
 

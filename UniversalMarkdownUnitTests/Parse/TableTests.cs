@@ -216,7 +216,7 @@ namespace UniversalMarkdownUnitTests.Parse
                 | A        | B        | C        |
                 after"),
                 new ParagraphBlock().AddChildren(
-                    new TextRunInline { Text = "before | Column 1 | Column 2 | Column 3 | |----------|----------|----------| | A | B | C | after" }));
+                    new TextRunInline { Text = "before | Column 1 | Column 2 | Column 3 | |----------|----------|----------| | A        | B        | C        | after" }));
         }
 
         [UITestMethod]

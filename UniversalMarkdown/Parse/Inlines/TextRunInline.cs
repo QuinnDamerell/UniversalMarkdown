@@ -41,76 +41,42 @@ namespace UniversalMarkdown.Parse.Elements
         /// <returns> A parsed text span. </returns>
         internal static TextRunInline Parse(string markdown, int start, int end)
         {
-            // We need to go though all of the text and remove any newlines and returns if they aren't needed
-            // the most efficient way to do this is to use a string builder to build the new string as normal.
-            // We need to guess at the capacity of the string builder string, the entire range should be good.
-            var strBuilder = new StringBuilder(end - start);
-
-            // We need to keep track of continuous spaces, if there are more than 2 in a row we shouldn't remove the
-            // new line.
-            int continuousSpaceCount = 0;
-
-            // Loop through from start to end.
-            for (int currentMarkdownPos = start; currentMarkdownPos < end; currentMarkdownPos++)
+            // Handle escape sequences.
+            // Note: this code is designed to be as fast as possible in the case where there are no
+            // escape sequences (expected to be the common case).
+            StringBuilder result = null;
+            int pos = start;
+            while (pos < end)
             {
-                char currentChar = markdown[currentMarkdownPos];
-                if (currentChar == '\n' || currentChar == '\r')
-                {
-                    // If we have two spaces before add it as normal.
-                    if (continuousSpaceCount >= 2)
-                    {
-                        strBuilder.Append(currentChar);
-                    }
-                    else
-                    {
-                        // Check if we have a space before this one. If so don't bother inserting another.
-                        if (currentMarkdownPos == 0 || !char.IsWhiteSpace(markdown[currentMarkdownPos - 1]))
-                        {
-                            strBuilder.Append(' ');
-                        }                         
-                    }                    
-                }
-                // If we have a space keep track of it.
-                else if (currentChar == ' ')
-                {                    
-                    // Collapse multiple spaces.  TODO: collapse all types of whitespace, like how HTML does it.
-                    // collapses all white space.
-                    if (continuousSpaceCount == 0)
-                    strBuilder.Append(currentChar);
-                    continuousSpaceCount++;
-                }
-                // Also remove any non breaking spaces (&nbsp;)
-                else if (currentChar == '&' && currentMarkdownPos + 5 < end && 
-                        markdown[currentMarkdownPos + 1] == 'n' &&
-                        markdown[currentMarkdownPos + 2] == 'b' &&
-                        markdown[currentMarkdownPos + 3] == 's' &&
-                        markdown[currentMarkdownPos + 4] == 'p' &&
-                        markdown[currentMarkdownPos + 5] == ';')
-                {
-                    // Add a space. 
-                    strBuilder.Append(' ');
+                // Look for the next backslash.
+                int backslashIndex = markdown.IndexOf('\\', pos, end - pos);
+                if (backslashIndex == -1 || backslashIndex >= end - 1)   // There's another character to come.
+                    break;
 
-                    // Jump the count ahead, don't forget the for loop will +1 by itself.
-                    currentMarkdownPos += 5;
-                }
-                // Handle escape characters.
-                else if (currentChar == '\\' && currentMarkdownPos + 1 < end &&
-                    Array.IndexOf(new char[] { '\\', '`', '*', '_', '{', '}', '[', ']', '(', ')', '#', '+', '-', '.', '!', '|', '~', '^', '&', ':', '<', '>', '/' }, markdown[currentMarkdownPos + 1]) >= 0)
+                // Check if the character after the backslash can be escaped.
+                char c = markdown[backslashIndex + 1];
+                if (Array.IndexOf(new char[] { '\\', '`', '*', '_', '{', '}', '[', ']', '(', ')', '#', '+', '-', '.', '!', '|', '~', '^', '&', ':', '<', '>', '/' }, c) < 0)
                 {
-                    // Remove the backslash.
-                    strBuilder.Append(markdown[currentMarkdownPos + 1]);
-                    currentMarkdownPos++;
-                    continuousSpaceCount = 0;
+                    // This character cannot be escaped.
+                    result.Append(markdown.Substring(pos, backslashIndex + 2 - pos));
+                    pos = backslashIndex + 2;
+                    continue;
                 }
-                // If we have anything else add it and reset the space count.
-                else
-                {
-                    strBuilder.Append(currentChar);
-                    continuousSpaceCount = 0;
-                }
+
+                // This here's an escape sequence!
+                if (result == null)
+                    result = new StringBuilder(end - start);
+                result.Append(markdown.Substring(pos, backslashIndex - pos));
+                result.Append(c);
+                pos = backslashIndex + 2;
             }
 
-            return new TextRunInline { Text = strBuilder.ToString() };
+            if (result != null)
+            {
+                result.Append(markdown.Substring(pos, end - pos));
+                return new TextRunInline { Text = result.ToString() };
+            }
+            return new TextRunInline { Text = markdown.Substring(start, end - start) };
         }
 
         /// <summary>

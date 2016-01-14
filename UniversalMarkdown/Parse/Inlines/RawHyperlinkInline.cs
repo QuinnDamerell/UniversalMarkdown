@@ -102,7 +102,7 @@ namespace UniversalMarkdown.Parse.Elements
 
                 actualEnd = innerEnd + 1;
                 return new RawHyperlinkInline { Url = markdown.Substring(start, innerEnd - start) };
-        }
+            }
             else
             {
                 // The URL must have at least one character after the http:// and at least one dot.
@@ -116,8 +116,12 @@ namespace UniversalMarkdown.Parse.Elements
                     actualEnd = maxEnd;
 
                 // URLs can't end on a punctuation character.
-                if (Array.IndexOf(new char[] { ')', '}', ']', '!', ';', '.', '?', ',' }, markdown[actualEnd - 1]) >= 0)
+                while (actualEnd - 1 > dotIndex)
+                {
+                    if (Array.IndexOf(new char[] { ')', '}', ']', '!', ';', '.', '?', ',' }, markdown[actualEnd - 1]) < 0)
+                        break;
                     actualEnd--;
+                }
 
                 return new RawHyperlinkInline { Url = markdown.Substring(start, actualEnd - start) };
                 }

@@ -102,6 +102,8 @@ namespace UniversalMarkdownUnitTests.Parse
             AssertEqual(CollapseWhitespace(@"
                 http://reddit.com)
 
+                http://reddit.com).
+
                 http://reddit.com)a
 
                 http://reddit.com}
@@ -168,6 +170,7 @@ namespace UniversalMarkdownUnitTests.Parse
 
                 http://reddit.com,a"),
                 new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com" }, new TextRunInline { Text = ")" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com" }, new TextRunInline { Text = ")." }),
                 new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com)a" }),
                 new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com" }, new TextRunInline { Text = "}" }),
                 new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com}a" }),

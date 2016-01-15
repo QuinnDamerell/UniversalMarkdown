@@ -17,12 +17,22 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <TextBlock Margin="12" Text="Todo: Make this do more. :)" />
+        <StackPanel Orientation="Horizontal"
+                    HorizontalAlignment="Right">
 
-        <Button HorizontalAlignment="Right"
-                Content="Benchmark"
-                Margin="0,0,8,0"
-                Click="BenchmarkButton_Click"/>
+            <Button Content="Font size +"
+                    Margin="0,0,8,0"
+                    Click="FontSizePlusButton_Click"/>
+
+            <Button Content="Font size -"
+                    Margin="0,0,8,0"
+                    Click="FontSizeMinusButton_Click"/>
+
+            <Button Content="Benchmark"
+                    Margin="0,0,8,0"
+                    Click="BenchmarkButton_Click"/>
+
+        </StackPanel>
 
         <TextBox x:Name="TextBox"
                  Grid.Row="1"

@@ -61,9 +61,19 @@ namespace UniversalMarkdown.Display
             m_richTextBlock.Blocks.Clear();
 
             // For the root, loop through the block types and render them
-            foreach (MarkdownBlock element in markdownTree.Blocks)
+            RenderBlocks(markdownTree.Blocks, m_richTextBlock.Blocks);
+        }
+
+        /// <summary>
+        /// Renders a list of blocks elements.
+        /// </summary>
+        /// <param name="blockElements"></param>
+        /// <param name="currentBlocks"></param>
+        private void RenderBlocks(IEnumerable<MarkdownBlock> blockElements, BlockCollection currentBlocks)
+        {
+            foreach (MarkdownBlock element in blockElements)
             {
-                RenderBlock(element, m_richTextBlock.Blocks);
+                RenderBlock(element, currentBlocks);
             }
         }
 
@@ -100,56 +110,75 @@ namespace UniversalMarkdown.Display
             }
         }
 
-        /// <summary>
-        /// Called to render an inline element
-        /// </summary>
-        /// <param name="element"></param>
-        /// <param name="currentInlines"></param>
-        private void RenderInline(MarkdownInline element, InlineCollection currentInlines, ref bool trimTextStart)
+        // Helper class for holding persistent state.
+        private class RenderContext
         {
-            switch(element.Type)
-            {
-                case MarkdownInlineType.TextRun:
-                    RenderTextRun((TextRunInline)element, currentInlines, ref trimTextStart);
-                    break;
-                case MarkdownInlineType.Italic:
-                    RenderItalicRun((ItalicTextInline)element, currentInlines, ref trimTextStart);
-                    break;
-                case MarkdownInlineType.Bold:
-                    RenderBoldRun((BoldTextInline)element, currentInlines, ref trimTextStart);
-                    break;
-                case MarkdownInlineType.MarkdownLink:
-                    RenderMarkdownLink((MarkdownLinkInline)element, currentInlines, ref trimTextStart);
-                    break;
-                case MarkdownInlineType.RawHyperlink:
-                    RenderRawHyperlink((RawHyperlinkInline)element, currentInlines, ref trimTextStart);
-                    break;
-                case MarkdownInlineType.RawSubreddit:
-                    RenderRawSubreddit((RawSubredditInline)element, currentInlines, ref trimTextStart);
-                    break;
-                case MarkdownInlineType.Strikethrough:
-                    RenderStrikethroughRun((StrikethroughTextInline)element, currentInlines, ref trimTextStart);
-                    break;
-                case MarkdownInlineType.Superscript:
-                    RenderSuperscriptRun((SuperscriptTextInline)element, currentInlines, ref trimTextStart);
-                    break;
-                case MarkdownInlineType.Code:
-                    RenderCodeRun((CodeInline)element, currentInlines, ref trimTextStart);
-                    break;
-            }
+            public Block ParentBlock;
+            public bool TrimLeadingWhitespace;
         }
 
         /// <summary>
         /// Renders all of the children for the given element.
         /// </summary>
-        /// <param name="inlineElements">The inline elements to render</param>
-        /// <param name="currentInlines">The inlines where they should go</param>
-        /// <param name="trimTextStart">If true the first text box start will be trimed so there is no leading space</param>
-        private void RenderInlineChildren(IList<MarkdownInline> inlineElements, InlineCollection currentInlines, ref bool trimTextStart)
+        /// <param name="inlineElements"> The inline elements to render. </param>
+        /// <param name="currentInlines"> The list to add to. </param>
+        /// <param name="parentBlock"> The parent block. </param>
+        private void RenderInlineChildren(IList<MarkdownInline> inlineElements, InlineCollection currentInlines, Block parentBlock)
+        {
+            RenderInlineChildren(inlineElements, currentInlines, new RenderContext { ParentBlock = parentBlock, TrimLeadingWhitespace = true });
+        }
+
+        /// <summary>
+        /// Renders all of the children for the given element.
+        /// </summary>
+        /// <param name="inlineElements"> The inline elements to render. </param>
+        /// <param name="currentInlines"> The list to add to. </param>
+        /// <param name="context"> The parent block. </param>
+        private void RenderInlineChildren(IList<MarkdownInline> inlineElements, InlineCollection currentInlines, RenderContext context)
         {
             foreach (MarkdownInline element in inlineElements)
             {
-                RenderInline(element, currentInlines, ref trimTextStart);
+                RenderInline(element, currentInlines, context);
+            }
+        }
+
+        /// <summary>
+        /// Called to render an inline element
+        /// </summary>
+        /// <param name="element"></param>
+        /// <param name="currentInlines"></param>
+        /// <param name="context"></param>
+        private void RenderInline(MarkdownInline element, InlineCollection currentInlines, RenderContext context)
+        {
+            switch(element.Type)
+            {
+                case MarkdownInlineType.TextRun:
+                    RenderTextRun((TextRunInline)element, currentInlines, context);
+                    break;
+                case MarkdownInlineType.Italic:
+                    RenderItalicRun((ItalicTextInline)element, currentInlines, context);
+                    break;
+                case MarkdownInlineType.Bold:
+                    RenderBoldRun((BoldTextInline)element, currentInlines, context);
+                    break;
+                case MarkdownInlineType.MarkdownLink:
+                    RenderMarkdownLink((MarkdownLinkInline)element, currentInlines, context);
+                    break;
+                case MarkdownInlineType.RawHyperlink:
+                    RenderRawHyperlink((RawHyperlinkInline)element, currentInlines, context);
+                    break;
+                case MarkdownInlineType.RawSubreddit:
+                    RenderRawSubreddit((RawSubredditInline)element, currentInlines, context);
+                    break;
+                case MarkdownInlineType.Strikethrough:
+                    RenderStrikethroughRun((StrikethroughTextInline)element, currentInlines, context);
+                    break;
+                case MarkdownInlineType.Superscript:
+                    RenderSuperscriptRun((SuperscriptTextInline)element, currentInlines, context);
+                    break;
+                case MarkdownInlineType.Code:
+                    RenderCodeRun((CodeInline)element, currentInlines, context);
+                    break;
             }
         }
 
@@ -168,12 +197,11 @@ namespace UniversalMarkdown.Display
             // Add some padding to differentiate the blocks
             paragraph.Margin = new Thickness(0, 12, 0, 0);
 
+            // Render the children into the para inline.
+            RenderInlineChildren(element.Inlines, paragraph.Inlines, paragraph);
+
             // Add it to the blocks
             currentBlocks.Add(paragraph);
-
-            // Render the children into the para inline.
-            bool trimTextStart = true;
-            RenderInlineChildren(element.Inlines, paragraph.Inlines, ref trimTextStart);
         }
 
         /// <summary>
@@ -185,28 +213,38 @@ namespace UniversalMarkdown.Display
         {
             // Make the new header paragraph
             Paragraph headerPara = new Paragraph();
-            headerPara.Margin = new Thickness(0, 18, 0, 12);
 
-            // Set the style
+            // Set the style.
+            var childInlines = headerPara.Inlines;
             switch (element.HeaderLevel)
             {
                 case 1:
-                    headerPara.FontSize = 20;
+                    headerPara.Margin = new Thickness(0, 15, 0, 15);
+                    headerPara.FontSize = m_richTextBlock.FontSize * (20.0 / 15.0);
                     headerPara.FontWeight = FontWeights.Bold;
                     break;
                 case 2:
-                    headerPara.FontSize = 20;
+                    headerPara.Margin = new Thickness(0, 15, 0, 15);
+                    headerPara.FontSize = m_richTextBlock.FontSize * (20.0 / 15.0);
                     break;
                 case 3:
-                    headerPara.FontSize = 17;
+                    headerPara.Margin = new Thickness(0, 10, 0, 10);
+                    headerPara.FontSize = m_richTextBlock.FontSize * (17.0 / 15.0);
                     headerPara.FontWeight = FontWeights.Bold;
                     break;
                 case 4:
-                    headerPara.FontSize = 17;
+                    headerPara.Margin = new Thickness(0, 10, 0, 10);
+                    headerPara.FontSize = m_richTextBlock.FontSize * (17.0 / 15.0);
                     break;
                 case 5:
-                default:
+                    headerPara.Margin = new Thickness(0, 10, 0, 5);
                     headerPara.FontWeight = FontWeights.Bold;
+                    break;
+                case 6:
+                    headerPara.Margin = new Thickness(0, 10, 0, 0);
+                    var underline = new Underline();
+                    childInlines = underline.Inlines;
+                    headerPara.Inlines.Add(underline);
                     break;
             }
 
@@ -214,8 +252,7 @@ namespace UniversalMarkdown.Display
             currentBlocks.Add(headerPara);
 
             // Render the children into the para inline.
-            bool trimTextStart = true;
-            RenderInlineChildren(element.Inlines, headerPara.Inlines, ref trimTextStart);
+            RenderInlineChildren(element.Inlines, childInlines, headerPara);
         }
 
         /// <summary>
@@ -259,10 +296,7 @@ namespace UniversalMarkdown.Display
                 // Add the list item content.
                 var content = new RichTextBlock();
                 content.Margin = new Thickness(0, 5, 0, 0);
-                foreach (MarkdownBlock childBlock in listItem.Blocks)
-                {
-                    RenderBlock(childBlock, content.Blocks);
-                }
+                RenderBlocks(listItem.Blocks, content.Blocks);
                 Grid.SetColumn(content, 1);
                 Grid.SetRow(content, rowIndex);
                 grid.Children.Add(content);
@@ -300,10 +334,7 @@ namespace UniversalMarkdown.Display
         private void RenderQuote(QuoteBlock element, BlockCollection currentBlocks)
         {
             var content = new RichTextBlock();
-            foreach (MarkdownBlock quoteBlock in element.Blocks)
-            {
-                RenderBlock(quoteBlock, content.Blocks);
-            }
+            RenderBlocks(element.Blocks, content.Blocks);
 
             var border = new Border();
             border.Margin = new Thickness(12, 5, 0, 5);
@@ -401,8 +432,7 @@ namespace UniversalMarkdown.Display
                     var cellPara = new Paragraph();
                     if (rowIndex == 0)
                         cellPara.FontWeight = FontWeights.Bold;
-                    bool trimTextStart = true;
-                    RenderInlineChildren(cell.Inlines, cellPara.Inlines, ref trimTextStart);
+                    RenderInlineChildren(cell.Inlines, cellPara.Inlines, cellPara);
                     cellContent.Blocks.Add(cellPara);
                     table.Children.Add(cellContent);
                 }
@@ -440,20 +470,12 @@ namespace UniversalMarkdown.Display
         /// </summary>
         /// <param name="element"></param>
         /// <param name="currentInlines"></param>
-        /// <param name="trimTextStart">If true this element should trin the start of the text and set to fales.</param>
-        private void RenderTextRun(TextRunInline element, InlineCollection currentInlines, ref bool trimTextStart)
+        /// <param name="context"></param>
+        private void RenderTextRun(TextRunInline element, InlineCollection currentInlines, RenderContext context)
         {
             // Create the text run
             Run textRun = new Run();
-            textRun.Text = element.Text;
-
-            // Check if we should trim the starting text. This allows us to trim the text starting a block
-            // but nothing else. If we do a trim set it to false so no one else does.
-            if(trimTextStart)
-            {
-                trimTextStart = false;
-                textRun.Text = textRun.Text.TrimStart();
-            }
+            textRun.Text = TrimLeadingWhitespaceIfNecessary(context, element.Text);
 
             // Add it
             currentInlines.Add(textRun);
@@ -464,15 +486,15 @@ namespace UniversalMarkdown.Display
         /// </summary>
         /// <param name="element"></param>
         /// <param name="currentInlines"></param>
-        /// <param name="trimTextStart">If true this element should trin the start of the text and set to fales.</param>
-        private void RenderBoldRun(BoldTextInline element, InlineCollection currentInlines, ref bool trimTextStart)
+        /// <param name="context"></param>
+        private void RenderBoldRun(BoldTextInline element, InlineCollection currentInlines, RenderContext context)
         {
             // Create the text run
             Span boldSpan = new Span();
             boldSpan.FontWeight = FontWeights.Bold;
 
             // Render the children into the bold inline.
-            RenderInlineChildren(element.Inlines, boldSpan.Inlines, ref trimTextStart);
+            RenderInlineChildren(element.Inlines, boldSpan.Inlines, context);
 
             // Add it to the current inlines
             currentInlines.Add(boldSpan);
@@ -483,8 +505,8 @@ namespace UniversalMarkdown.Display
         /// </summary>
         /// <param name="element"></param>
         /// <param name="currentInlines"></param>
-        /// <param name="trimTextStart">If true this element should trin the start of the text and set to fales.</param>
-        private void RenderMarkdownLink(MarkdownLinkInline element, InlineCollection currentInlines, ref bool trimTextStart)
+        /// <param name="context"></param>
+        private void RenderMarkdownLink(MarkdownLinkInline element, InlineCollection currentInlines, RenderContext context)
         {
             // Create the text run
             Hyperlink link = new Hyperlink();
@@ -493,7 +515,7 @@ namespace UniversalMarkdown.Display
             m_linkRegister.RegisterNewHyperLink(link, element.Url);
 
             // Render the children into the link inline.
-            RenderInlineChildren(element.Inlines, link.Inlines, ref trimTextStart);
+            RenderInlineChildren(element.Inlines, link.Inlines, context);
 
             // Add it to the current inlines
             currentInlines.Add(link);
@@ -504,8 +526,8 @@ namespace UniversalMarkdown.Display
         /// </summary>
         /// <param name="element"></param>
         /// <param name="currentInlines"></param>
-        /// <param name="trimTextStart">If true this element should trin the start of the text and set to fales.</param>
-        private void RenderRawHyperlink(RawHyperlinkInline element, InlineCollection currentInlines, ref bool trimTextStart)
+        /// <param name="context"></param>
+        private void RenderRawHyperlink(RawHyperlinkInline element, InlineCollection currentInlines, RenderContext context)
         {
             // Create the text run
             Hyperlink link = new Hyperlink();
@@ -515,14 +537,8 @@ namespace UniversalMarkdown.Display
 
             // Make a text block for the link
             Run linkText = new Run();
-            linkText.Text = element.Url;
+            linkText.Text = TrimLeadingWhitespaceIfNecessary(context, element.Url);
             link.Inlines.Add(linkText);
-
-            if (trimTextStart)
-            {
-                trimTextStart = false;
-                linkText.Text = linkText.Text.Trim();
-            }
 
             // Add it to the current inlines
             currentInlines.Add(link);
@@ -533,8 +549,8 @@ namespace UniversalMarkdown.Display
         /// </summary>
         /// <param name="element"></param>
         /// <param name="currentInlines"></param>
-        /// <param name="trimTextStart">If true this element should trin the start of the text and set to fales.</param>
-        private void RenderRawSubreddit(RawSubredditInline element, InlineCollection currentInlines, ref bool trimTextStart)
+        /// <param name="context"></param>
+        private void RenderRawSubreddit(RawSubredditInline element, InlineCollection currentInlines, RenderContext context)
         {
             // Create the hyper link
             Hyperlink link = new Hyperlink();
@@ -544,14 +560,8 @@ namespace UniversalMarkdown.Display
 
             // Add the subreddit text
             Run subreddit = new Run();
-            subreddit.Text = element.Text;
+            subreddit.Text = TrimLeadingWhitespaceIfNecessary(context, element.Text);
             link.Inlines.Add(subreddit);
-
-            if(trimTextStart)
-            {
-                trimTextStart = false;
-                subreddit.Text = element.Text.Trim();
-            }
 
             // Add it to the current inlines
             currentInlines.Add(link);
@@ -562,15 +572,15 @@ namespace UniversalMarkdown.Display
         /// </summary>
         /// <param name="element"></param>
         /// <param name="currentInlines"></param>
-        /// <param name="trimTextStart">If true this element should trin the start of the text and set to fales.</param>
-        private void RenderItalicRun(ItalicTextInline element, InlineCollection currentInlines, ref bool trimTextStart)
+        /// <param name="context"></param>
+        private void RenderItalicRun(ItalicTextInline element, InlineCollection currentInlines, RenderContext context)
         {
             // Create the text run
             Span italicSpan = new Span();
             italicSpan.FontStyle = FontStyle.Italic;
 
             // Render the children into the italic inline.
-            RenderInlineChildren(element.Inlines, italicSpan.Inlines, ref trimTextStart);
+            RenderInlineChildren(element.Inlines, italicSpan.Inlines, context);
 
             // Add it to the current inlines
             currentInlines.Add(italicSpan);
@@ -581,39 +591,30 @@ namespace UniversalMarkdown.Display
         /// </summary>
         /// <param name="element"></param>
         /// <param name="currentInlines"></param>
-        /// <param name="trimTextStart">If true this element should trin the start of the text and set to fales.</param>
-        private void RenderStrikethroughRun(StrikethroughTextInline element, InlineCollection currentInlines, ref bool trimTextStart)
+        /// <param name="context"></param>
+        private void RenderStrikethroughRun(StrikethroughTextInline element, InlineCollection currentInlines, RenderContext context)
         {
             // TODO: make this actually strikethrough somehow...
             Span span = new Span();
+            span.FontFamily = new FontFamily("Consolas");
 
             // Render the children into the inline.
-            RenderInlineChildren(element.Inlines, span.Inlines, ref trimTextStart);
+            RenderInlineChildren(element.Inlines, span.Inlines, context);
 
-            Strikethroughize(span);
+            AlterChildRuns(span, (parentSpan, run) =>
+            {
+                var text = run.Text;
+                var builder = new StringBuilder(text.Length * 2);
+                foreach (var c in text)
+                {
+                    builder.Append((char)0x0336);
+                    builder.Append(c);
+                }
+                run.Text = builder.ToString();
+            });
 
             // Add it to the current inlines
             currentInlines.Add(span);
-        }
-
-        private void Strikethroughize(Span span)
-        {
-            foreach (var inlineElement in span.Inlines)
-            {
-                if (inlineElement is Span)
-                    Strikethroughize((Span)inlineElement);
-                else if (inlineElement is Run)
-                {
-                    var text = ((Run)inlineElement).Text;
-                    var builder = new StringBuilder(text.Length * 2);
-                    foreach (var c in text)
-                    {
-                        builder.Append((char)0x0336);
-                        builder.Append(c);
-                    }
-                    ((Run)inlineElement).Text = builder.ToString();
-                }
-            }
         }
 
         /// <summary>
@@ -621,17 +622,28 @@ namespace UniversalMarkdown.Display
         /// </summary>
         /// <param name="element"></param>
         /// <param name="currentInlines"></param>
-        /// <param name="trimTextStart">If true this element should trin the start of the text and set to fales.</param>
-        private void RenderSuperscriptRun(SuperscriptTextInline element, InlineCollection currentInlines, ref bool trimTextStart)
+        /// <param name="context"></param>
+        private void RenderSuperscriptRun(SuperscriptTextInline element, InlineCollection currentInlines, RenderContext context)
         {
-            Span span = new Span();
-            span.FontSize = span.FontSize * 0.8;
+            var paragraph = new Paragraph();
+            paragraph.FontSize = context.ParentBlock.FontSize * 0.8;
 
-            // Render the children into the inline.
-            RenderInlineChildren(element.Inlines, span.Inlines, ref trimTextStart);
+            var span = new Span();
+            RenderInlineChildren(element.Inlines, span.Inlines, paragraph);
+            paragraph.Inlines.Add(span);
+
+            var richTextBlock = new RichTextBlock();
+            richTextBlock.Blocks.Add(paragraph);
+
+            var border = new Border();
+            border.Padding = new Thickness(0, 0, 0, context.ParentBlock.FontSize * 0.2);
+            border.Child = richTextBlock;
+
+            var inlineUIContainer = new InlineUIContainer();
+            inlineUIContainer.Child = border;
 
             // Add it to the current inlines
-            currentInlines.Add(span);
+            currentInlines.Add(inlineUIContainer);
         }
 
         /// <summary>
@@ -639,15 +651,47 @@ namespace UniversalMarkdown.Display
         /// </summary>
         /// <param name="element"></param>
         /// <param name="currentInlines"></param>
-        /// <param name="trimTextStart">If true this element should trin the start of the text and set to fales.</param>
-        private void RenderCodeRun(CodeInline element, InlineCollection currentInlines, ref bool trimTextStart)
+        /// <param name="context"></param>
+        private void RenderCodeRun(CodeInline element, InlineCollection currentInlines, RenderContext context)
         {
             var run = new Run();
             run.FontFamily = new FontFamily("Consolas");
-            run.Text = element.Text;
+            run.Text = TrimLeadingWhitespaceIfNecessary(context, element.Text);
 
             // Add it to the current inlines
             currentInlines.Add(run);
+        }
+
+        /// <summary>
+        /// Performs an action against any runs that occur within the given span.
+        /// </summary>
+        /// <param name="parentSpan"></param>
+        /// <param name="action"></param>
+        private void AlterChildRuns(Span parentSpan, Action<Span, Run> action)
+        {
+            foreach (var inlineElement in parentSpan.Inlines)
+            {
+                if (inlineElement is Span)
+                    AlterChildRuns((Span)inlineElement, action);
+                else if (inlineElement is Run)
+                    action(parentSpan, (Run)inlineElement);
+            }
+        }
+
+        /// <summary>
+        /// Removes leading whitespace, but only if this is the first run in the block.
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="text"></param>
+        /// <returns></returns>
+        private string TrimLeadingWhitespaceIfNecessary(RenderContext context, string text)
+        {
+            if (context.TrimLeadingWhitespace)
+            {
+                context.TrimLeadingWhitespace = false;
+                return text.TrimStart(' ', '\t');
+            }
+            return text;
         }
 
         #endregion

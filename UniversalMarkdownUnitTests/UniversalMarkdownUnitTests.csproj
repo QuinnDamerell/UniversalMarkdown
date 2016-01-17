@@ -116,8 +116,7 @@
     <Compile Include="Parse\ParseTestBase.cs" />
     <Compile Include="Parse\SuperscriptTests.cs" />
     <Compile Include="Parse\HorizontalRuleTests.cs" />
-    <Compile Include="Parse\NumberedListTests.cs" />
-    <Compile Include="Parse\BulletedListTests.cs" />
+    <Compile Include="Parse\ListTests.cs" />
     <Compile Include="Parse\HeaderTests.cs" />
     <Compile Include="Parse\HyperlinkTests.cs" />
     <Compile Include="Parse\TableTests.cs" />

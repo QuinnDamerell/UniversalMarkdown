@@ -71,6 +71,7 @@ namespace UniversalMarkdown.Parse.Elements
             int startOfLine = firstItem.ContentStartPos;
             int endOfLine;
             int itemContentStart = firstItem.ContentStartPos;
+            bool encounteredBlankLine = false;
 
             do
             {
@@ -90,6 +91,7 @@ namespace UniversalMarkdown.Parse.Elements
                     listItem = new ListItemBlock();
                     itemContentStart = nextListItem.ContentStartPos;
                     startOfLine = nextListItem.ContentStartPos;
+                    encounteredBlankLine = false;
                 }
                 else
                 {
@@ -110,8 +112,14 @@ namespace UniversalMarkdown.Parse.Elements
                     }
                     if (containsNonSpaceChar == false)
                     {
-                        // The line is blank, which means this is the end of the list.
-                        break;
+                        // The line is blank, which means the next line which contains paragraph text is the end of the list.
+                        encounteredBlankLine = true;
+                    }
+                    else
+                    {
+                        // The line is not blank, and not a list item.
+                        if (encounteredBlankLine)
+                            break;
                     }
                 }
             } while (startOfLine < maxEnd);

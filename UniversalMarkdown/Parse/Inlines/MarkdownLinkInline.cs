@@ -87,7 +87,7 @@ namespace UniversalMarkdown.Parse.Elements
             actualEnd = linkClose + 1;
             var result = new MarkdownLinkInline();
             result.Inlines = Common.ParseInlineChildren(markdown, linkTextOpen + 1, linkTextClose, ignoreLinks: true);
-            result.Url = markdown.Substring(linkOpen + 1, linkClose - linkOpen - 1);
+            result.Url = markdown.Substring(linkOpen + 1, linkClose - linkOpen - 1).Trim();
             return result;
         }
 

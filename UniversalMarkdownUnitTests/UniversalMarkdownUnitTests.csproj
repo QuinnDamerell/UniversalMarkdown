@@ -96,20 +96,6 @@
     <SDKReference Include="TestPlatform.Universal, Version=$(UnitTestPlatformVersion)" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Display\BoldTests.cs" />
-    <Compile Include="Display\BulletedListTests.cs" />
-    <Compile Include="Display\CodeTests.cs" />
-    <Compile Include="Display\DisplayTestBase.cs" />
-    <Compile Include="Display\HeaderTests.cs" />
-    <Compile Include="Display\HorizontalRuleTests.cs" />
-    <Compile Include="Display\HyperlinkTests.cs" />
-    <Compile Include="Display\ItalicTests.cs" />
-    <Compile Include="Display\NumberedListTests.cs" />
-    <Compile Include="Display\ParagraphTests.cs" />
-    <Compile Include="Display\QuoteTests.cs" />
-    <Compile Include="Display\StrikethroughTests.cs" />
-    <Compile Include="Display\SuperscriptTests.cs" />
-    <Compile Include="Display\TableTests.cs" />
     <Compile Include="Parse\MarkdownLinkTests.cs" />
     <Compile Include="Parse\SubredditLinkTests.cs" />
     <Compile Include="Parse\ParseTestExtensionMethods.cs" />

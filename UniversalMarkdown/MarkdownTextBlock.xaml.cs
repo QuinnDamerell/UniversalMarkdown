@@ -19,9 +19,11 @@ using UniversalMarkdown.Display;
 using UniversalMarkdown.Helpers;
 using UniversalMarkdown.Interfaces;
 using UniversalMarkdown.Parse;
+using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Documents;
+using Windows.UI.Xaml.Media;
 
 namespace UniversalMarkdown
 {
@@ -112,7 +114,7 @@ namespace UniversalMarkdown
             CleanUpTextBlock();
 
             // Make sure we have something to parse.
-            if (!String.IsNullOrWhiteSpace(newMarkdown))
+            if (newMarkdown != null)
             {
                 try
                 {
@@ -121,8 +123,27 @@ namespace UniversalMarkdown
                     markdown.Parse(newMarkdown);
 
                     // Now try to display it
-                    RenderToRichTextBlock rendner = new RenderToRichTextBlock(ui_richTextBox, this);
-                    rendner.Render(markdown);
+                    var renderer = new XamlRenderer(this);
+                    renderer.Background = Background;
+                    renderer.BorderBrush = BorderBrush;
+                    renderer.BorderThickness = BorderThickness;
+                    renderer.CharacterSpacing = CharacterSpacing;
+                    renderer.FontFamily = FontFamily;
+                    renderer.FontSize = FontSize;
+                    renderer.FontStretch = FontStretch;
+                    renderer.FontStyle = FontStyle;
+                    renderer.FontWeight = FontWeight;
+                    renderer.Foreground = Foreground;
+                    renderer.HorizontalAlignment = HorizontalAlignment;
+                    renderer.IsTextSelectionEnabled = true;
+                    renderer.Padding = Padding;
+                    renderer.CodeBackground = new SolidColorBrush(Color.FromArgb(8, 255, 255, 255));
+                    renderer.CodeBorderBrush = new SolidColorBrush(Color.FromArgb(32, 255, 255, 255));
+                    renderer.CodeBorderThickness = new Thickness(1);
+                    renderer.HorizontalRuleBrush = new SolidColorBrush(Color.FromArgb(48, 255, 255, 255));
+                    renderer.QuoteBorderBrush = Application.Current.Resources["SystemControlHighlightAccentBrush"] as SolidColorBrush;
+                    renderer.TableBorderBrush = new SolidColorBrush(Color.FromArgb(16, 255, 255, 255));
+                    Content = renderer.Render(markdown);
                 }
                 catch (Exception e)
                 {
@@ -148,8 +169,7 @@ namespace UniversalMarkdown
                 link.Click -= Hyperlink_Click;
             }
 
-            // Clear everything that exists
-            ui_richTextBox.Blocks.Clear();
+            // Clear everything that exists.
             m_listeningHyperlinks.Clear();
         }
 

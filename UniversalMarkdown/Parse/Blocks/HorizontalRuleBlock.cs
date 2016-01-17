@@ -22,79 +22,55 @@ using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
 {
-    class HorizontalRuleBlock : MarkdownBlock
+    public class HorizontalRuleBlock : MarkdownBlock
     {
         public HorizontalRuleBlock()
             : base(MarkdownBlockType.HorizontalRule)
         { }
 
         /// <summary>
-        /// Called when this block type should parse out the goods. Given the markdown, a starting point, and a max ending point
-        /// the block should find the start of the block, find the end and parse out the middle. The end most of the time will not be
-        /// the max ending pos, but it sometimes can be. The function will return where it ended parsing the block in the markdown.
+        /// Parses a horizontal rule.
         /// </summary>
-        /// <param name="markdown"></param>
-        /// <param name="startingPos"></param>
-        /// <param name="maxEndingPos"></param>
-        /// <returns></returns>
-        internal override int Parse(ref string markdown, int startingPos, int maxEndingPos)
+        /// <param name="markdown"> The markdown text. </param>
+        /// <param name="start"> The location of the start of the line. </param>
+        /// <param name="end"> The location of the end of the line. </param>
+        /// <returns> A parsed horizontal rule block, or <c>null</c> if this is not a horizontal rule. </returns>
+        internal static HorizontalRuleBlock Parse(string markdown, int start, int end)
         {
-            // Figure out what char we are processing.
-            int horzStart = startingPos;
-            char ruleChar = '*';
-            if (markdown[horzStart] == '*')
+            // A horizontal rule is a line with at least 3 stars, optionally separated by spaces
+            // OR a line with at least 3 dashes, optionally separated by spaces
+            // OR a line with at least 3 underscores, optionally separated by spaces.
+            char hrChar = '\0';
+            int hrCharCount = 0;
+            int pos = start;
+            while (pos < end)
             {
-                ruleChar = '*';
-            }
-            else if(markdown[horzStart] == '-')
-            {
-                ruleChar = '-';
-            }
-            else if(markdown[horzStart] == '=')
-            {
-                ruleChar = '=';
-            }
-            else if (markdown[horzStart] == '_')
-            {
-                ruleChar = '_';
-            }
-            else
-            {
-                DebuggingReporter.ReportCriticalError("Tried parse horizontal rule but didn't find a * or -");
-                return maxEndingPos;
-            }
-
-            // Find the end of the line
-            int horzEnd = horzStart;
-            while (horzEnd < markdown.Length && horzEnd < maxEndingPos)
-            {
-                if (markdown[horzEnd] != ruleChar)
+                char c = markdown[pos++];
+                if (c == '*' || c == '-' || c == '_')
                 {
-                    break;
+                    // All of the non-whitespace characters on the line must match.
+                    if (hrCharCount > 0 && c != hrChar)
+                        return null;
+                    hrChar = c;
+                    hrCharCount++;
                 }
-                horzEnd++;
+                else if (c == '\n')
+                    break;
+                else if (!Common.IsWhiteSpace(c))
+                    return null;
             }
 
-            // Trim off any extra line endings, except ' ' otherwise we can't do code blocks
-            while (horzEnd < markdown.Length && horzEnd < maxEndingPos && Char.IsWhiteSpace(markdown[horzEnd]) && markdown[horzEnd] != ' ')
-            {
-                horzEnd++;
-            }
-
-            // Return where we ended.
-            return horzEnd;
+            // Hopefully there were at least 3 stars/dashes/underscores.
+            return hrCharCount >= 3 ? new HorizontalRuleBlock() : null;
         }
 
         /// <summary>
-        /// Called to determine if this block type can handle the next block.
+        /// Converts the object into it's textual representation.
         /// </summary>
-        /// <param name="markdown"></param>
-        /// <param name="nextCharPos"></param>
-        /// <param name="endingPos"></param>
-        /// <returns></returns>
-        public static bool CanHandleBlock(ref string markdown, int nextCharPos, int endingPos)
+        /// <returns> The textual representation of this object. </returns>
+        public override string ToString()
         {
-            return markdown.IndexOf("***", nextCharPos) == nextCharPos || markdown.IndexOf("---", nextCharPos) == nextCharPos || markdown.IndexOf("===", nextCharPos) == nextCharPos || markdown.IndexOf("___", nextCharPos) == nextCharPos;
+            return "---";
         }
     }
 }

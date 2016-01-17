@@ -19,9 +19,11 @@ using UniversalMarkdown.Display;
 using UniversalMarkdown.Helpers;
 using UniversalMarkdown.Interfaces;
 using UniversalMarkdown.Parse;
+using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Documents;
+using Windows.UI.Xaml.Media;
 
 namespace UniversalMarkdown
 {
@@ -59,16 +61,9 @@ namespace UniversalMarkdown
         SmartWeakEvent<EventHandler<OnMarkdownLinkTappedArgs>> m_onMarkdownLinkTapped = new SmartWeakEvent<EventHandler<OnMarkdownLinkTappedArgs>>();
 
         /// <summary>
-        /// Holds a list of hyper links we are listening to
+        /// Holds a list of hyperlinks we are listening to.
         /// </summary>
         private List<Hyperlink> m_listeningHyperlinks = new List<Hyperlink>();
-
-        /// <summary>
-        /// This is annoying. When a user clicks a link there is no way to associate the url to the
-        /// event listener unless we set it as the URI. If we do then it will open the browser.
-        /// So we use this map to associate link text with a url.
-        /// </summary>
-        private Dictionary<Hyperlink, string> m_hyperLinkToUrl = new Dictionary<Hyperlink, string>();
 
         /// <summary>
         /// Creates a new markdown text block
@@ -119,7 +114,7 @@ namespace UniversalMarkdown
             CleanUpTextBlock();
 
             // Make sure we have something to parse.
-            if (!String.IsNullOrWhiteSpace(newMarkdown))
+            if (newMarkdown != null)
             {
                 try
                 {
@@ -128,8 +123,27 @@ namespace UniversalMarkdown
                     markdown.Parse(newMarkdown);
 
                     // Now try to display it
-                    RenderToRichTextBlock rendner = new RenderToRichTextBlock(ui_richTextBox, this);
-                    rendner.Render(markdown);
+                    var renderer = new XamlRenderer(this);
+                    renderer.Background = Background;
+                    renderer.BorderBrush = BorderBrush;
+                    renderer.BorderThickness = BorderThickness;
+                    renderer.CharacterSpacing = CharacterSpacing;
+                    renderer.FontFamily = FontFamily;
+                    renderer.FontSize = FontSize;
+                    renderer.FontStretch = FontStretch;
+                    renderer.FontStyle = FontStyle;
+                    renderer.FontWeight = FontWeight;
+                    renderer.Foreground = Foreground;
+                    renderer.HorizontalAlignment = HorizontalAlignment;
+                    renderer.IsTextSelectionEnabled = true;
+                    renderer.Padding = Padding;
+                    renderer.CodeBackground = new SolidColorBrush(Color.FromArgb(8, 255, 255, 255));
+                    renderer.CodeBorderBrush = new SolidColorBrush(Color.FromArgb(32, 255, 255, 255));
+                    renderer.CodeBorderThickness = new Thickness(1);
+                    renderer.HorizontalRuleBrush = new SolidColorBrush(Color.FromArgb(48, 255, 255, 255));
+                    renderer.QuoteBorderBrush = Application.Current.Resources["SystemControlHighlightAccentBrush"] as SolidColorBrush;
+                    renderer.TableBorderBrush = new SolidColorBrush(Color.FromArgb(16, 255, 255, 255));
+                    Content = renderer.Render(markdown);
                 }
                 catch (Exception e)
                 {
@@ -155,11 +169,13 @@ namespace UniversalMarkdown
                 link.Click -= Hyperlink_Click;
             }
 
-            // Clear everything that exists
-            ui_richTextBox.Blocks.Clear();
-            m_hyperLinkToUrl.Clear();
+            // Clear everything that exists.
             m_listeningHyperlinks.Clear();
         }
+
+        // Used to attach the URL to hyperlinks.
+        private static readonly DependencyProperty HyperlinkUrlProperty =
+            DependencyProperty.RegisterAttached("HyperlinkUrl", typeof(string), typeof(MarkdownTextBlock), new PropertyMetadata(null));
 
         /// <summary>
         /// Called when the render has a link we need to listen to.
@@ -168,14 +184,14 @@ namespace UniversalMarkdown
         /// <param name="linkUrl"></param>
         public void RegisterNewHyperLink(Hyperlink newHyperlink, string linkUrl)
         {
-            // Setup a listener for clicks
+            // Setup a listener for clicks.
             newHyperlink.Click += Hyperlink_Click;
+
+            // Associate the URL with the hyperlink.
+            newHyperlink.SetValue(HyperlinkUrlProperty, linkUrl);
 
             // Add it to our list
             m_listeningHyperlinks.Add(newHyperlink);
-
-            // Add the url and hyper link to the map
-            m_hyperLinkToUrl.Add(newHyperlink, linkUrl);
         }
 
         /// <summary>
@@ -185,13 +201,13 @@ namespace UniversalMarkdown
         /// <param name="args"></param>
         private void Hyperlink_Click(Hyperlink sender, HyperlinkClickEventArgs args)
         {
-            if (m_hyperLinkToUrl.ContainsKey(sender))
+            // Get the hyperlink URL.
+            var url = (string)sender.GetValue(HyperlinkUrlProperty);
+            if (url != null)
             {
-                string link = m_hyperLinkToUrl[sender];
-
                 OnMarkdownLinkTappedArgs eventArgs = new OnMarkdownLinkTappedArgs()
                 {
-                    Link = link
+                    Link = url
                 };
 
                 m_onMarkdownLinkTapped.Raise(this, eventArgs);

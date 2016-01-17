@@ -13,99 +13,87 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
 {
-    class ItalicTextElement : MarkdownInline
+    public class ItalicTextInline : MarkdownInline
     {
-        public ItalicTextElement()
-            : base(MarkdownInlineType.Italic)
-        { }
+        /// <summary>
+        /// The contents of the inline.
+        /// </summary>
+        public IList<MarkdownInline> Inlines { get; set; }
 
+        /// <summary>
+        /// Initializes a new italic text span.
+        /// </summary>
+        public ItalicTextInline() : base(MarkdownInlineType.Italic)
+        {
+        }
 
         /// <summary>
         /// Returns the chars that if found means we might have a match.
         /// </summary>
         /// <returns></returns>
-        public static InlineTripCharHelper GetTripChars()
+        internal static void AddTripChars(List<InlineTripCharHelper> tripCharHelpers)
         {
-            return new InlineTripCharHelper() { FirstChar = '*', Type = MarkdownInlineType.Italic };
+            tripCharHelpers.Add(new InlineTripCharHelper() { FirstChar = '*', Type = MarkdownInlineType.Italic });
+            tripCharHelpers.Add(new InlineTripCharHelper() { FirstChar = '_', Type = MarkdownInlineType.Italic });
         }
 
         /// <summary>
-        /// Called when the object should parse it's goods out of the markdown. The markdown, start, and stop are given.
-        /// The start and stop are what is returned from the FindNext function below. The object should do it's parsing and
-        /// return up to the last pos it used. This can be shorter than what is given to the function in endingPos.
+        /// Attempts to parse a italic text span.
         /// </summary>
-        /// <param name="markdown">The markdown</param>
-        /// <param name="startingPos">Where the parse should start</param>
-        /// <param name="endingPos">Where the parse should end</param>
-        /// <returns></returns>
-        internal override int Parse(ref string markdown, int startingPos, int endingPos)
+        /// <param name="markdown"> The markdown text. </param>
+        /// <param name="start"> The location to start parsing. </param>
+        /// <param name="maxEnd"> The location to stop parsing. </param>
+        /// <param name="actualEnd"> Set to the end of the span when the return value is non-null. </param>
+        /// <returns> A parsed italic text span, or <c>null</c> if this is not a italic text span. </returns>
+        internal static ItalicTextInline Parse(string markdown, int start, int maxEnd, out int actualEnd)
         {
-            int italicStart = Common.IndexOf(ref markdown, '*', startingPos, endingPos);
-            // These should always be =
-            if(italicStart != startingPos)
-            {
-                DebuggingReporter.ReportCriticalError("italic parse didn't find * in at the starting pos");
-            }
-            italicStart++;
+            actualEnd = start;
 
-            // Find the ending
-            int italicEnd = Common.IndexOf(ref markdown, '*', italicStart, endingPos, true);
-            if (italicEnd + 1 != endingPos)
-            {
-                DebuggingReporter.ReportCriticalError("italic parse didn't find * in at the end pos");
-            }
+            // Check the first char.
+            char startChar = markdown[start];
+            if (start == maxEnd || (startChar != '*' && startChar != '_'))
+                return null;
 
-            // Make sure there is something to parse, and not just dead space
-            if (italicEnd > italicStart)
-            {
-                // Parse any children of this bold element
-                ParseInlineChildren(ref markdown, italicStart, italicEnd);
-            }
+            // Find the end of the span.  The end character (either '*' or '_') must be the same as
+            // the start character.
+            var innerStart = start + 1;
+            int innerEnd = Common.IndexOf(markdown, startChar, start + 1, maxEnd);
+            if (innerEnd == -1)
+                return null;
 
-            // Return the point after the *
-            return italicEnd + 1;
+            // The span must contain at least one character.
+            if (innerStart == innerEnd)
+                return null;
+
+            // The first character inside the span must NOT be a space.
+            if (Common.IsWhiteSpace(markdown[innerStart]))
+                return null;
+
+            // The last character inside the span must NOT be a space.
+            if (Common.IsWhiteSpace(markdown[innerEnd - 1]))
+                return null;
+
+            // We found something!
+            actualEnd = innerEnd + 1;
+            var result = new ItalicTextInline();
+            result.Inlines = Common.ParseInlineChildren(markdown, innerStart, innerEnd);
+            return result;
         }
 
         /// <summary>
-        /// Verify a match that is found in the markdown. If the match is good and the rest of the element exits the function should
-        /// return true and the element will be matched. If if is a false positive return false and we will keep looking.
+        /// Converts the object into it's textual representation.
         /// </summary>
-        /// <param name="markdown">The markdown to match</param>
-        /// <param name="startingPos">Where the first trip char should be found</param>
-        /// <param name="maxEndingPos">The max length to look in.</param>
-        /// <param name="elementEndingPos">If found, the ending pos of the element found.</param>
-        /// <returns></returns>
-        public static bool VerifyMatch(ref string markdown, int startingPos, int maxEndingPos, ref int elementStartingPos, ref int elementEndingPos)
+        /// <returns> The textual representation of this object. </returns>
+        public override string ToString()
         {
-            // Do an sanity check
-            if (markdown[startingPos] == '*')
-            {
-                // We might have one, try to find the ending that is in the current endingPos
-                // We need to loop and keep looking for * not followed by another * (bold)
-                int italicEndPos = Common.IndexOf(ref markdown, '*', startingPos + 1, maxEndingPos);
-                while (italicEndPos != -1 && italicEndPos + 1 < markdown.Length && markdown[italicEndPos + 1] == '*')
-                {
-                    italicEndPos = Common.IndexOf(ref markdown, '*', italicEndPos + 2, maxEndingPos);
-                }
-
-                // If we found it and it is the next closest ending pos use it!
-                if (italicEndPos != -1)
-                {
-                    elementStartingPos = startingPos;
-                    elementEndingPos = italicEndPos + 1;
-                    return true;
-                }
-            }
-            return false;
+            if (Inlines == null)
+                return base.ToString();
+            return "*" + string.Join(string.Empty, Inlines) + "*";
         }
     }
 }

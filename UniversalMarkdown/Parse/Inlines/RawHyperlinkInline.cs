@@ -15,109 +15,132 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
 {
-    class RawHyperlinkInline : MarkdownInline
+    public class RawHyperlinkInline : MarkdownInline, ILinkElement
     {
+        /// <summary>
+        /// The raw URL.
+        /// </summary>
         public string Url { get; set; }
 
-        public RawHyperlinkInline()
-            : base(MarkdownInlineType.RawHyperlink)
-        { }
+        /// <summary>
+        /// Raw URLs do not have a tooltip.
+        /// </summary>
+        string ILinkElement.Tooltip => null;
 
+        /// <summary>
+        /// Initializes a new markdown URL.
+        /// </summary>
+        public RawHyperlinkInline() : base(MarkdownInlineType.RawHyperlink)
+        {
+        }
 
         /// <summary>
         /// Returns the chars that if found means we might have a match.
         /// </summary>
         /// <returns></returns>
-        public static InlineTripCharHelper GetTripChars()
+        internal static void AddTripChars(List<InlineTripCharHelper> tripCharHelpers)
         {
-            return new InlineTripCharHelper() { FirstChar = 'h', FirstCharSuffix = "ttp", Type = MarkdownInlineType.RawHyperlink};
+            tripCharHelpers.Add(new InlineTripCharHelper() { FirstChar = '<', Type = MarkdownInlineType.RawHyperlink });
+            tripCharHelpers.Add(new InlineTripCharHelper() { FirstChar = 'h', Type = MarkdownInlineType.RawHyperlink, IgnoreEscapeChar = true });
+            tripCharHelpers.Add(new InlineTripCharHelper() { FirstChar = 'H', Type = MarkdownInlineType.RawHyperlink, IgnoreEscapeChar = true });
         }
 
         /// <summary>
-        /// Called when the object should parse it's goods out of the markdown. The markdown, start, and stop are given.
-        /// The start and stop are what is returned from the FindNext function below. The object should do it's parsing and
-        /// return up to the last pos it used. This can be shorter than what is given to the function in endingPos.
+        /// Attempts to parse a URL e.g. "http://www.reddit.com".
         /// </summary>
-        /// <param name="markdown">The markdown</param>
-        /// <param name="startingPos">Where the parse should start</param>
-        /// <param name="endingPos">Where the parse should end</param>
-        /// <returns></returns>
-        internal override int Parse(ref string markdown, int startingPos, int endingPos)
+        /// <param name="markdown"> The markdown text. </param>
+        /// <param name="start"> The location to start parsing. </param>
+        /// <param name="maxEnd"> The location to stop parsing. </param>
+        /// <param name="actualEnd"> Set to the end of the span when the return value is non-null. </param>
+        /// <returns> A parsed URL, or <c>null</c> if this is not a URL. </returns>
+        internal static RawHyperlinkInline Parse(string markdown, int start, int maxEnd, out int actualEnd)
         {
-            int httpStart = Common.IndexOf(ref markdown, "http://", startingPos, endingPos);
-            int httpsStart = Common.IndexOf(ref markdown, "https://", startingPos, endingPos);
+            actualEnd = start;
+            if (start == maxEnd)
+                return null;
 
-            // Make -1 huge.
-            httpStart = httpStart == -1 ? int.MaxValue : httpStart;
-            httpsStart = httpsStart == -1 ? int.MaxValue : httpsStart;
-
-            // Figure out the pos of the link
-            int linkStart = Math.Min(httpStart, httpsStart);
-            int linkEnd = Common.FindNextWhiteSpace(ref markdown, linkStart, endingPos, true);
-
-            // These should always be =
-            if (linkStart != startingPos)
+            // Links can be inside angle brackets.
+            bool insideAngleBrackets = false;
+            if (markdown[start] == '<')
             {
-                DebuggingReporter.ReportCriticalError("raw link parse didn't find http in at the starting pos");
+                insideAngleBrackets = true;
+                start++;
             }
-            if (linkEnd != endingPos)
+            else
             {
-                DebuggingReporter.ReportCriticalError("raw link parse didn't find the same ending pos");
+                // The previous character must be non-alphanumeric i.e. "ahttp://t.co" is not a valid URL.
+                if (start > 0 && char.IsLetter(markdown[start - 1]))
+                    return null;
             }
 
-            // Special cases for links, they can't end in a special char like . ? or !
-            if(Char.IsPunctuation(markdown[linkEnd - 1]))
+            int pos = start;
+            string httpPrefix = "http://";
+            string httpsPrefix = "https://";
+            if (maxEnd - start >= httpPrefix.Length && string.Equals(markdown.Substring(start, httpPrefix.Length), httpPrefix, StringComparison.OrdinalIgnoreCase))
             {
-                linkEnd--;
+                // HTTP hyperlink found.
+                pos += httpPrefix.Length;
             }
-
-            // Grab the link text
-            Url = markdown.Substring(linkStart, linkEnd - linkStart);
-
-            // Return the point after the end
-            return linkEnd;
-        }
-
-        /// <summary>
-        /// Verify a match that is found in the markdown. If the match is good and the rest of the element exits the function should
-        /// return true and the element will be matched. If if is a false positive return false and we will keep looking.
-        /// </summary>
-        /// <param name="markdown">The markdown to match</param>
-        /// <param name="startingPos">Where the first trip char should be found</param>
-        /// <param name="maxEndingPos">The max length to look in.</param>
-        /// <param name="elementEndingPos">If found, the ending pos of the element found.</param>
-        /// <returns></returns>
-        public static bool VerifyMatch(ref string markdown, int startingPos, int maxEndingPos, ref int elementStartingPos, ref int elementEndingPos)
-        {
-            // Sanity check
-            if(markdown[startingPos] == 'h')
+            else if (maxEnd - start >= httpsPrefix.Length && string.Equals(markdown.Substring(start, httpsPrefix.Length), httpsPrefix, StringComparison.OrdinalIgnoreCase))
             {
-                int httpStart = Common.IndexOf(ref markdown, "http://", startingPos, maxEndingPos);
-                int httpsStart = Common.IndexOf(ref markdown, "https://", startingPos, maxEndingPos);
+                // HTTPS hyperlink found.
+                pos += httpsPrefix.Length;
+            }
+            else
+                return null;
 
-                if (httpsStart != -1 || httpStart != -1)
+            // Look for the end of the link.
+            if (insideAngleBrackets)
+            {
+                // Angle bracket links should not have any whitespace.
+                int innerEnd = markdown.IndexOfAny(new char[] { ' ', '\t', '\r', '\n', '>' }, pos, maxEnd - pos);
+                if (innerEnd == -1 || markdown[innerEnd] != '>')
+                    return null;
+
+                // There should be at least one character after the http://.
+                if (innerEnd == pos)
+                    return null;
+
+                actualEnd = innerEnd + 1;
+                return new RawHyperlinkInline { Url = markdown.Substring(start, innerEnd - start) };
+            }
+            else
+            {
+                // The URL must have at least one character after the http:// and at least one dot.
+                int dotIndex = markdown.IndexOf('.', pos, maxEnd - pos);
+                if (dotIndex == -1 || dotIndex == pos)
+                    return null;
+
+                // For some reason a less than character ends a URL...
+                actualEnd = markdown.IndexOfAny(new char[] { ' ', '\t', '\r', '\n', '<' }, dotIndex + 1, maxEnd - (dotIndex + 1));
+                if (actualEnd == -1)
+                    actualEnd = maxEnd;
+
+                // URLs can't end on a punctuation character.
+                while (actualEnd - 1 > dotIndex)
                 {
-                    // Make -1 huge.
-                    httpStart = httpStart == -1 ? int.MaxValue : httpStart;
-                    httpsStart = httpsStart == -1 ? int.MaxValue : httpsStart;
+                    if (Array.IndexOf(new char[] { ')', '}', ']', '!', ';', '.', '?', ',' }, markdown[actualEnd - 1]) < 0)
+                        break;
+                    actualEnd--;
+                }
 
-                    // Figure out the pos of the link
-                    int foundLinkStart = Math.Min(httpStart, httpsStart);
-
-                    // Set the start and end
-                    elementStartingPos = startingPos;
-                    elementEndingPos = Common.FindNextWhiteSpace(ref markdown, foundLinkStart, maxEndingPos, true);
-                    return true;
+                return new RawHyperlinkInline { Url = markdown.Substring(start, actualEnd - start) };
                 }
             }
-            return false;
+
+        /// <summary>
+        /// Converts the object into it's textual representation.
+        /// </summary>
+        /// <returns> The textual representation of this object. </returns>
+        public override string ToString()
+        {
+            if (Url == null)
+                return base.ToString();
+            return Url;
         }
     }
 }

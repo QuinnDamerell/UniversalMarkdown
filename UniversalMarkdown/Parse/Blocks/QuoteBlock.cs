@@ -13,86 +13,41 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
 {
-    class QuoteBlock : MarkdownBlock
+    public class QuoteBlock : MarkdownBlock
     {
-        public int QuoteIndent = 0;
-
-        public QuoteBlock()
-            : base(MarkdownBlockType.Quote)
-        { }
+        /// <summary>
+        /// The contents of the block.
+        /// </summary>
+        public IList<MarkdownBlock> Blocks { get; set; }
 
         /// <summary>
-        /// Called when this block type should parse out the goods. Given the markdown, a starting point, and a max ending point
-        /// the block should find the start of the block, find the end and parse out the middle. The end most of the time will not be
-        /// the max ending pos, but it sometimes can be. The function will return where it ended parsing the block in the markdown.
+        /// Initializes a new quote block.
         /// </summary>
-        /// <param name="markdown"></param>
-        /// <param name="startingPos"></param>
-        /// <param name="maxEndingPos"></param>
-        /// <returns></returns>
-        internal override int Parse(ref string markdown, int startingPos, int maxEndingPos)
+        public QuoteBlock() : base(MarkdownBlockType.Quote)
         {
-            // Do a quick check.
-            int quoteStart = startingPos + 1;
-            if(markdown[startingPos] != '>')
-            {
-                DebuggingReporter.ReportCriticalError("Tried to parse quote that didn't exist");
-            }
-
-            // Find the end of quote, we always break on a double return no matter what.
-            int quoteEnd = Common.FindNextDoubleNewLine(ref markdown, quoteStart, maxEndingPos);
-            if(quoteEnd == -1)
-            {
-                DebuggingReporter.ReportCriticalError("Tried to parse quote that didn't have an end");
-                quoteEnd = maxEndingPos;
-            }
-
-            // Find how many indents we have, we have to count backwards from the starting pos. Start with one
-            // so if we have no spaces we at least get that.
-            QuoteIndent = 1;
-            int currentBackCount = startingPos - 1;
-            while (currentBackCount >= 0 && markdown[currentBackCount] != '\n' && markdown[currentBackCount] != '\r')
-            {
-                QuoteIndent++;
-                currentBackCount--;
-            }
-
-            // Make sure there is something to parse, and not just dead space
-            if (quoteEnd > quoteStart)
-            {
-                // Parse the children of this quote
-                ParseInlineChildren(ref markdown, quoteStart, quoteEnd);
-            }
-
-            // Trim off any extra line endings, except ' ' otherwise we can't do code blocks
-            while (quoteEnd < markdown.Length && quoteEnd < maxEndingPos && Char.IsWhiteSpace(markdown[quoteEnd]) && markdown[quoteEnd] != ' ')
-            {
-                quoteEnd++;
-            }
-
-            // Return where we ended.
-            return quoteEnd;
         }
 
         /// <summary>
-        /// Called to determine if this block type can handle the next block.
+        /// Parses a quote block.
         /// </summary>
-        /// <param name="markdown"></param>
-        /// <param name="nextCharPos"></param>
-        /// <param name="endingPos"></param>
-        /// <returns></returns>
-        public static bool CanHandleBlock(ref string markdown, int nextCharPos, int endingPos)
+        /// <param name="markdown"> The markdown text. </param>
+        /// <param name="startOfLine"> The location of the start of the line. </param>
+        /// <param name="maxEnd"> The location to stop parsing. </param>
+        /// <param name="quoteDepth"> The current nesting level of quotes. </param>
+        /// <param name="actualEnd"> Set to the end of the block when the return value is non-null. </param>
+        /// <returns> A parsed quote block. </returns>
+        internal static QuoteBlock Parse(string markdown, int startOfLine, int maxEnd, int quoteDepth, out int actualEnd)
         {
-            return markdown.Length > nextCharPos && endingPos > nextCharPos && markdown[nextCharPos] == '>';
+            var result = new QuoteBlock();
+
+            // Recursively call into the markdown block parser.
+            result.Blocks = Markdown.Parse(markdown, startOfLine, maxEnd, quoteDepth: quoteDepth + 1, actualEnd: out actualEnd);
+
+            return result;
         }
     }
 }

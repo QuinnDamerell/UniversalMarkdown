@@ -18,7 +18,7 @@ using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
 {
-    public class MarkdownLinkInline : MarkdownInline, ILinkElement
+    public class StrikethroughTextInline : MarkdownInline
     {
         /// <summary>
         /// The contents of the inline.
@@ -26,19 +26,9 @@ namespace UniversalMarkdown.Parse.Elements
         public IList<MarkdownInline> Inlines { get; set; }
 
         /// <summary>
-        /// The link URL.
+        /// Initializes a new strikethrough text span.
         /// </summary>
-        public string Url { get; set; }
-
-        /// <summary>
-        /// A tooltip to display on hover.
-        /// </summary>
-        public string Tooltip { get; set; }
-
-        /// <summary>
-        /// Initializes a new markdown link.
-        /// </summary>
-        public MarkdownLinkInline() : base(MarkdownInlineType.MarkdownLink)
+        public StrikethroughTextInline() : base(MarkdownInlineType.Strikethrough)
         {
         }
 
@@ -48,46 +38,47 @@ namespace UniversalMarkdown.Parse.Elements
         /// <returns></returns>
         internal static void AddTripChars(List<InlineTripCharHelper> tripCharHelpers)
         {
-            tripCharHelpers.Add(new InlineTripCharHelper() { FirstChar = '[', Type = MarkdownInlineType.MarkdownLink });
+            tripCharHelpers.Add(new InlineTripCharHelper() { FirstChar = '~', Type = MarkdownInlineType.Strikethrough });
         }
 
         /// <summary>
-        /// Attempts to parse a markdown link e.g. "[](http://www.reddit.com)".
+        /// Attempts to parse a strikethrough text span.
         /// </summary>
         /// <param name="markdown"> The markdown text. </param>
         /// <param name="start"> The location to start parsing. </param>
         /// <param name="maxEnd"> The location to stop parsing. </param>
         /// <param name="actualEnd"> Set to the end of the span when the return value is non-null. </param>
-        /// <returns> A parsed markdown link, or <c>null</c> if this is not a markdown link. </returns>
-        internal static MarkdownLinkInline Parse(string markdown, int start, int maxEnd, out int actualEnd)
+        /// <returns> A parsed strikethrough text span, or <c>null</c> if this is not a strikethrough text span. </returns>
+        internal static StrikethroughTextInline Parse(string markdown, int start, int maxEnd, out int actualEnd)
         {
             actualEnd = start;
 
-            // Expect a '[' character.
-            int linkTextOpen = start;
-            if (linkTextOpen == maxEnd || markdown[linkTextOpen] != '[')
+            // Check the start sequence.
+            if (start >= maxEnd - 1 || markdown.Substring(start, 2) != "~~")
                 return null;
 
-            // Find the ']' character.
-            int linkTextClose = Common.IndexOf(markdown, ']', linkTextOpen, maxEnd);
-            if (linkTextClose == -1)
+            // Find the end of the span.
+            var innerStart = start + 2;
+            int innerEnd = Common.IndexOf(markdown, "~~", innerStart, maxEnd);
+            if (innerEnd == -1)
                 return null;
 
-            // Find the '(' character.
-            int linkOpen = Common.IndexOf(markdown, '(', linkTextClose, maxEnd);
-            if (linkOpen == -1)
+            // The span must contain at least one character.
+            if (innerStart == innerEnd)
                 return null;
 
-            // Find the '(' character.
-            int linkClose = Common.IndexOf(markdown, ')', linkOpen, maxEnd);
-            if (linkClose == -1)
+            // The first character inside the span must NOT be a space.
+            if (Common.IsWhiteSpace(markdown[innerStart]))
+                return null;
+
+            // The last character inside the span must NOT be a space.
+            if (Common.IsWhiteSpace(markdown[innerEnd - 1]))
                 return null;
 
             // We found something!
-            actualEnd = linkClose + 1;
-            var result = new MarkdownLinkInline();
-            result.Inlines = Common.ParseInlineChildren(markdown, linkTextOpen + 1, linkTextClose, ignoreLinks: true);
-            result.Url = markdown.Substring(linkOpen + 1, linkClose - linkOpen - 1).Trim();
+            actualEnd = innerEnd + 2;
+            var result = new StrikethroughTextInline();
+            result.Inlines = Common.ParseInlineChildren(markdown, innerStart, innerEnd);
             return result;
         }
 
@@ -97,9 +88,9 @@ namespace UniversalMarkdown.Parse.Elements
         /// <returns> The textual representation of this object. </returns>
         public override string ToString()
         {
-            if (Inlines == null || Url == null)
+            if (Inlines == null)
                 return base.ToString();
-            return string.Format("[{0}]({1})", string.Join(string.Empty, Inlines), Url);
+            return "~~" + string.Join(string.Empty, Inlines) + "~~";
         }
     }
 }

@@ -108,7 +108,8 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Display\RenderToRichTextBlock.cs" />
+    <Compile Include="Display\MarkdownTable.cs" />
+    <Compile Include="Display\XamlRenderer.cs" />
     <Compile Include="Helpers\Common.cs" />
     <Compile Include="Helpers\DebuggingReporter.cs" />
     <Compile Include="Helpers\SmartWeakEvent.cs" />
@@ -118,10 +119,14 @@
     </Compile>
     <Compile Include="Parse\Blocks\CodeBlock.cs" />
     <Compile Include="Parse\Blocks\HeaderBlock.cs" />
-    <Compile Include="Parse\Blocks\LinkBreakBlock.cs" />
-    <Compile Include="Parse\Blocks\ListElementBlock.cs" />
+    <Compile Include="Parse\Blocks\ListBlock.cs" />
     <Compile Include="Parse\Blocks\HorizontalRuleBlock.cs" />
+    <Compile Include="Parse\Blocks\TableBlock.cs" />
     <Compile Include="Parse\Blocks\QuoteBlock.cs" />
+    <Compile Include="Parse\Inlines\CodeInline.cs" />
+    <Compile Include="Parse\Inlines\ILinkElement.cs" />
+    <Compile Include="Parse\Inlines\SuperscriptTextInline.cs" />
+    <Compile Include="Parse\Inlines\StrikethroughTextInline.cs" />
     <Compile Include="Parse\Inlines\RawHyperlinkInline.cs" />
     <Compile Include="Parse\Inlines\RawSubredditInline.cs" />
     <Compile Include="Parse\Inlines\MarkdownLinkInline.cs" />
@@ -137,8 +142,8 @@
   </ItemGroup>
   <ItemGroup>
     <Page Include="MarkdownTextBlock.xaml">
-      <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">

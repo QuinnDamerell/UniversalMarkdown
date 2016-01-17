@@ -1,8 +1,8 @@
 ﻿// Copyright (c) 2016 Quinn Damerell
-//
+// 
 // The above copyright notice and this permission notice shall be
 // included in all copies or substantial portions of the Software.
-//
+// 
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 // EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
 // OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -16,8 +16,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UniversalMarkdown.Parse;
 using UniversalMarkdown.Parse.Elements;
 
@@ -29,280 +27,167 @@ namespace UniversalMarkdown.Helpers
     /// to has a possible match. We will go through the range once and look for everyone's trip chars, and if they can make a match from the trip
     /// char then we will commit to them.
     /// </summary>
-    public class InlineTripCharHelper
+    internal class InlineTripCharHelper
     {
         // Note! Everything in first char and suffix should be lower case!
         public char FirstChar;
-        public string FirstCharSuffix = null;
         public MarkdownInlineType Type;
+        public bool IgnoreEscapeChar;
     }
 
 
-    class Common
+    internal class Common
     {
-        private static List<InlineTripCharHelper> s_tripCharList = new List<InlineTripCharHelper>();
+        private static List<InlineTripCharHelper> s_triggerList = new List<InlineTripCharHelper>();
+        private static char[] s_tripCharacters;
 
         /// <summary>
         /// Returns a list of trip chars for all of the inlines. These are used to detect the
         /// possible beginning of an inline.
         /// </summary>
         /// <returns></returns>
-        public static List<InlineTripCharHelper> GetTripCharsList()
+        public static List<InlineTripCharHelper> GetInlineTriggersList()
         {
-            lock(s_tripCharList)
+            lock (s_triggerList)
             {
-                if (s_tripCharList.Count == 0)
+                if (s_triggerList.Count == 0)
                 {
-                    s_tripCharList.Add(BoldTextElement.GetTripChars());
-                    s_tripCharList.Add(ItalicTextElement.GetTripChars());
-                    s_tripCharList.Add(MarkdownLinkInline.GetTripChars());
-                    s_tripCharList.Add(RawHyperlinkInline.GetTripChars());
-                    s_tripCharList.Add(RawSubredditInline.GetTripChars());
+                    BoldTextInline.AddTripChars(s_triggerList);
+                    ItalicTextInline.AddTripChars(s_triggerList);
+                    MarkdownLinkInline.AddTripChars(s_triggerList);
+                    RawHyperlinkInline.AddTripChars(s_triggerList);
+                    RawSubredditInline.AddTripChars(s_triggerList);
+                    StrikethroughTextInline.AddTripChars(s_triggerList);
+                    SuperscriptTextInline.AddTripChars(s_triggerList);
+                    CodeInline.AddTripChars(s_triggerList);
                     // Text run doesn't have one.
+
+                    // Create an array of characters to search against using IndexOfAny.
+                    s_tripCharacters = s_triggerList.Select(trigger => trigger.FirstChar).Distinct().ToArray();
                 }
             }
-            return s_tripCharList;
+            return s_triggerList;
         }
 
+        /// <summary>
+        /// This function can be called by any element parsing. Given a start and stopping point this will
+        /// parse all found elements out of the range.
+        /// </summary>
+        /// <param name="markdown"></param>
+        /// <param name="startingPos"></param>
+        /// <param name="maxEndingPos"></param>
+        /// <param name="ignoreLinks"> Indicates whether to parse links. </param>
+        /// <returns> A list of parsed inlines. </returns>
+        public static List<MarkdownInline> ParseInlineChildren(string markdown, int startingPos, int maxEndingPos, bool ignoreLinks = false)
+        {
+            int currentParsePosition = startingPos;
+
+            var inlines = new List<MarkdownInline>();
+            while (currentParsePosition < maxEndingPos)
+            {
+                int nextElementStart;
+                int nextElementEnd;
+
+                // Find the next element
+                MarkdownInline element = Common.FindNextInlineElement(markdown, currentParsePosition, maxEndingPos, out nextElementStart, out nextElementEnd, ignoreLinks);
+
+                // If the element we found doesn't start at the position we are looking for there is text between the element and
+                // the start. We need to wrap it into a Text Run
+                if (nextElementStart != currentParsePosition)
+                {
+                    var textRun = TextRunInline.Parse(markdown, currentParsePosition, nextElementStart);
+                    inlines.Add(textRun);
+                }
+
+                // Add the parsed element.
+                inlines.Add(element);
+
+                // Update the current position.
+                currentParsePosition = nextElementEnd;
+            }
+            return inlines;
+        }
 
         /// <summary>
         /// Finds the next inline element by matching trip chars and verifying the match.
         /// </summary>
+        /// <param name="ignoreLinks"> Indicates whether to parse links. </param>
         /// <returns></returns>
-        public static MarkdownInline FindNextInlineElement(ref string markdown, int startingPos, int endingPos, ref int nextElementStart, ref int nextElementEnd)
+        private static MarkdownInline FindNextInlineElement(string markdown, int startingPos, int endingPos, out int nextElementStart, out int nextElementEnd, bool ignoreLinks)
         {
-            // Get the list of trip chars
-            List<InlineTripCharHelper> tripChars = GetTripCharsList();
+            // Get the list of triggers.
+            List<InlineTripCharHelper> tripChars = GetInlineTriggersList();
 
-            // Loop though all of the chars in this run and look for a trip char.
-            for(int i = startingPos; i < endingPos; i++)
+            // Search for the next inline sequence.
+            for (int pos = startingPos; pos < endingPos; pos++)
             {
-                char currentChar = Char.ToLower(markdown[i]);
+                // IndexOfAny should be the fastest way to skip characters we don't care about.
+                pos = markdown.IndexOfAny(s_tripCharacters, pos, endingPos - pos);
+                if (pos < 0)
+                    break;
 
-                // Try to match each trip char to the char
-                foreach(InlineTripCharHelper currentTripChar in tripChars)
+                // Find the trigger(s) that matched.
+                char currentChar = Char.ToLower(markdown[pos]);
+                foreach (InlineTripCharHelper currentTripChar in tripChars)
                 {
-                    // Check if our current char matches the sufex char.
-                    if(currentChar == currentTripChar.FirstChar)
+                    // Check if our current char matches the suffix char.
+                    if (currentChar == currentTripChar.FirstChar)
                     {
-
-                        // We have a match! See if there is a suffix and if so if it matches.
-                        if(currentTripChar.FirstCharSuffix != null)
-                        {
-                            // We need to loop through the sufex and see if it matches the next n chars in the markdown.
-                            int suffexCharCounter = i + 1;
-                            bool suffexFound = true;
-                            foreach (char suffexChar in currentTripChar.FirstCharSuffix)
-                            {
-                                char test = Char.ToLower(markdown[suffexCharCounter]);
-                                if (suffexCharCounter >= endingPos || suffexChar != Char.ToLower(markdown[suffexCharCounter]))
-                                {
-                                    suffexFound = false;
-                                    break;
-                                }
-                                suffexCharCounter++;
-                            }
-                            // If the suffex didn't match this isn't a possibility.
-                            if(!suffexFound)
-                            {
-                                continue;
-                            }
-                        }
+                        // Don't match if the previous character was a backslash.
+                        if (pos > startingPos && markdown[pos - 1] == '\\' && currentTripChar.IgnoreEscapeChar == false)
+                            continue;
 
                         // If we are here we have a possible match. Call into the inline class to verify.
-                        // Note! The order of bold and italic here is important because they both start with *
-                        // otherwise italic will consume bold's opening tag.
-                        switch(currentTripChar.Type)
+                        MarkdownInline parsedElement = null;
+                        int parsedElementEnd = pos;
+                        switch (currentTripChar.Type)
                         {
                             case MarkdownInlineType.Bold:
-                                if (BoldTextElement.VerifyMatch(ref markdown, i, endingPos, ref nextElementStart, ref nextElementEnd))
-                                {
-                                    return new BoldTextElement();
-                                }
+                                parsedElement = BoldTextInline.Parse(markdown, pos, endingPos, out parsedElementEnd);
                                 break;
                             case MarkdownInlineType.Italic:
-                                if (ItalicTextElement.VerifyMatch(ref markdown, i, endingPos, ref nextElementStart, ref nextElementEnd))
-                                {
-                                    return new ItalicTextElement();
-                                }
+                                parsedElement = ItalicTextInline.Parse(markdown, pos, endingPos, out parsedElementEnd);
                                 break;
                             case MarkdownInlineType.MarkdownLink:
-                                if (MarkdownLinkInline.VerifyMatch(ref markdown, i, endingPos, ref nextElementStart, ref nextElementEnd))
-                                {
-                                    return new MarkdownLinkInline();
-                                }
+                                if (!ignoreLinks)
+                                    parsedElement = MarkdownLinkInline.Parse(markdown, pos, endingPos, out parsedElementEnd);
                                 break;
                             case MarkdownInlineType.RawHyperlink:
-                                if (RawHyperlinkInline.VerifyMatch(ref markdown, i, endingPos, ref nextElementStart, ref nextElementEnd))
-                                {
-                                    return new RawHyperlinkInline();
-                                }
+                                if (!ignoreLinks)
+                                    parsedElement = RawHyperlinkInline.Parse(markdown, pos, endingPos, out parsedElementEnd);
                                 break;
                             case MarkdownInlineType.RawSubreddit:
-                                if (RawSubredditInline.VerifyMatch(ref markdown, i, endingPos, ref nextElementStart, ref nextElementEnd))
-                                {
-                                    return new RawSubredditInline();
-                                }
+                                if (!ignoreLinks)
+                                    parsedElement = RawSubredditInline.Parse(markdown, pos, endingPos, out parsedElementEnd);
                                 break;
+                            case MarkdownInlineType.Strikethrough:
+                                parsedElement = StrikethroughTextInline.Parse(markdown, pos, endingPos, out parsedElementEnd);
+                                break;
+                            case MarkdownInlineType.Superscript:
+                                parsedElement = SuperscriptTextInline.Parse(markdown, pos, endingPos, out parsedElementEnd);
+                                break;
+                            case MarkdownInlineType.Code:
+                                parsedElement = CodeInline.Parse(markdown, pos, endingPos, out parsedElementEnd);
+                                break;
+                        }
+
+                        if (parsedElement != null)
+                        {
+                            nextElementStart = pos;
+                            nextElementEnd = parsedElementEnd;
+                            return parsedElement;
                         }
                     }
                 }
             }
 
             // If we didn't find any elements we have a normal text block.
-            // Let is consume the entire range.
+            // Let us consume the entire range.
             nextElementStart = startingPos;
             nextElementEnd = endingPos;
-            return new TextRunInline();
+            return TextRunInline.Parse(markdown, startingPos, endingPos);
         }
 
-        /// <summary>
-        /// Returns the next paragraph line break. This is either a double line break or a single line break followed by a
-        /// new block type.
-        /// </summary>
-        /// <param name="markdown"></param>
-        /// <param name="startingPos"></param>
-        /// <param name="endingPos"></param>
-        /// <returns></returns>
-        public static int FindNextParagraphLineBreak(ref string markdown, int startingPos, int endingPos)
-        {
-            // First get the next double and single line break.
-            int doubleNewLinePos = FindNextDoubleNewLine(ref markdown, startingPos, endingPos);
-            int singleNewLinePos = FindNextSingleNewLine(ref markdown, startingPos, endingPos);
-
-            // While we still have a single break before the double check it.
-            while (singleNewLinePos != -1 && singleNewLinePos < doubleNewLinePos)
-            {
-                int investigatePos = singleNewLinePos;
-
-                // Otherwise, we need to figure out what the next thing is. First ignore any spaces, \r or \n
-                // Note this won't clobber double newlines because we shouldn't be here if this is a double, the loop shouldn't be
-                // entered.
-                int spaceCount = 0;
-                bool ateNewLine = false;
-                bool ateReturn = false;
-                while (investigatePos < endingPos)
-                {
-                    // Count spaces
-                    if(markdown[investigatePos] == ' ')
-                    {
-                        spaceCount++;
-                    }
-                    // If we hit a \r and we haven't already eat it
-                    else if(markdown[investigatePos] == '\r')
-                    {
-                        if(ateReturn)
-                        {
-                            break;
-                        }
-                        ateReturn = true;
-                    }
-                    // If we hit a \n and we haven't already eat it
-                    else if (markdown[investigatePos] == '\n')
-                    {
-                        if (ateNewLine)
-                        {
-                            break;
-                        }
-                        ateNewLine = true;
-                    }
-                    // If we hit anything else break.
-                    else
-                    {
-                        break;
-                    }
-                    investigatePos++;
-                }
-
-                // We didn't find anything.
-                if(investigatePos == endingPos)
-                {
-                    return doubleNewLinePos;
-                }
-
-                // If we have 4+ spaces it is code.
-                if (spaceCount > 3)
-                {
-                    return singleNewLinePos;
-                }
-
-                // If its a > or # we have a quote or header
-                if (markdown[investigatePos] == '>' || markdown[investigatePos] == '#')
-                {
-                    return singleNewLinePos;
-                }
-
-                // We need to check for a rule, this can be * or - or _ or = 3 or more times
-                if (markdown[investigatePos] == '*' || markdown[investigatePos] == '-' || markdown[investigatePos] == '_' || markdown[investigatePos] == '=')
-                {
-                    // Make sure there are at least 2 more of them.
-                    char matchChar = markdown[investigatePos];
-                    if (investigatePos + 2 < endingPos && markdown[investigatePos + 1] == matchChar && markdown[investigatePos + 2] == matchChar)
-                    {
-                        return singleNewLinePos;
-                    }
-                }
-
-                // Now we need to check for a list. This is either * or - followed by a space, or any letter or digit (s) followed by a .
-                bool potentialListStart = true; ;
-                while (investigatePos < endingPos)
-                {
-                    // Check for a * or a - followed by a space
-                    if (investigatePos + 1 < endingPos && (markdown[investigatePos] == '*' || markdown[investigatePos] == '-') && markdown[investigatePos + 1] == ' ')
-                    {
-                        // This is our line break
-                        return singleNewLinePos;
-                    }
-                    // If this is a char we might have a new list start. Note the position and loop.
-                    else if (Char.IsLetterOrDigit(markdown[investigatePos]))
-                    {
-                        potentialListStart = true;
-                        investigatePos++;
-                    }
-                    // If we find a . and we have a potential list start then we matched.
-                    else if (potentialListStart && markdown[investigatePos] == '.')
-                    {
-                        // This is our line break
-                        return singleNewLinePos;
-                    }
-                    else
-                    {
-                        // Not a list
-                        break;
-                    }
-                }
-
-                // We didn't get any matches, try the next single line break
-                singleNewLinePos = FindNextSingleNewLine(ref markdown, singleNewLinePos + 1, endingPos);
-            }
-
-            // If we got to the end none of the single breaks worked out. Return the double.
-            return doubleNewLinePos;
-        }
-
-        /// <summary>
-        /// Returns the next \n\n or \r\n\r\n in the markdown.
-        /// </summary>
-        /// <param name="markdown"></param>
-        /// <param name="startingPos"></param>
-        /// <param name="endingPos"></param>
-        /// <returns></returns>
-        public static int FindNextDoubleNewLine(ref string markdown, int startingPos, int endingPos)
-        {
-            // Find any line marker
-            int doubleNewLinePos = IndexOf(ref markdown, "\n\n", startingPos, endingPos);
-            int returnNewLinePos = IndexOf(ref markdown, "\r\n\r\n", startingPos, endingPos);
-
-            if (doubleNewLinePos == -1 && returnNewLinePos == -1)
-            {
-                return -1;
-            }
-
-            // If either are -1 make them huge
-            doubleNewLinePos = doubleNewLinePos == -1 ? int.MaxValue : doubleNewLinePos;
-            returnNewLinePos = returnNewLinePos == -1 ? int.MaxValue : returnNewLinePos;
-            return Math.Min(doubleNewLinePos, returnNewLinePos);
-        }
 
         /// <summary>
         /// Returns the next \n or \r\n in the markdown.
@@ -310,22 +195,23 @@ namespace UniversalMarkdown.Helpers
         /// <param name="markdown"></param>
         /// <param name="startingPos"></param>
         /// <param name="endingPos"></param>
+        /// <param name="startOfNextLine"></param>
         /// <returns></returns>
-        public static int FindNextSingleNewLine(ref string markdown, int startingPos, int endingPos)
+        public static int FindNextSingleNewLine(string markdown, int startingPos, int endingPos, out int startOfNextLine)
         {
-            // Find any line marker
-            int newLinePos = IndexOf(ref markdown, "\n", startingPos, endingPos);
-            int returnLinePos = IndexOf(ref markdown, "\r\n", startingPos, endingPos);
-
-            if (newLinePos == -1 && returnLinePos == -1)
+            // A line can end with CRLF (\r\n) or just LF (\n).
+            int lineFeedPos = markdown.IndexOf('\n', startingPos);
+            if (lineFeedPos == -1)
             {
-                return -1;
+                startOfNextLine = endingPos;
+                return endingPos;
             }
+            startOfNextLine = lineFeedPos + 1;
 
-            // If either are -1 make them huge
-            newLinePos = newLinePos == -1 ? int.MaxValue : newLinePos;
-            returnLinePos = returnLinePos == -1 ? int.MaxValue : returnLinePos;
-            return Math.Min(newLinePos, returnLinePos);
+            // Check if it was a CRLF.
+            if (lineFeedPos > startingPos && markdown[lineFeedPos - 1] == '\r')
+                return lineFeedPos - 1;
+            return lineFeedPos;
         }
 
         /// <summary>
@@ -336,7 +222,7 @@ namespace UniversalMarkdown.Helpers
         /// <param name="startingPos"></param>
         /// <param name="endingPos"></param>
         /// <returns></returns>
-        public static int IndexOf(ref string markdown, string search, int startingPos, int endingPos, bool reverseSearch = false)
+        public static int IndexOf(string markdown, string search, int startingPos, int endingPos, bool reverseSearch = false)
         {
             // Check the ending isn't out of bounds.
             if (endingPos > markdown.Length)
@@ -378,7 +264,7 @@ namespace UniversalMarkdown.Helpers
         /// <param name="startingPos"></param>
         /// <param name="endingPos"></param>
         /// <returns></returns>
-        public static int IndexOf(ref string markdown, char search, int startingPos, int endingPos, bool reverseSearch = false)
+        public static int IndexOf(string markdown, char search, int startingPos, int endingPos, bool reverseSearch = false)
         {
             // Check the ending isn't out of bounds.
             if (endingPos > markdown.Length)
@@ -404,7 +290,7 @@ namespace UniversalMarkdown.Helpers
 
             // Check the ending. Since we use inclusive ranges we need to -1 from this for
             // reverses searches.
-            if(reverseSearch && endingPos > 0)
+            if (reverseSearch && endingPos > 0)
             {
                 endingPos -= 1;
             }
@@ -419,18 +305,18 @@ namespace UniversalMarkdown.Helpers
         /// <param name="startingPos"></param>
         /// <param name="endingPos"></param>
         /// <returns></returns>
-        public static int FindNextWhiteSpace(ref string markdown, int startingPos, int endingPos, bool ifNotFoundReturnLenght)
+        public static int FindNextWhiteSpace(string markdown, int startingPos, int endingPos, bool ifNotFoundReturnLength)
         {
             int currentPos = startingPos;
-            while(currentPos < markdown.Length && currentPos < endingPos)
+            while (currentPos < markdown.Length && currentPos < endingPos)
             {
-                if(Char.IsWhiteSpace(markdown[currentPos]))
+                if (Char.IsWhiteSpace(markdown[currentPos]))
                 {
                     return currentPos;
                 }
                 currentPos++;
             }
-            return ifNotFoundReturnLenght ? endingPos : -1;
+            return ifNotFoundReturnLength ? endingPos : -1;
         }
 
         /// <summary>
@@ -440,7 +326,7 @@ namespace UniversalMarkdown.Helpers
         /// <param name="startingPos"></param>
         /// <param name="endingPos"></param>
         /// <returns></returns>
-        public static int FindNextNonLetterDigitOrUnderscore(ref string markdown, int startingPos, int endingPos, bool ifNotFoundReturnLenght)
+        public static int FindNextNonLetterDigitOrUnderscore(string markdown, int startingPos, int endingPos, bool ifNotFoundReturnLenght)
         {
             int currentPos = startingPos;
             while (currentPos < markdown.Length && currentPos < endingPos)
@@ -452,6 +338,16 @@ namespace UniversalMarkdown.Helpers
                 currentPos++;
             }
             return ifNotFoundReturnLenght ? endingPos : -1;
+        }
+
+        /// <summary>
+        /// Determines if a character is a whitespace character.
+        /// </summary>
+        /// <param name="c"></param>
+        /// <returns></returns>
+        public static bool IsWhiteSpace(char c)
+        {
+            return c == ' ' || c == '\t' || c == '\r' || c == '\n';
         }
     }
 }

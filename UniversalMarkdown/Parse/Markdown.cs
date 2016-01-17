@@ -28,107 +28,250 @@ namespace UniversalMarkdown.Parse
     /// </summary>
     public class Markdown : MarkdownBlock
     {
-        public Markdown()
-            : base(MarkdownBlockType.Root)
-        { }
+        /// <summary>
+        /// Holds the list of block elements.
+        /// </summary>
+        public IList<MarkdownBlock> Blocks { get; set; }
 
+        /// <summary>
+        /// Initializes a new markdown document.
+        /// </summary>
+        public Markdown() : base(MarkdownBlockType.Root)
+        {
+        }
+
+        /// <summary>
+        /// Parses markdown document text.
+        /// </summary>
+        /// <param name="markdownText"> The markdown text. </param>
         public void Parse(string markdownText)
         {
-            // Don't do anything if we don't have anything.
-            if(String.IsNullOrWhiteSpace(markdownText))
-            {
-                return;
-            }
-
-            // We need to make sure that all text ends with a \n\n so everything is contained in at least something
-            markdownText += "\n\n";
-
-            // Parse us.
-            Parse(ref markdownText, 0, markdownText.Length);
+            int actualEnd;
+            Blocks = Parse(markdownText, 0, markdownText.Length, quoteDepth: 0, actualEnd: out actualEnd);
         }
 
         /// <summary>
-        /// Called when we should parse our blocks
+        /// Parses a markdown document.
         /// </summary>
-        /// <param name="markdown"></param>
-        /// <param name="startingPos"></param>
-        /// <param name="maxEndingPos"></param>
-        /// <returns></returns>
-        internal override int Parse(ref string markdown, int startingPos, int maxEndingPos)
+        /// <param name="markdown"> The markdown text. </param>
+        /// <param name="start"> The position to start parsing. </param>
+        /// <param name="end"> The position to stop parsing. </param>
+        /// <param name="quoteDepth"> The current nesting level for block quoting. </param>
+        /// <param name="actualEnd"> Set to the position at which parsing ended.  This can be
+        /// different from <paramref name="end"/> when the parser is being called recursively.
+        /// </param>
+        /// <returns> A list of parsed blocks. </returns>
+        internal static List<MarkdownBlock> Parse(string markdown, int start, int end, int quoteDepth, out int actualEnd)
         {
-            // We are the only thing that can parse blocks, and we should be the only thing to hold blocks.
-            // So start off by parsing our block children.
-            int currentParsePosition = 0;
+            // We need to parse out the list of blocks.
+            // Some blocks need to start on a new paragraph (code, lists and tables) while other
+            // blocks can start on any line (headers, horizontal rules and quotes).
+            // Text that is outside of any other block becomes a paragraph.
 
-            while (currentParsePosition < maxEndingPos)
+            var blocks = new List<MarkdownBlock>();
+            int startOfLine = start;
+            bool lineStartsNewParagraph = true;
+            var paragraphText = new StringBuilder();
+
+            // These are needed to parse underline-style header blocks.
+            int previousStartOfLine = start;
+            int previousEndOfLine = start;
+
+            // Go line by line.
+            while (startOfLine < end)
             {
-                int elementStartingPos = currentParsePosition;
-
-                // Find the next element, note this can change the elementStartingPos param
-                MarkdownBlock element = FindNextBlock(ref markdown, ref elementStartingPos, maxEndingPos);
-
-                // If our next start is our end then we are done.
-                if(maxEndingPos == elementStartingPos)
+                // Find the first non-whitespace character.
+                int nonSpacePos = startOfLine;
+                char nonSpaceChar = '\0';
+                int realStartOfLine = startOfLine;  // i.e. including quotes.
+                int expectedQuotesRemaining = quoteDepth;
+                while (true)
                 {
-                    return maxEndingPos;
+                    while (nonSpacePos < end)
+                    {
+                        char c = markdown[nonSpacePos];
+                        if (c == '\r' || c == '\n')
+                        {
+                            // The line is either entirely whitespace, or is empty.
+                            break;
+                        }
+                        if (c != ' ' && c != '\t')
+                        {
+                            // The line has content.
+                            nonSpaceChar = c;
+                            break;
+                        }
+                        nonSpacePos++;
+                    }
+
+                    // When parsing blocks in a blockquote context, we need to count the number of
+                    // quote characters ('>').  If there are less than expected AND this is the
+                    // start of a new paragraph, then stop parsing.
+                    if (expectedQuotesRemaining == 0)
+                        break;
+                    if (nonSpaceChar == '>')
+                    {
+                        // Expected block quote characters should be ignored.
+                        expectedQuotesRemaining--;
+                        nonSpacePos++;
+                        nonSpaceChar = '\0';
+                        startOfLine = nonSpacePos;
+
+                        // Ignore the first space after the quote character, if there is one.
+                        if (startOfLine < end && markdown[startOfLine] == ' ')
+                        {
+                            startOfLine++;
+                            nonSpacePos++;
+                        }
+                    }
+                    else
+                    {
+                        // There were less block quote characters than expected.
+                        // But it doesn't matter if this is not the start of a new paragraph.
+                        if (!lineStartsNewParagraph || nonSpaceChar == '\0')
+                            break;
+
+                        // This must be the end of the blockquote.  End the current paragraph, if any.
+                        actualEnd = previousEndOfLine;
+                        if (paragraphText.Length > 0)
+                            blocks.Add(ParagraphBlock.Parse(paragraphText.ToString()));
+                        return blocks;
+                    }
                 }
 
-                // Ask it to parse, it will return us the ending pos of itself.
-                currentParsePosition = element.Parse(ref markdown, elementStartingPos, maxEndingPos);
+                // Find the end of the current line.
+                int startOfNextLine;
+                int endOfLine = Common.FindNextSingleNewLine(markdown, nonSpacePos, end, out startOfNextLine);
 
-                // Add it the the children
-                Children.Add(element);
+                if (nonSpaceChar == '\0')
+                {
+                    // The line is empty or nothing but whitespace.
+                    lineStartsNewParagraph = true;
+
+                    // End the current paragraph.
+                    if (paragraphText.Length > 0)
+                    {
+                        blocks.Add(ParagraphBlock.Parse(paragraphText.ToString()));
+                        paragraphText.Clear();
+                    }
+                }
+                else
+                {
+
+                    // This is a header if the line starts with a hash character,
+                    // or if the line starts with '-' or a '=' character and has no other characters.
+                    // Or a quote if the line starts with a greater than character (optionally preceded by whitespace).
+                    // Or a horizontal rule if the line contains nothing but 3 '*', '-' or '_' characters (with optional whitespace).
+                    MarkdownBlock newBlockElement = null;
+                    if (nonSpaceChar == '#' && nonSpacePos == startOfLine)
+                    {
+                        // Hash-prefixed header.
+                        newBlockElement = HeaderBlock.ParseHashPrefixedHeader(markdown, startOfLine, endOfLine);
+                    }
+                    else if ((nonSpaceChar == '-' || nonSpaceChar == '=') && nonSpacePos == startOfLine && paragraphText.Length > 0)
+                    {
+                        // Underline style header. These are weird because you don't know you've
+                        // got one until you've gone past it.
+                        // Note: we intentionally deviate from reddit here in that we only
+                        // recognise this type of header if the previous line is part of a
+                        // paragraph.  For example if you have this, the header at the bottom is
+                        // ignored:
+                        //   a|b
+                        //   -|-
+                        //   1|2
+                        //   ===
+                        newBlockElement = HeaderBlock.ParseUnderlineStyleHeader(markdown, previousStartOfLine, previousEndOfLine, startOfLine, endOfLine);
+
+                        if (newBlockElement != null)
+                        {
+                            // We're going to have to remove the header text from the pending
+                            // paragraph by prematurely ending the current paragraph.
+                            // We already made sure that there is a paragraph in progress.
+                            paragraphText.Length = paragraphText.Length - (previousEndOfLine - previousStartOfLine);
+                        }
+                    }
+
+                    // These characters overlap with the underline-style header - this check should go after that one.
+                    if (newBlockElement == null && (nonSpaceChar == '*' || nonSpaceChar == '-' || nonSpaceChar == '_'))
+                    {
+                        newBlockElement = HorizontalRuleBlock.Parse(markdown, startOfLine, endOfLine);
+                    }
+
+                    if (newBlockElement == null && lineStartsNewParagraph)
+                    {
+                        // Some block elements must start on a new paragraph (tables, lists and code).
+                        int endOfBlock = startOfNextLine;
+                        if (nonSpaceChar == '*' || nonSpaceChar == '+' || nonSpaceChar == '-' || (nonSpaceChar >= '0' && nonSpaceChar <= '9'))
+                            newBlockElement = ListBlock.Parse(markdown, startOfLine, end, quoteDepth, out endOfBlock);
+                        if (newBlockElement == null && nonSpacePos > startOfLine)
+                            newBlockElement = CodeBlock.Parse(markdown, startOfLine, end, out endOfBlock);
+                        if (newBlockElement == null)
+                            newBlockElement = TableBlock.Parse(markdown, startOfLine, endOfLine, end, out endOfBlock);
+                        if (newBlockElement != null)
+                            startOfNextLine = endOfBlock;
+                    }
+
+                    // This check needs to go after the code block check.
+                    if (newBlockElement == null && nonSpaceChar == '>')
+                    {
+                        newBlockElement = QuoteBlock.Parse(markdown, realStartOfLine, end, quoteDepth, out startOfNextLine);
+                    }
+
+                    // Block elements start new paragraphs.
+                    lineStartsNewParagraph = newBlockElement != null;
+
+                    if (newBlockElement == null)
+                    {
+                        // The line contains paragraph text.
+                        if (paragraphText.Length > 0)
+                        {
+                            // If the previous two characters were both spaces, then append a line break.
+                            if (paragraphText.Length > 2 && paragraphText[paragraphText.Length - 1] == ' ' && paragraphText[paragraphText.Length - 2] == ' ')
+                            {
+                                // Replace the two spaces with a line break.
+                                paragraphText[paragraphText.Length - 2] = '\r';
+                                paragraphText[paragraphText.Length - 1] = '\n';
+                            }
+                            else
+                                paragraphText.Append(" ");
+                        }
+                        paragraphText.Append(markdown.Substring(startOfLine, endOfLine - startOfLine));
+
+                        // Add the last paragraph if we are at the end of the input text.
+                        if (startOfNextLine >= end)
+                            blocks.Add(ParagraphBlock.Parse(paragraphText.ToString()));
+                    }
+                    else
+                    {
+                        // The line contained a block.  End the current paragraph, if any.
+                        if (paragraphText.Length > 0)
+                        {
+                            blocks.Add(ParagraphBlock.Parse(paragraphText.ToString()));
+                            paragraphText.Clear();
+                        }
+                        blocks.Add(newBlockElement);
+                    }
+                }
+
+                // Repeat.
+                previousStartOfLine = startOfLine;
+                previousEndOfLine = endOfLine;
+                startOfLine = startOfNextLine;
             }
 
-            return maxEndingPos;
+            actualEnd = startOfLine;
+            return blocks;
         }
 
         /// <summary>
-        /// Called by all elements to find the next element to parse out of the markdown given a startingPos and an ending Pos
+        /// Converts the object into it's textual representation.
         /// </summary>
-        /// <param name="markdown"></param>
-        /// <param name="startingPos"></param>
-        /// <param name="endingPost"></param>
-        /// <returns></returns>
-        public static MarkdownBlock FindNextBlock(ref string markdown, ref int startingPos, int endingPos)
+        /// <returns> The textual representation of this object. </returns>
+        public override string ToString()
         {
-            // We need to look at the start of this current block and figure out what type it is.
-            // Find the next char that isn't a \n, \r, or ' ', keep track of white space
-            int spaceCount = 0;
-            while (markdown.Length > startingPos && endingPos > startingPos && (markdown[startingPos] == '\r' || markdown[startingPos] == '\n' || Char.IsWhiteSpace(markdown[startingPos])))
-            {
-                // If we find a space count it for the indent rules. If not reset the count.
-                spaceCount = markdown[startingPos] == ' ' ? spaceCount + 1 : 0;
-                startingPos++;
-            }
-
-            if(CodeBlock.CanHandleBlock(ref markdown, startingPos, endingPos, spaceCount))
-            {
-                return new CodeBlock();
-            }
-            if(QuoteBlock.CanHandleBlock(ref markdown, startingPos, endingPos))
-            {
-                return new QuoteBlock();
-            }
-            if (HeaderBlock.CanHandleBlock(ref markdown, startingPos, endingPos))
-            {
-                return new HeaderBlock();
-            }
-            if (ListElementBlock.CanHandleBlock(ref markdown, startingPos, endingPos))
-            {
-                return new ListElementBlock();
-            }
-            if (HorizontalRuleBlock.CanHandleBlock(ref markdown, startingPos, endingPos))
-            {
-                return new HorizontalRuleBlock();
-            }
-            if (LineBreakBlock.CanHandleBlock(ref markdown, startingPos, endingPos))
-            {
-                return new LineBreakBlock();
-            }
-
-            // If we can't match any of these just make a new paragraph.
-            return new ParagraphBlock();
+            if (Blocks == null)
+                return base.ToString();
+            return string.Join("\r\n", Blocks);
         }
     }
 }

@@ -22,97 +22,115 @@ using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
 {
-    class CodeBlock : MarkdownBlock
+    public class CodeBlock : MarkdownBlock
     {
-        public int CodeIndent = 0;
-
-        public CodeBlock()
-            : base(MarkdownBlockType.Code)
-        { }
+        /// <summary>
+        /// The source code to display.
+        /// </summary>
+        public string Text { get; set; }
 
         /// <summary>
-        /// Called when this block type should parse out the goods. Given the markdown, a starting point, and a max ending point
-        /// the block should find the start of the block, find the end and parse out the middle. The end most of the time will not be
-        /// the max ending pos, but it sometimes can be. The function will return where it ended parsing the block in the markdown.
+        /// Initializes a new code block.
         /// </summary>
-        /// <param name="markdown"></param>
-        /// <param name="startingPos"></param>
-        /// <param name="maxEndingPos"></param>
-        /// <returns></returns>
-        internal override int Parse(ref string markdown, int startingPos, int maxEndingPos)
+        public CodeBlock() : base(MarkdownBlockType.Code)
         {
-            // Find where the code begins, since we are given the line after the last space we actually need
-            // to go backwards.
-            int spaceCountStart = startingPos - 1;
-            int spaceCount = 0;
-            while (spaceCountStart >= 0)
-            {
-                // If we found a space count it
-                if (markdown[spaceCountStart] == ' ')
-                {
-                    spaceCount++;
-                }
-                else
-                {
-                    if (spaceCount > 3)
-                    {
-                        // We found the next char after the code begin
-                        break;
-                    }
-                    else
-                    {
-                        // We found a char that broke the space count
-                        spaceCount = 0;
-                    }
-                }
-                spaceCountStart--;
-            }
-
-            if (spaceCount == 0)
-            {
-                DebuggingReporter.ReportCriticalError("Tried to code but found no space row > 3");
-            }
-
-            // Find the end of code, note code breaks with a single new line no matter what.
-            int codeEnd = Common.FindNextSingleNewLine(ref markdown, startingPos, maxEndingPos);
-            if(codeEnd == -1)
-            {
-                DebuggingReporter.ReportCriticalError("Tried to code quote that didn't have an end");
-                codeEnd = maxEndingPos;
-            }
-
-            // For every 4 spaces we want to add an indent
-            CodeIndent = (int)Math.Floor(spaceCount / 4.0);
-
-            // Make sure there is something to parse, and not just dead space
-            if (codeEnd > startingPos)
-            {
-                // Parse the children of this quote
-                ParseInlineChildren(ref markdown, startingPos, codeEnd);
-            }
-
-            // Trim off any extra line endings, except ' ' otherwise we can't do code blocks
-            while (codeEnd < markdown.Length && codeEnd < maxEndingPos && Char.IsWhiteSpace(markdown[codeEnd]) && markdown[codeEnd] != ' ')
-            {
-                codeEnd++;
-            }
-
-            // Return where we ended.
-            return codeEnd;
         }
 
         /// <summary>
-        /// Called to see if the code block can handle this next block
+        /// Parses a code block.
         /// </summary>
-        /// <param name="markdown"></param>
-        /// <param name="nextCharPos"></param>
-        /// <param name="endingPos"></param>
-        /// <param name="spaceCount"></param>
-        /// <returns></returns>
-        public static bool CanHandleBlock(ref string markdown, int nextCharPos, int endingPos, int spaceCount)
+        /// <param name="markdown"> The markdown text. </param>
+        /// <param name="start"> The location of the first character in the block. </param>
+        /// <param name="maxEnd"> The location to stop parsing. </param>
+        /// <param name="actualEnd"> Set to the end of the block when the return value is non-null. </param>
+        /// <returns> A parsed code block, or <c>null</c> if this is not a code block. </returns>
+        internal static CodeBlock Parse(string markdown, int start, int maxEnd, out int actualEnd)
         {
-            // Check the spaces and ensure the next char isn't a list element or quote.
-            return spaceCount > 3 && markdown[nextCharPos] != '*' && markdown[nextCharPos] != '-' && markdown[nextCharPos] != '>';
+            int startOfLine = start;
+            StringBuilder code = null;
+            while (startOfLine < maxEnd)
+            {
+                // Add every line that starts with a tab character or at least 4 spaces.
+                int pos = startOfLine;
+                if (pos < maxEnd && markdown[pos] == '\t')
+                    pos++;
+                else
+                {
+                    int spaceCount = 0;
+                    while (pos < maxEnd && spaceCount < 4)
+                    {
+                        if (markdown[pos] == ' ')
+                            spaceCount++;
+                        else if (markdown[pos] == '\t')
+                            spaceCount += 4;
+                        else
+                            break;
+                        pos++;
+                    }
+                    if (spaceCount < 4)
+                    {
+                        // We found a line that doesn't start with a tab or 4 spaces.
+                        // But don't end the code block until we find a non-blank line.
+                        int pos2 = pos;
+                        bool foundNonSpaceChar = false;
+                        while (pos2 < maxEnd)
+                        {
+                            char c = markdown[pos2];
+                            if (c == '\n')
+                                break;
+                            else if (!Common.IsWhiteSpace(c))
+                            {
+                                foundNonSpaceChar = true;
+                                break;
+                            }
+                            pos2++;
+                        }
+                        if (foundNonSpaceChar)
+                            break;
+                    }
+                }
+
+                // Find the end of the line.
+                int endOfLine = Common.FindNextSingleNewLine(markdown, pos, maxEnd, out startOfLine);
+
+                // Separate each line of the code text.
+                if (code == null)
+                    code = new StringBuilder();
+                else
+                    code.AppendLine();
+
+                // Append the code text, excluding the first tab/4 spaces, and convert tab characters into spaces.
+                string lineText = markdown.Substring(pos, endOfLine - pos);
+                int startOfLinePos = code.Length;
+                for (int i = 0; i < lineText.Length; i++)
+                {
+                    char c = lineText[i];
+                    if (c == '\t')
+                        code.Append(' ', 4 - ((code.Length - startOfLinePos) % 4));
+                    else
+                        code.Append(c);
+                }
+            }
+
+            if (code == null)
+            {
+                // Not a valid code block.
+                actualEnd = start;
+                return null;
+            }
+
+            // Blank lines should be trimmed from the start and end.
+            actualEnd = startOfLine;
+            return new CodeBlock() { Text = code.ToString().Trim('\r', '\n') };
+        }
+
+        /// <summary>
+        /// Converts the object into it's textual representation.
+        /// </summary>
+        /// <returns> The textual representation of this object. </returns>
+        public override string ToString()
+        {
+            return Text;
         }
     }
 }

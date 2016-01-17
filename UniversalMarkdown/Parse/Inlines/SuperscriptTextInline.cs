@@ -18,7 +18,7 @@ using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
 {
-    public class MarkdownLinkInline : MarkdownInline, ILinkElement
+    public class SuperscriptTextInline : MarkdownInline
     {
         /// <summary>
         /// The contents of the inline.
@@ -26,19 +26,9 @@ namespace UniversalMarkdown.Parse.Elements
         public IList<MarkdownInline> Inlines { get; set; }
 
         /// <summary>
-        /// The link URL.
+        /// Initializes a new superscript text span.
         /// </summary>
-        public string Url { get; set; }
-
-        /// <summary>
-        /// A tooltip to display on hover.
-        /// </summary>
-        public string Tooltip { get; set; }
-
-        /// <summary>
-        /// Initializes a new markdown link.
-        /// </summary>
-        public MarkdownLinkInline() : base(MarkdownInlineType.MarkdownLink)
+        public SuperscriptTextInline() : base(MarkdownInlineType.Superscript)
         {
         }
 
@@ -48,46 +38,49 @@ namespace UniversalMarkdown.Parse.Elements
         /// <returns></returns>
         internal static void AddTripChars(List<InlineTripCharHelper> tripCharHelpers)
         {
-            tripCharHelpers.Add(new InlineTripCharHelper() { FirstChar = '[', Type = MarkdownInlineType.MarkdownLink });
+            tripCharHelpers.Add(new InlineTripCharHelper() { FirstChar = '^', Type = MarkdownInlineType.Superscript });
         }
 
         /// <summary>
-        /// Attempts to parse a markdown link e.g. "[](http://www.reddit.com)".
+        /// Attempts to parse a superscript text span.
         /// </summary>
         /// <param name="markdown"> The markdown text. </param>
         /// <param name="start"> The location to start parsing. </param>
         /// <param name="maxEnd"> The location to stop parsing. </param>
         /// <param name="actualEnd"> Set to the end of the span when the return value is non-null. </param>
-        /// <returns> A parsed markdown link, or <c>null</c> if this is not a markdown link. </returns>
-        internal static MarkdownLinkInline Parse(string markdown, int start, int maxEnd, out int actualEnd)
+        /// <returns> A parsed superscript text span, or <c>null</c> if this is not a superscript text span. </returns>
+        internal static SuperscriptTextInline Parse(string markdown, int start, int maxEnd, out int actualEnd)
         {
             actualEnd = start;
 
-            // Expect a '[' character.
-            int linkTextOpen = start;
-            if (linkTextOpen == maxEnd || markdown[linkTextOpen] != '[')
+            // Check the first character.
+            if (start == maxEnd || markdown[start] != '^')
                 return null;
 
-            // Find the ']' character.
-            int linkTextClose = Common.IndexOf(markdown, ']', linkTextOpen, maxEnd);
-            if (linkTextClose == -1)
-                return null;
-
-            // Find the '(' character.
-            int linkOpen = Common.IndexOf(markdown, '(', linkTextClose, maxEnd);
-            if (linkOpen == -1)
-                return null;
-
-            // Find the '(' character.
-            int linkClose = Common.IndexOf(markdown, ')', linkOpen, maxEnd);
-            if (linkClose == -1)
-                return null;
+            // The content might be enclosed in parentheses.
+            int innerStart = start + 1;
+            int innerEnd;
+            if (innerStart < maxEnd && markdown[innerStart] == '(')
+            {
+                // Find the end parenthesis.
+                innerStart++;
+                innerEnd = Common.IndexOf(markdown, ')', innerStart, maxEnd);
+                if (innerEnd == -1)
+                    return null;
+                actualEnd = innerEnd + 1;
+            }
+            else
+            {
+                // Search for the next whitespace character.
+                innerEnd = Common.FindNextWhiteSpace(markdown, innerStart, maxEnd, ifNotFoundReturnLength: true);
+                if (innerEnd == innerStart)
+                    return null;   // No match if the character after the caret is a space.
+                actualEnd = innerEnd;
+            }
 
             // We found something!
-            actualEnd = linkClose + 1;
-            var result = new MarkdownLinkInline();
-            result.Inlines = Common.ParseInlineChildren(markdown, linkTextOpen + 1, linkTextClose, ignoreLinks: true);
-            result.Url = markdown.Substring(linkOpen + 1, linkClose - linkOpen - 1).Trim();
+            var result = new SuperscriptTextInline();
+            result.Inlines = Common.ParseInlineChildren(markdown, innerStart, innerEnd);
             return result;
         }
 
@@ -97,9 +90,9 @@ namespace UniversalMarkdown.Parse.Elements
         /// <returns> The textual representation of this object. </returns>
         public override string ToString()
         {
-            if (Inlines == null || Url == null)
+            if (Inlines == null)
                 return base.ToString();
-            return string.Format("[{0}]({1})", string.Join(string.Empty, Inlines), Url);
+            return "^(" + string.Join(string.Empty, Inlines) + ")";
         }
     }
 }

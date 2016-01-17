@@ -95,15 +95,5 @@ namespace UniversalMarkdownTestApp
             var dialog = new MessageDialog($"Link clicked: {e.Link}");
             await dialog.ShowAsync();
         }
-
-        private void FontSizePlusButton_Click(object sender, RoutedEventArgs e)
-        {
-            MarkdownTextBlock.FontSize++;
-        }
-
-        private void FontSizeMinusButton_Click(object sender, RoutedEventArgs e)
-        {
-            MarkdownTextBlock.FontSize--;
-        }
     }
 }

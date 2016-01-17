@@ -139,7 +139,6 @@
     <Compile Include="Parse\MarkdownInline.cs" />
     <Compile Include="Parse\Blocks\ParagraphBlock.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="MarkdownNavigateEventArgs.cs" />
   </ItemGroup>
   <ItemGroup>
     <Page Include="MarkdownTextBlock.xaml">

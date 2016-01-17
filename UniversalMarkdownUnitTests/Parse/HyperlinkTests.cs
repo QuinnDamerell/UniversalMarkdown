@@ -18,6 +18,17 @@ namespace UniversalMarkdownUnitTests.Parse
 
         [UITestMethod]
         [TestCategory("Parse - inline")]
+        public void Hyperlink_WithSurroundingText()
+        {
+            AssertEqual("Narwhal http://reddit.com fail whale",
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "Narwhal " },
+                    new RawHyperlinkInline { Url = "http://reddit.com" },
+                    new TextRunInline { Text = " fail whale" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void Hyperlink_Http_Uppercase()
         {
             AssertEqual("HTTP://reddit.com",

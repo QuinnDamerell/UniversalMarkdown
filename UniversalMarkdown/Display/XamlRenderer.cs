@@ -833,6 +833,7 @@ namespace UniversalMarkdown.Display
                     dontOutputWhitespace = false;
                 }
             }
+            context.TrimLeadingWhitespace = false;
             return result == null ? text : result.ToString();
         }
 

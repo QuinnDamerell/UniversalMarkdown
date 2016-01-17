@@ -109,7 +109,16 @@ namespace UniversalMarkdownUnitTests.Parse
 
         [UITestMethod]
         [TestCategory("Parse - block")]
-        public void Code_WinsOverQuote()
+        public void Code_Block_LeadingSpace()
+        {
+            // Code blocks win over quotes.
+            AssertEqual("      2 leading spaces",
+                new CodeBlock { Text = "  2 leading spaces" });
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - block")]
+        public void Code_Block_WinsOverQuote()
         {
             // Code blocks win over quotes.
             AssertEqual("    >not quoted",

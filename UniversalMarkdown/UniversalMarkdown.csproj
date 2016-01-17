@@ -108,7 +108,8 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Display\RenderToRichTextBlock.cs" />
+    <Compile Include="Display\MarkdownTable.cs" />
+    <Compile Include="Display\XamlRenderer.cs" />
     <Compile Include="Helpers\Common.cs" />
     <Compile Include="Helpers\DebuggingReporter.cs" />
     <Compile Include="Helpers\SmartWeakEvent.cs" />

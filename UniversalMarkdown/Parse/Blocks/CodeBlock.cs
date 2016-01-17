@@ -121,7 +121,7 @@ namespace UniversalMarkdown.Parse.Elements
 
             // Blank lines should be trimmed from the start and end.
             actualEnd = startOfLine;
-            return new CodeBlock() { Text = code.ToString().Trim(' ', '\t', '\r', '\n') };
+            return new CodeBlock() { Text = code.ToString().Trim('\r', '\n') };
         }
 
         /// <summary>

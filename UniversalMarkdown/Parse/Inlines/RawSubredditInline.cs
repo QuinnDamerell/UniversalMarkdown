@@ -18,10 +18,16 @@ using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
 {
-    public class RawSubredditInline : MarkdownInline, ILinkElement
+    public enum RedditLinkType
+    {
+        Subreddit,
+        User,
+    }
+
+    public class RedditLinkInline : MarkdownInline, ILinkElement
     {
         /// <summary>
-        /// The subreddit link text e.g. "r/news" or "/r/worldnews".
+        /// The subreddit link text e.g. "r/news" or "/u/quinbd".
         /// </summary>
         public string Text { get; set; }
 
@@ -37,9 +43,14 @@ namespace UniversalMarkdown.Parse.Elements
         string ILinkElement.Tooltip => null;
 
         /// <summary>
+        /// The type of reddit link - currently can be a subreddit or a user.
+        /// </summary>
+        public RedditLinkType LinkType { get; set; }
+
+        /// <summary>
         /// Initializes a new subreddit link.
         /// </summary>
-        public RawSubredditInline() : base(MarkdownInlineType.RawSubreddit)
+        public RedditLinkInline() : base(MarkdownInlineType.RawSubreddit)
         {
         }
 
@@ -51,6 +62,7 @@ namespace UniversalMarkdown.Parse.Elements
         {
             tripCharHelpers.Add(new InlineTripCharHelper() { FirstChar = '/', Type = MarkdownInlineType.RawSubreddit });
             tripCharHelpers.Add(new InlineTripCharHelper() { FirstChar = 'r', Type = MarkdownInlineType.RawSubreddit, IgnoreEscapeChar = true });
+            tripCharHelpers.Add(new InlineTripCharHelper() { FirstChar = 'u', Type = MarkdownInlineType.RawSubreddit, IgnoreEscapeChar = true });
         }
 
         /// <summary>
@@ -61,7 +73,7 @@ namespace UniversalMarkdown.Parse.Elements
         /// <param name="maxEnd"> The location to stop parsing. </param>
         /// <param name="actualEnd"> Set to the end of the span when the return value is non-null. </param>
         /// <returns> A parsed subreddit link, or <c>null</c> if this is not a subreddit link. </returns>
-        internal static RawSubredditInline Parse(string markdown, int start, int maxEnd, out int actualEnd)
+        internal static RedditLinkInline Parse(string markdown, int start, int maxEnd, out int actualEnd)
         {
             actualEnd = start;
             if (start == maxEnd)
@@ -83,9 +95,12 @@ namespace UniversalMarkdown.Parse.Elements
                     return null;
             }
 
-            // Expect 'r'.
-            if (pos == maxEnd || markdown[pos] != 'r')
+            // Expect 'r' or 'u'.  Use this to determine the type of link.
+            var linkType = RedditLinkType.Subreddit;
+            if (pos == maxEnd || (markdown[pos] != 'r' && markdown[pos] != 'u'))
                 return null;
+            if (markdown[pos] == 'u')
+                linkType = RedditLinkType.User;
             pos++;
 
             // Expect '/'
@@ -96,12 +111,12 @@ namespace UniversalMarkdown.Parse.Elements
             // Find the end of the link.
             actualEnd = Common.FindNextNonLetterDigitOrUnderscore(markdown, pos, maxEnd, true);
 
-            // The subreddit name must be at least 2 characters long.
-            if (actualEnd - pos < 2)
+            // Subreddit names must be at least two characters long, users at least one.
+            if (actualEnd - pos < (linkType == RedditLinkType.User ? 1 : 2))
                 return null;
 
             // We found something!
-            return new RawSubredditInline { Text = markdown.Substring(start, actualEnd - start) };
+            return new RedditLinkInline { Text = markdown.Substring(start, actualEnd - start), LinkType = linkType };
         }
 
         /// <summary>

@@ -28,18 +28,17 @@ using Windows.UI.Xaml.Shapes;
 
 namespace UniversalMarkdown.Display
 {
-    public class XamlRenderer
+    internal class XamlRenderer
     {
         /// <summary>
         /// An interface that is used to register hyperlinks.
         /// </summary>
-        ILinkRegister m_linkRegister;
+        private ILinkRegister m_linkRegister;
 
         public XamlRenderer(ILinkRegister linkRegister)
         {
             m_linkRegister = linkRegister;
         }
-
 
         /// <summary>
         /// Gets or sets a brush that provides the background of the control.
@@ -697,7 +696,7 @@ namespace UniversalMarkdown.Display
                     RenderRawHyperlink((RawHyperlinkInline)element, currentInlines, context);
                     break;
                 case MarkdownInlineType.RawSubreddit:
-                    RenderRawSubreddit((RawSubredditInline)element, currentInlines, context);
+                    RenderRawSubreddit((RedditLinkInline)element, currentInlines, context);
                     break;
                 case MarkdownInlineType.Strikethrough:
                     RenderStrikethroughRun((StrikethroughTextInline)element, currentInlines, context);
@@ -794,12 +793,12 @@ namespace UniversalMarkdown.Display
         /// <param name="element"></param>
         /// <param name="currentInlines"></param>
         /// <param name="context"></param>
-        private void RenderRawSubreddit(RawSubredditInline element, InlineCollection currentInlines, RenderContext context)
+        private void RenderRawSubreddit(RedditLinkInline element, InlineCollection currentInlines, RenderContext context)
         {
             var link = new Hyperlink();
 
             // Register the link
-            m_linkRegister.RegisterNewHyperLink(link, element.Text);
+            m_linkRegister.RegisterNewHyperLink(link, element.Url);
 
             // Add the subreddit text
             Run subreddit = new Run();

@@ -20,6 +20,7 @@ using UniversalMarkdown.Helpers;
 using UniversalMarkdown.Interfaces;
 using UniversalMarkdown.Parse;
 using Windows.UI;
+using Windows.UI.Text;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Documents;
@@ -71,12 +72,24 @@ namespace UniversalMarkdown
         public MarkdownTextBlock()
         {
             this.InitializeComponent();
+            RegisterPropertyChangedCallback(FontSizeProperty, OnPropertyChanged);
+            RegisterPropertyChangedCallback(BackgroundProperty, OnPropertyChanged);
+            RegisterPropertyChangedCallback(BorderBrushProperty, OnPropertyChanged);
+            RegisterPropertyChangedCallback(BorderThicknessProperty, OnPropertyChanged);
+            RegisterPropertyChangedCallback(CharacterSpacingProperty, OnPropertyChanged);
+            RegisterPropertyChangedCallback(FontFamilyProperty, OnPropertyChanged);
+            RegisterPropertyChangedCallback(FontSizeProperty, OnPropertyChanged);
+            RegisterPropertyChangedCallback(FontStretchProperty, OnPropertyChanged);
+            RegisterPropertyChangedCallback(FontStyleProperty, OnPropertyChanged);
+            RegisterPropertyChangedCallback(FontWeightProperty, OnPropertyChanged);
+            RegisterPropertyChangedCallback(ForegroundProperty, OnPropertyChanged);
+            RegisterPropertyChangedCallback(PaddingProperty, OnPropertyChanged);
         }
 
-        #region Markdown Logic
+        #region Dependency properties
 
         /// <summary>
-        /// This it how we get the post form the xmal binding.
+        /// The markdown text to display.
         /// </summary>
         public string Markdown
         {
@@ -84,84 +97,723 @@ namespace UniversalMarkdown
             set { SetValue(MarkdownProperty, value); }
         }
 
-        public static readonly DependencyProperty MarkdownProperty =
-            DependencyProperty.Register(
-                "Markdown",  
-                typeof(string),      
-                typeof(MarkdownTextBlock),
-                new PropertyMetadata("", new PropertyChangedCallback(OnMarkdownChangedStatic)
-                ));
+        public static readonly DependencyProperty MarkdownProperty = DependencyProperty.Register(nameof(Markdown), typeof(string),
+            typeof(MarkdownTextBlock), new PropertyMetadata("", new PropertyChangedCallback(OnPropertyChangedStatic)));
 
-        private static void OnMarkdownChangedStatic(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        /// <summary>
+        /// Gets or sets a value that indicates whether text selection is enabled.
+        /// </summary>
+        public bool IsTextSelectionEnabled
+        {
+            get { return (bool)GetValue(IsTextSelectionEnabledProperty); }
+            set { SetValue(IsTextSelectionEnabledProperty, value); }
+        }
+
+        /// <summary>
+        /// Gets the dependency property for <see cref="IsTextSelectionEnabled"/>.
+        /// </summary>
+        public static readonly DependencyProperty IsTextSelectionEnabledProperty = DependencyProperty.Register(nameof(IsTextSelectionEnabled), typeof(bool),
+                typeof(MarkdownTextBlock), new PropertyMetadata(true, new PropertyChangedCallback(OnPropertyChangedStatic)));
+
+        /// <summary>
+        /// Gets or sets the brush used to fill the background of a code block.
+        /// </summary>
+        public Brush CodeBackground
+        {
+            get { return (Brush)GetValue(CodeBackgroundProperty); }
+            set { SetValue(CodeBackgroundProperty, value); }
+        }
+
+        /// <summary>
+        /// Gets the dependency property for <see cref="CodeBackground"/>.
+        /// </summary>
+        public static readonly DependencyProperty CodeBackgroundProperty = DependencyProperty.Register(nameof(CodeBackground), typeof(Brush),
+                typeof(MarkdownTextBlock), new PropertyMetadata(null, new PropertyChangedCallback(OnPropertyChangedStatic)));
+
+        /// <summary>
+        /// Gets or sets the brush used to render the border fill of a code block.
+        /// </summary>
+        public Brush CodeBorderBrush
+        {
+            get { return (Brush)GetValue(CodeBorderBrushProperty); }
+            set { SetValue(CodeBorderBrushProperty, value); }
+        }
+
+        /// <summary>
+        /// Gets the dependency property for <see cref="CodeBorderBrush"/>.
+        /// </summary>
+        public static readonly DependencyProperty CodeBorderBrushProperty = DependencyProperty.Register(nameof(CodeBorderBrush), typeof(Brush),
+                typeof(MarkdownTextBlock), new PropertyMetadata(new SolidColorBrush(Color.FromArgb(255, 48, 48, 48)), new PropertyChangedCallback(OnPropertyChangedStatic)));
+
+        /// <summary>
+        /// Gets or sets the thickness of the border around code blocks.
+        /// </summary>
+        public Thickness CodeBorderThickness
+        {
+            get { return (Thickness)GetValue(CodeBorderThicknessProperty); }
+            set { SetValue(CodeBorderThicknessProperty, value); }
+        }
+
+        /// <summary>
+        /// Gets the dependency property for <see cref="CodeBorderThickness"/>.
+        /// </summary>
+        public static readonly DependencyProperty CodeBorderThicknessProperty = DependencyProperty.Register(nameof(CodeBorderThickness), typeof(Thickness),
+                typeof(MarkdownTextBlock), new PropertyMetadata(new Thickness(1), new PropertyChangedCallback(OnPropertyChangedStatic)));
+
+        /// <summary>
+        /// Gets or sets the brush used to render the text inside a code block.  If this is
+        /// <c>null</c>, then <see cref="Foreground"/> is used.
+        /// </summary>
+        public Brush CodeForeground
+        {
+            get { return (Brush)GetValue(CodeForegroundProperty); }
+            set { SetValue(CodeForegroundProperty, value); }
+        }
+
+        /// <summary>
+        /// Gets the dependency property for <see cref="CodeForeground"/>.
+        /// </summary>
+        public static readonly DependencyProperty CodeForegroundProperty = DependencyProperty.Register(nameof(CodeForeground), typeof(Brush),
+                typeof(MarkdownTextBlock), new PropertyMetadata(null, new PropertyChangedCallback(OnPropertyChangedStatic)));
+
+        /// <summary>
+        /// Gets or sets the font used to display code.  If this is <c>null</c>, then
+        /// <see cref="FontFamily"/> is used.
+        /// </summary>
+        public FontFamily CodeFontFamily
+        {
+            get { return (FontFamily)GetValue(CodeFontFamilyProperty); }
+            set { SetValue(CodeFontFamilyProperty, value); }
+        }
+
+        /// <summary>
+        /// Gets the dependency property for <see cref="CodeFontFamily"/>.
+        /// </summary>
+        public static readonly DependencyProperty CodeFontFamilyProperty = DependencyProperty.Register(nameof(CodeFontFamily), typeof(FontFamily),
+                typeof(MarkdownTextBlock), new PropertyMetadata(new FontFamily("Consolas"), new PropertyChangedCallback(OnPropertyChangedStatic)));
+
+        /// <summary>
+        /// The space between the code border and the text.
+        /// </summary>
+        public Thickness CodeMargin
+        {
+            get { return (Thickness)GetValue(CodeMarginProperty); }
+            set { SetValue(CodeMarginProperty, value); }
+        }
+
+        /// <summary>
+        /// Gets the dependency property for <see cref="CodeMargin"/>.
+        /// </summary>
+        public static readonly DependencyProperty CodeMarginProperty = DependencyProperty.Register(nameof(CodeMargin), typeof(Thickness),
+                typeof(MarkdownTextBlock), new PropertyMetadata(new Thickness(0, 7, 0, 7), new PropertyChangedCallback(OnPropertyChangedStatic)));
+
+        /// <summary>
+        /// The space between the code border and the text.
+        /// </summary>
+        public Thickness CodePadding
+        {
+            get { return (Thickness)GetValue(CodePaddingProperty); }
+            set { SetValue(CodePaddingProperty, value); }
+        }
+
+        /// <summary>
+        /// Gets the dependency property for <see cref="CodePadding"/>.
+        /// </summary>
+        public static readonly DependencyProperty CodePaddingProperty = DependencyProperty.Register(nameof(CodePadding), typeof(Thickness),
+                typeof(MarkdownTextBlock), new PropertyMetadata(new Thickness(9, 4, 9, 4), new PropertyChangedCallback(OnPropertyChangedStatic)));
+
+        /// <summary>
+        /// Gets or sets the font weight to use for level 1 headers.
+        /// </summary>
+        public FontWeight Header1FontWeight
+        {
+            get { return (FontWeight)GetValue(Header1FontWeightProperty); }
+            set { SetValue(Header1FontWeightProperty, value); }
+        }
+
+        /// <summary>
+        /// Gets the dependency property for <see cref="Header1FontWeight"/>.
+        /// </summary>
+        public static readonly DependencyProperty Header1FontWeightProperty = DependencyProperty.Register(nameof(Header1FontWeight), typeof(FontWeight),
+                typeof(MarkdownTextBlock), new PropertyMetadata(FontWeights.Bold, new PropertyChangedCallback(OnPropertyChangedStatic)));
+
+        /// <summary>
+        /// Gets or sets the font size for level 1 headers.
+        /// </summary>
+        public double Header1FontSize
+        {
+            get { return (double)GetValue(Header1FontSizeProperty); }
+            set { SetValue(Header1FontSizeProperty, value); }
+        }
+
+        /// <summary>
+        /// Gets the dependency property for <see cref="Header1FontSize"/>.
+        /// </summary>
+        public static readonly DependencyProperty Header1FontSizeProperty = DependencyProperty.Register(nameof(Header1FontSize), typeof(double),
+                typeof(MarkdownTextBlock), new PropertyMetadata(20.0, new PropertyChangedCallback(OnPropertyChangedStatic)));
+
+        /// <summary>
+        /// Gets or sets the margin for level 1 headers.
+        /// </summary>
+        public Thickness Header1Margin
+        {
+            get { return (Thickness)GetValue(Header1MarginProperty); }
+            set { SetValue(Header1MarginProperty, value); }
+        }
+
+        /// <summary>
+        /// Gets the dependency property for <see cref="Header1Margin"/>.
+        /// </summary>
+        public static readonly DependencyProperty Header1MarginProperty = DependencyProperty.Register(nameof(Header1Margin), typeof(Thickness),
+                typeof(MarkdownTextBlock), new PropertyMetadata(new Thickness(0, 15, 0, 15), new PropertyChangedCallback(OnPropertyChangedStatic)));
+
+        /// <summary>
+        /// Gets or sets the font weight to use for level 2 headers.
+        /// </summary>
+        public FontWeight Header2FontWeight
+        {
+            get { return (FontWeight)GetValue(Header2FontWeightProperty); }
+            set { SetValue(Header2FontWeightProperty, value); }
+        }
+
+        /// <summary>
+        /// Gets the dependency property for <see cref="Header2FontWeight"/>.
+        /// </summary>
+        public static readonly DependencyProperty Header2FontWeightProperty = DependencyProperty.Register(nameof(Header2FontWeight), typeof(FontWeight),
+                typeof(MarkdownTextBlock), new PropertyMetadata(FontWeights.Normal, new PropertyChangedCallback(OnPropertyChangedStatic)));
+
+        /// <summary>
+        /// Gets or sets the font size for level 2 headers.
+        /// </summary>
+        public double Header2FontSize
+        {
+            get { return (double)GetValue(Header2FontSizeProperty); }
+            set { SetValue(Header2FontSizeProperty, value); }
+        }
+
+        /// <summary>
+        /// Gets the dependency property for <see cref="Header2FontSize"/>.
+        /// </summary>
+        public static readonly DependencyProperty Header2FontSizeProperty = DependencyProperty.Register(nameof(Header2FontSize), typeof(double),
+                typeof(MarkdownTextBlock), new PropertyMetadata(20.0, new PropertyChangedCallback(OnPropertyChangedStatic)));
+
+        /// <summary>
+        /// Gets or sets the margin for level 2 headers.
+        /// </summary>
+        public Thickness Header2Margin
+        {
+            get { return (Thickness)GetValue(Header2MarginProperty); }
+            set { SetValue(Header2MarginProperty, value); }
+        }
+
+        /// <summary>
+        /// Gets the dependency property for <see cref="Header2Margin"/>.
+        /// </summary>
+        public static readonly DependencyProperty Header2MarginProperty = DependencyProperty.Register(nameof(Header2Margin), typeof(Thickness),
+                typeof(MarkdownTextBlock), new PropertyMetadata(new Thickness(0, 15, 0, 15), new PropertyChangedCallback(OnPropertyChangedStatic)));
+
+        /// <summary>
+        /// Gets or sets the font weight to use for level 3 headers.
+        /// </summary>
+        public FontWeight Header3FontWeight
+        {
+            get { return (FontWeight)GetValue(Header3FontWeightProperty); }
+            set { SetValue(Header3FontWeightProperty, value); }
+        }
+
+        /// <summary>
+        /// Gets the dependency property for <see cref="Header3FontWeight"/>.
+        /// </summary>
+        public static readonly DependencyProperty Header3FontWeightProperty = DependencyProperty.Register(nameof(Header3FontWeight), typeof(FontWeight),
+                typeof(MarkdownTextBlock), new PropertyMetadata(FontWeights.Bold, new PropertyChangedCallback(OnPropertyChangedStatic)));
+
+        /// <summary>
+        /// Gets or sets the font size for level 3 headers.
+        /// </summary>
+        public double Header3FontSize
+        {
+            get { return (double)GetValue(Header3FontSizeProperty); }
+            set { SetValue(Header3FontSizeProperty, value); }
+        }
+
+        /// <summary>
+        /// Gets the dependency property for <see cref="Header3FontSize"/>.
+        /// </summary>
+        public static readonly DependencyProperty Header3FontSizeProperty = DependencyProperty.Register(nameof(Header3FontSize), typeof(double),
+                typeof(MarkdownTextBlock), new PropertyMetadata(17.0, new PropertyChangedCallback(OnPropertyChangedStatic)));
+
+        /// <summary>
+        /// Gets or sets the margin for level 3 headers.
+        /// </summary>
+        public Thickness Header3Margin
+        {
+            get { return (Thickness)GetValue(Header3MarginProperty); }
+            set { SetValue(Header3MarginProperty, value); }
+        }
+
+        /// <summary>
+        /// Gets the dependency property for <see cref="Header3Margin"/>.
+        /// </summary>
+        public static readonly DependencyProperty Header3MarginProperty = DependencyProperty.Register(nameof(Header3Margin), typeof(Thickness),
+                typeof(MarkdownTextBlock), new PropertyMetadata(new Thickness(0, 10, 0, 10), new PropertyChangedCallback(OnPropertyChangedStatic)));
+
+        /// <summary>
+        /// Gets or sets the font weight to use for level 4 headers.
+        /// </summary>
+        public FontWeight Header4FontWeight
+        {
+            get { return (FontWeight)GetValue(Header4FontWeightProperty); }
+            set { SetValue(Header4FontWeightProperty, value); }
+        }
+
+        /// <summary>
+        /// Gets the dependency property for <see cref="Header4FontWeight"/>.
+        /// </summary>
+        public static readonly DependencyProperty Header4FontWeightProperty = DependencyProperty.Register(nameof(Header4FontWeight), typeof(FontWeight),
+                typeof(MarkdownTextBlock), new PropertyMetadata(FontWeights.Normal, new PropertyChangedCallback(OnPropertyChangedStatic)));
+
+        /// <summary>
+        /// Gets or sets the font size for level 4 headers.
+        /// </summary>
+        public double Header4FontSize
+        {
+            get { return (double)GetValue(Header4FontSizeProperty); }
+            set { SetValue(Header4FontSizeProperty, value); }
+        }
+
+        /// <summary>
+        /// Gets the dependency property for <see cref="Header4FontSize"/>.
+        /// </summary>
+        public static readonly DependencyProperty Header4FontSizeProperty = DependencyProperty.Register(nameof(Header4FontSize), typeof(double),
+                typeof(MarkdownTextBlock), new PropertyMetadata(17.0, new PropertyChangedCallback(OnPropertyChangedStatic)));
+
+        /// <summary>
+        /// Gets or sets the margin for level 4 headers.
+        /// </summary>
+        public Thickness Header4Margin
+        {
+            get { return (Thickness)GetValue(Header4MarginProperty); }
+            set { SetValue(Header4MarginProperty, value); }
+        }
+
+        /// <summary>
+        /// Gets the dependency property for <see cref="Header4Margin"/>.
+        /// </summary>
+        public static readonly DependencyProperty Header4MarginProperty = DependencyProperty.Register(nameof(Header4Margin), typeof(Thickness),
+                typeof(MarkdownTextBlock), new PropertyMetadata(new Thickness(0, 10, 0, 10), new PropertyChangedCallback(OnPropertyChangedStatic)));
+
+        /// <summary>
+        /// Gets or sets the font weight to use for level 5 headers.
+        /// </summary>
+        public FontWeight Header5FontWeight
+        {
+            get { return (FontWeight)GetValue(Header5FontWeightProperty); }
+            set { SetValue(Header5FontWeightProperty, value); }
+        }
+
+        /// <summary>
+        /// Gets the dependency property for <see cref="Header5FontWeight"/>.
+        /// </summary>
+        public static readonly DependencyProperty Header5FontWeightProperty = DependencyProperty.Register(nameof(Header5FontWeight), typeof(FontWeight),
+                typeof(MarkdownTextBlock), new PropertyMetadata(FontWeights.Bold, new PropertyChangedCallback(OnPropertyChangedStatic)));
+
+        /// <summary>
+        /// Gets or sets the font size for level 5 headers.
+        /// </summary>
+        public double Header5FontSize
+        {
+            get { return (double)GetValue(Header5FontSizeProperty); }
+            set { SetValue(Header5FontSizeProperty, value); }
+        }
+
+        /// <summary>
+        /// Gets the dependency property for <see cref="Header5FontSize"/>.
+        /// </summary>
+        public static readonly DependencyProperty Header5FontSizeProperty = DependencyProperty.Register(nameof(Header5FontSize), typeof(double),
+                typeof(MarkdownTextBlock), new PropertyMetadata(15.0, new PropertyChangedCallback(OnPropertyChangedStatic)));
+
+        /// <summary>
+        /// Gets or sets the margin for level 5 headers.
+        /// </summary>
+        public Thickness Header5Margin
+        {
+            get { return (Thickness)GetValue(Header5MarginProperty); }
+            set { SetValue(Header5MarginProperty, value); }
+        }
+
+        /// <summary>
+        /// Gets the dependency property for <see cref="Header5Margin"/>.
+        /// </summary>
+        public static readonly DependencyProperty Header5MarginProperty = DependencyProperty.Register(nameof(Header5Margin), typeof(Thickness),
+                typeof(MarkdownTextBlock), new PropertyMetadata(new Thickness(0, 10, 0, 5), new PropertyChangedCallback(OnPropertyChangedStatic)));
+
+        /// <summary>
+        /// Gets or sets the font weight to use for level 6 headers.
+        /// </summary>
+        public FontWeight Header6FontWeight
+        {
+            get { return (FontWeight)GetValue(Header6FontWeightProperty); }
+            set { SetValue(Header6FontWeightProperty, value); }
+        }
+
+        /// <summary>
+        /// Gets the dependency property for <see cref="Header6FontWeight"/>.
+        /// </summary>
+        public static readonly DependencyProperty Header6FontWeightProperty = DependencyProperty.Register(nameof(Header6FontWeight), typeof(FontWeight),
+                typeof(MarkdownTextBlock), new PropertyMetadata(FontWeights.Normal, new PropertyChangedCallback(OnPropertyChangedStatic)));
+
+        /// <summary>
+        /// Gets or sets the font size for level 6 headers.
+        /// </summary>
+        public double Header6FontSize
+        {
+            get { return (double)GetValue(Header6FontSizeProperty); }
+            set { SetValue(Header6FontSizeProperty, value); }
+        }
+
+        /// <summary>
+        /// Gets the dependency property for <see cref="Header6FontSize"/>.
+        /// </summary>
+        public static readonly DependencyProperty Header6FontSizeProperty = DependencyProperty.Register(nameof(Header6FontSize), typeof(double),
+                typeof(MarkdownTextBlock), new PropertyMetadata(15.0, new PropertyChangedCallback(OnPropertyChangedStatic)));
+
+        /// <summary>
+        /// Gets or sets the margin for level 6 headers.
+        /// </summary>
+        public Thickness Header6Margin
+        {
+            get { return (Thickness)GetValue(Header6MarginProperty); }
+            set { SetValue(Header6MarginProperty, value); }
+        }
+
+        /// <summary>
+        /// Gets the dependency property for <see cref="Header6Margin"/>.
+        /// </summary>
+        public static readonly DependencyProperty Header6MarginProperty = DependencyProperty.Register(nameof(Header6Margin), typeof(Thickness),
+                typeof(MarkdownTextBlock), new PropertyMetadata(new Thickness(0, 10, 0, 0), new PropertyChangedCallback(OnPropertyChangedStatic)));
+
+        /// <summary>
+        /// Gets or sets the brush used to render a horizontal rule.  If this is <c>null</c>, then
+        /// <see cref="Foreground"/> is used.
+        /// </summary>
+        public Brush HorizontalRuleBrush
+        {
+            get { return (Brush)GetValue(HorizontalRuleBrushProperty); }
+            set { SetValue(HorizontalRuleBrushProperty, value); }
+        }
+
+        /// <summary>
+        /// Gets the dependency property for <see cref="HorizontalRuleBrush"/>.
+        /// </summary>
+        public static readonly DependencyProperty HorizontalRuleBrushProperty = DependencyProperty.Register(nameof(HorizontalRuleBrush), typeof(Brush),
+                typeof(MarkdownTextBlock), new PropertyMetadata(new SolidColorBrush(Color.FromArgb(255, 64, 64, 64)), new PropertyChangedCallback(OnPropertyChangedStatic)));
+
+        /// <summary>
+        /// The margin used for horizontal rules.
+        /// </summary>
+        public Thickness HorizontalRuleMargin
+        {
+            get { return (Thickness)GetValue(HorizontalRuleMarginProperty); }
+            set { SetValue(HorizontalRuleMarginProperty, value); }
+        }
+
+        /// <summary>
+        /// Gets the dependency property for <see cref="HorizontalRuleMargin"/>.
+        /// </summary>
+        public static readonly DependencyProperty HorizontalRuleMarginProperty = DependencyProperty.Register(nameof(HorizontalRuleMargin), typeof(Thickness),
+                typeof(MarkdownTextBlock), new PropertyMetadata(new Thickness(0, 7, 0, 7), new PropertyChangedCallback(OnPropertyChangedStatic)));
+
+        /// <summary>
+        /// Gets or sets the vertical thickness of the horizontal rule.
+        /// </summary>
+        public double HorizontalRuleThickness
+        {
+            get { return (double)GetValue(HorizontalRuleThicknessProperty); }
+            set { SetValue(HorizontalRuleThicknessProperty, value); }
+        }
+
+        /// <summary>
+        /// Gets the dependency property for <see cref="HorizontalRuleThickness"/>.
+        /// </summary>
+        public static readonly DependencyProperty HorizontalRuleThicknessProperty = DependencyProperty.Register(nameof(HorizontalRuleThickness), typeof(double),
+                typeof(MarkdownTextBlock), new PropertyMetadata(2.0, new PropertyChangedCallback(OnPropertyChangedStatic)));
+
+        /// <summary>
+        /// Gets or sets the margin used by lists.
+        /// </summary>
+        public Thickness ListMargin
+        {
+            get { return (Thickness)GetValue(ListMarginProperty); }
+            set { SetValue(ListMarginProperty, value); }
+        }
+
+        /// <summary>
+        /// Gets the dependency property for <see cref="ListMargin"/>.
+        /// </summary>
+        public static readonly DependencyProperty ListMarginProperty = DependencyProperty.Register(nameof(ListMargin), typeof(Thickness),
+                typeof(MarkdownTextBlock), new PropertyMetadata(new Thickness(0, 5, 0, 5), new PropertyChangedCallback(OnPropertyChangedStatic)));
+
+        /// <summary>
+        /// Gets or sets the margin used for paragraphs.
+        /// </summary>
+        public Thickness ParagraphMargin
+        {
+            get { return (Thickness)GetValue(ParagraphMarginProperty); }
+            set { SetValue(ParagraphMarginProperty, value); }
+        }
+
+        /// <summary>
+        /// Gets the dependency property for <see cref="ParagraphMargin"/>.
+        /// </summary>
+        public static readonly DependencyProperty ParagraphMarginProperty = DependencyProperty.Register(nameof(ParagraphMargin), typeof(Thickness),
+                typeof(MarkdownTextBlock), new PropertyMetadata(new Thickness(0, 5, 0, 5), new PropertyChangedCallback(OnPropertyChangedStatic)));
+
+        /// <summary>
+        /// Gets or sets the brush used to render a quote border.  If this is <c>null</c>, then
+        /// <see cref="Foreground"/> is used.
+        /// </summary>
+        public Brush QuoteBorderBrush
+        {
+            get { return (Brush)GetValue(QuoteBorderBrushProperty); }
+            set { SetValue(QuoteBorderBrushProperty, value); }
+        }
+
+        /// <summary>
+        /// Gets the dependency property for <see cref="QuoteBorderBrush"/>.
+        /// </summary>
+        public static readonly DependencyProperty QuoteBorderBrushProperty = DependencyProperty.Register(nameof(QuoteBorderBrush), typeof(Brush),
+                typeof(MarkdownTextBlock), new PropertyMetadata(Application.Current.Resources["SystemControlHighlightAccentBrush"] as SolidColorBrush, new PropertyChangedCallback(OnPropertyChangedStatic)));
+
+        /// <summary>
+        /// Gets or sets the thickness of quote borders.
+        /// </summary>
+        public Thickness QuoteBorderThickness
+        {
+            get { return (Thickness)GetValue(QuoteBorderThicknessProperty); }
+            set { SetValue(QuoteBorderThicknessProperty, value); }
+        }
+
+        /// <summary>
+        /// Gets the dependency property for <see cref="QuoteBorderThickness"/>.
+        /// </summary>
+        public static readonly DependencyProperty QuoteBorderThicknessProperty = DependencyProperty.Register(nameof(QuoteBorderThickness), typeof(Thickness),
+                typeof(MarkdownTextBlock), new PropertyMetadata(new Thickness(2, 0, 0, 0), new PropertyChangedCallback(OnPropertyChangedStatic)));
+
+        /// <summary>
+        /// Gets or sets the space outside of quote borders.
+        /// </summary>
+        public Thickness QuoteMargin
+        {
+            get { return (Thickness)GetValue(QuoteMarginProperty); }
+            set { SetValue(QuoteMarginProperty, value); }
+        }
+
+        /// <summary>
+        /// Gets the dependency property for <see cref="QuoteMargin"/>.
+        /// </summary>
+        public static readonly DependencyProperty QuoteMarginProperty = DependencyProperty.Register(nameof(QuoteMargin), typeof(Thickness),
+                typeof(MarkdownTextBlock), new PropertyMetadata(new Thickness(7, 5, 0, 5), new PropertyChangedCallback(OnPropertyChangedStatic)));
+
+        /// <summary>
+        /// Gets or sets the space between the quote border and the text.
+        /// </summary>
+        public Thickness QuotePadding
+        {
+            get { return (Thickness)GetValue(QuotePaddingProperty); }
+            set { SetValue(QuotePaddingProperty, value); }
+        }
+
+        /// <summary>
+        /// Gets the dependency property for <see cref="QuotePadding"/>.
+        /// </summary>
+        public static readonly DependencyProperty QuotePaddingProperty = DependencyProperty.Register(nameof(QuotePadding), typeof(Thickness),
+                typeof(MarkdownTextBlock), new PropertyMetadata(new Thickness(7, 1, 0, 3), new PropertyChangedCallback(OnPropertyChangedStatic)));
+
+
+        /// <summary>
+        /// Gets or sets the brush used to render table borders.  If this is <c>null</c>, then
+        /// <see cref="Foreground"/> is used.
+        /// </summary>
+        public Brush TableBorderBrush
+        {
+            get { return (Brush)GetValue(TableBorderBrushProperty); }
+            set { SetValue(TableBorderBrushProperty, value); }
+        }
+
+        /// <summary>
+        /// Gets the dependency property for <see cref="TableBorderBrush"/>.
+        /// </summary>
+        public static readonly DependencyProperty TableBorderBrushProperty = DependencyProperty.Register(nameof(TableBorderBrush), typeof(Brush),
+                typeof(MarkdownTextBlock), new PropertyMetadata(new SolidColorBrush(Color.FromArgb(255, 48, 48, 48)), new PropertyChangedCallback(OnPropertyChangedStatic)));
+
+        /// <summary>
+        /// Gets or sets the thickness of any table borders.
+        /// </summary>
+        public double TableBorderThickness
+        {
+            get { return (double)GetValue(TableBorderThicknessProperty); }
+            set { SetValue(TableBorderThicknessProperty, value); }
+        }
+
+        /// <summary>
+        /// Gets the dependency property for <see cref="TableBorderThickness"/>.
+        /// </summary>
+        public static readonly DependencyProperty TableBorderThicknessProperty = DependencyProperty.Register(nameof(TableBorderThickness), typeof(double),
+                typeof(MarkdownTextBlock), new PropertyMetadata(1.0, new PropertyChangedCallback(OnPropertyChangedStatic)));
+
+        /// <summary>
+        /// The padding inside each cell.
+        /// </summary>
+        public Thickness TableCellPadding
+        {
+            get { return (Thickness)GetValue(TableCellPaddingProperty); }
+            set { SetValue(TableCellPaddingProperty, value); }
+        }
+
+        /// <summary>
+        /// Gets the dependency property for <see cref="TableCellPadding"/>.
+        /// </summary>
+        public static readonly DependencyProperty TableCellPaddingProperty = DependencyProperty.Register(nameof(TableCellPadding), typeof(Thickness),
+                typeof(MarkdownTextBlock), new PropertyMetadata(new Thickness(9, 4, 9, 4), new PropertyChangedCallback(OnPropertyChangedStatic)));
+
+        /// <summary>
+        /// Gets or sets the margin used by tables.
+        /// </summary>
+        public Thickness TableMargin
+        {
+            get { return (Thickness)GetValue(TableMarginProperty); }
+            set { SetValue(TableMarginProperty, value); }
+        }
+
+        /// <summary>
+        /// Gets the dependency property for <see cref="TableMargin"/>.
+        /// </summary>
+        public static readonly DependencyProperty TableMarginProperty = DependencyProperty.Register(nameof(TableMargin), typeof(Thickness),
+                typeof(MarkdownTextBlock), new PropertyMetadata(new Thickness(0, 5, 0, 5), new PropertyChangedCallback(OnPropertyChangedStatic)));
+
+        /// <summary>
+        /// Gets or sets the word wrapping behavior.
+        /// </summary>
+        public TextWrapping TextWrapping
+        {
+            get { return (TextWrapping)GetValue(TextWrappingProperty); }
+            set { SetValue(TextWrappingProperty, value); }
+        }
+
+        /// <summary>
+        /// Gets the dependency property for <see cref="TextWrapping"/>.
+        /// </summary>
+        public static readonly DependencyProperty TextWrappingProperty = DependencyProperty.Register(nameof(TextWrapping), typeof(TextWrapping),
+                typeof(MarkdownTextBlock), new PropertyMetadata(TextWrapping.Wrap, new PropertyChangedCallback(OnPropertyChangedStatic)));
+
+        #endregion
+
+
+        /// <summary>
+        /// Calls OnPropertyChanged.
+        /// </summary>
+        /// <param name="d"></param>
+        /// <param name="e"></param>
+        private static void OnPropertyChangedStatic(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             var instance = d as MarkdownTextBlock;
             if (instance != null)
             {
-                // Send the post to the class.
-                instance.OnMarkdownChanged((string)e.NewValue);
+                // Defer to the instance method.
+                instance.OnPropertyChanged(d, e.Property);
             }
         }
 
         /// <summary>
-        /// Fired when the markdown is changed. 
+        /// Fired when the value of a DependencyProperty is changed.
         /// </summary>
-        /// <param name="newMarkdown"></param>
-        private void OnMarkdownChanged(string newMarkdown)
+        /// <param name="d"></param>
+        /// <param name="prop"></param>
+        private void OnPropertyChanged(DependencyObject d, DependencyProperty prop)
         {
-            OnMarkdownReadyArgs args = new OnMarkdownReadyArgs();
-
-            // Clear the current content
-            CleanUpTextBlock();
-
             // Make sure we have something to parse.
-            if (newMarkdown != null)
-            {
-                try
-                {
-                    // Try to parse the markdown.
-                    Markdown markdown = new Markdown();
-                    markdown.Parse(newMarkdown);
+            if (Markdown == null)
+                return;
 
-                    // Now try to display it
-                    var renderer = new XamlRenderer(this);
-                    renderer.Background = Background;
-                    renderer.BorderBrush = BorderBrush;
-                    renderer.BorderThickness = BorderThickness;
-                    renderer.CharacterSpacing = CharacterSpacing;
-                    renderer.FontFamily = FontFamily;
-                    renderer.FontSize = FontSize;
-                    renderer.FontStretch = FontStretch;
-                    renderer.FontStyle = FontStyle;
-                    renderer.FontWeight = FontWeight;
-                    renderer.Foreground = Foreground;
-                    renderer.HorizontalAlignment = HorizontalAlignment;
-                    renderer.IsTextSelectionEnabled = true;
-                    renderer.Padding = Padding;
-                    renderer.CodeBackground = new SolidColorBrush(Color.FromArgb(8, 255, 255, 255));
-                    renderer.CodeBorderBrush = new SolidColorBrush(Color.FromArgb(32, 255, 255, 255));
-                    renderer.CodeBorderThickness = new Thickness(1);
-                    renderer.HorizontalRuleBrush = new SolidColorBrush(Color.FromArgb(48, 255, 255, 255));
-                    renderer.QuoteBorderBrush = Application.Current.Resources["SystemControlHighlightAccentBrush"] as SolidColorBrush;
-                    renderer.TableBorderBrush = new SolidColorBrush(Color.FromArgb(16, 255, 255, 255));
-                    Content = renderer.Render(markdown);
-                }
-                catch (Exception e)
-                {
-                    DebuggingReporter.ReportCriticalError("Error while parsing and rendering: " + e.Message);
-                    args.WasError = true;
-                    args.Exception = e;
-                }
+            // Disconnect from OnClick handlers.
+            UnhookListeners();
+
+            var args = new OnMarkdownReadyArgs();
+            try
+            {
+                // Try to parse the markdown.
+                Markdown markdown = new Markdown();
+                markdown.Parse(Markdown);
+
+                // Now try to display it
+                var renderer = new XamlRenderer(this);
+                renderer.Background = Background;
+                renderer.BorderBrush = BorderBrush;
+                renderer.BorderThickness = BorderThickness;
+                renderer.CharacterSpacing = CharacterSpacing;
+                renderer.FontFamily = FontFamily;
+                renderer.FontSize = FontSize;
+                renderer.FontStretch = FontStretch;
+                renderer.FontStyle = FontStyle;
+                renderer.FontWeight = FontWeight;
+                renderer.Foreground = Foreground;
+                renderer.IsTextSelectionEnabled = IsTextSelectionEnabled;
+                renderer.Padding = Padding;
+                renderer.CodeBackground = CodeBackground;
+                renderer.CodeBorderBrush = CodeBorderBrush;
+                renderer.CodeBorderThickness = CodeBorderThickness;
+                renderer.CodeForeground = CodeForeground;
+                renderer.CodeFontFamily = CodeFontFamily;
+                renderer.CodePadding = CodePadding;
+                renderer.CodeMargin = CodeMargin;
+                renderer.Header1FontSize = Header1FontSize;
+                renderer.Header1FontWeight = Header1FontWeight;
+                renderer.Header1Margin = Header1Margin;
+                renderer.Header2FontSize = Header2FontSize;
+                renderer.Header2FontWeight = Header2FontWeight;
+                renderer.Header2Margin = Header2Margin;
+                renderer.Header3FontSize = Header3FontSize;
+                renderer.Header3FontWeight = Header3FontWeight;
+                renderer.Header3Margin = Header3Margin;
+                renderer.Header4FontSize = Header4FontSize;
+                renderer.Header4FontWeight = Header4FontWeight;
+                renderer.Header4Margin = Header4Margin;
+                renderer.Header5FontSize = Header5FontSize;
+                renderer.Header5FontWeight = Header5FontWeight;
+                renderer.Header5Margin = Header5Margin;
+                renderer.Header6FontSize = Header6FontSize;
+                renderer.Header6FontWeight = Header6FontWeight;
+                renderer.Header6Margin = Header6Margin;
+                renderer.HorizontalRuleBrush = HorizontalRuleBrush;
+                renderer.HorizontalRuleMargin = HorizontalRuleMargin;
+                renderer.HorizontalRuleThickness = HorizontalRuleThickness;
+                renderer.ListMargin = ListMargin;
+                renderer.ParagraphMargin = ParagraphMargin;
+                renderer.QuoteBorderBrush = QuoteBorderBrush;
+                renderer.QuoteBorderThickness = QuoteBorderThickness;
+                renderer.QuoteMargin = QuoteMargin;
+                renderer.QuotePadding = QuotePadding;
+                renderer.TableBorderBrush = TableBorderBrush;
+                renderer.TableBorderThickness = TableBorderThickness;
+                renderer.TableCellPadding = TableCellPadding;
+                renderer.TableMargin = TableMargin;
+                renderer.TextWrapping = TextWrapping;
+                Content = renderer.Render(markdown);
+            }
+            catch (Exception ex)
+            {
+                DebuggingReporter.ReportCriticalError("Error while parsing and rendering: " + ex.Message);
+                args.WasError = true;
+                args.Exception = ex;
             }
 
             // #todo indicate if ready
             m_onMarkdownReady.Raise(this, args);            
         }
 
-        #endregion
-
         #region Link Logic
 
-        private void CleanUpTextBlock()
+        private void UnhookListeners()
         {
             // Clear any hyper link events if we have any
             foreach (Hyperlink link in m_listeningHyperlinks)

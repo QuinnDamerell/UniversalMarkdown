@@ -1,16 +1,23 @@
 ﻿<Page x:Class="UniversalMarkdownTestApp.MainPage"
+      x:Name="Root"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:local="using:UniversalMarkdownTestApp"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       xmlns:universalMarkdown="using:UniversalMarkdown"
+      xmlns:code="using:UniversalMarkdownTestApp.Code"
       mc:Ignorable="d"
+      d:DesignWidth="800"
+      d:DesignHeight="600"
       RequestedTheme="Dark"
       Loaded="Page_Loaded">
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
             <RowDefinition Height="*" />
@@ -33,10 +40,40 @@
                  MinHeight="50"
                  TextWrapping="Wrap"/>
 
-        <ScrollViewer Grid.Row="2">
+        <ScrollViewer Grid.Row="2"
+                      Background="#191919">
             <universalMarkdown:MarkdownTextBlock x:Name="MarkdownTextBlock"
                                                  Margin="12"
                                                  OnMarkdownLinkTapped="MarkdownTextBlock_OnMarkdownLinkTapped"/>
+        </ScrollViewer>
+
+        <ScrollViewer Grid.Column="1"
+                      Grid.RowSpan="3"
+                      Width="400"
+                      BorderBrush="DarkGray"
+                      BorderThickness="1"
+                      Padding="12">
+            <ItemsControl ItemsSource="{Binding EditableProperties, ElementName=Root}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0"
+                                       Text="{Binding Name}"
+                                       Margin="0,5,0,0"
+                                       ToolTipService.ToolTip="{Binding Name}"/>
+                            <TextBox Grid.Column="1"
+                                     Text="{Binding Value}"
+                                     BorderBrush="{Binding BorderBrush}"
+                                     code:ImmediateSourceUpdate.IsEnabled="True"
+                                     code:ImmediateSourceUpdate.Source="{Binding Value, Mode=TwoWay}"/>
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
         </ScrollViewer>
     </Grid>
 </Page>

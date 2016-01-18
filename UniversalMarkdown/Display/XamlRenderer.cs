@@ -92,11 +92,6 @@ namespace UniversalMarkdown.Display
         public Brush Foreground { get; set; }
 
         /// <summary>
-        /// Gets or sets the horizontal alignment of the control's content.
-        /// </summary>
-        public HorizontalAlignment HorizontalAlignment { get; set; }
-
-        /// <summary>
         /// Gets or sets a value that indicates whether text selection is enabled.
         /// </summary>
         public bool IsTextSelectionEnabled { get; set; }
@@ -131,17 +126,107 @@ namespace UniversalMarkdown.Display
         /// Gets or sets the font used to display code.  If this is <c>null</c>, then
         /// <see cref="FontFamily"/> is used.
         /// </summary>
-        public FontFamily CodeFontFamily { get; set; } = new FontFamily("Consolas");
+        public FontFamily CodeFontFamily { get; set; }
 
         /// <summary>
-        /// The padding inside of code blocks.
+        /// The space outside of code blocks.
         /// </summary>
-        public Thickness CodePadding { get; set; } = new Thickness(9, 4, 9, 4);
+        public Thickness CodeMargin { get; set; }
 
         /// <summary>
-        /// The margin used for paragraphs and most other block types.
+        /// The space between the code border and the text.
         /// </summary>
-        public Thickness DefaultMargin { get; set; } = new Thickness(0, 5, 0, 5);
+        public Thickness CodePadding { get; set; }
+
+        /// <summary>
+        /// Gets or sets the font weight to use for level 1 headers.
+        /// </summary>
+        public FontWeight Header1FontWeight { get; set; }
+
+        /// <summary>
+        /// Gets or sets the font size for level 1 headers.
+        /// </summary>
+        public double Header1FontSize { get; set; }
+
+        /// <summary>
+        /// Gets or sets the margin for level 1 headers.
+        /// </summary>
+        public Thickness Header1Margin { get; set; }
+
+        /// <summary>
+        /// Gets or sets the font weight to use for level 2 headers.
+        /// </summary>
+        public FontWeight Header2FontWeight { get; set; }
+
+        /// <summary>
+        /// Gets or sets the font size for level 2 headers.
+        /// </summary>
+        public double Header2FontSize { get; set; }
+
+        /// <summary>
+        /// Gets or sets the margin for level 2 headers.
+        /// </summary>
+        public Thickness Header2Margin { get; set; }
+
+        /// <summary>
+        /// Gets or sets the font weight to use for level 3 headers.
+        /// </summary>
+        public FontWeight Header3FontWeight { get; set; }
+
+        /// <summary>
+        /// Gets or sets the font size for level 3 headers.
+        /// </summary>
+        public double Header3FontSize { get; set; }
+
+        /// <summary>
+        /// Gets or sets the margin for level 3 headers.
+        /// </summary>
+        public Thickness Header3Margin { get; set; }
+
+        /// <summary>
+        /// Gets or sets the font weight to use for level 4 headers.
+        /// </summary>
+        public FontWeight Header4FontWeight { get; set; }
+
+        /// <summary>
+        /// Gets or sets the font size for level 4 headers.
+        /// </summary>
+        public double Header4FontSize { get; set; }
+
+        /// <summary>
+        /// Gets or sets the margin for level 4 headers.
+        /// </summary>
+        public Thickness Header4Margin { get; set; }
+
+        /// <summary>
+        /// Gets or sets the font weight to use for level 5 headers.
+        /// </summary>
+        public FontWeight Header5FontWeight { get; set; }
+
+        /// <summary>
+        /// Gets or sets the font size for level 5 headers.
+        /// </summary>
+        public double Header5FontSize { get; set; }
+
+        /// <summary>
+        /// Gets or sets the margin for level 5 headers.
+        /// </summary>
+        public Thickness Header5Margin { get; set; }
+
+        /// <summary>
+        /// Gets or sets the font weight to use for level 6 headers.
+        /// </summary>
+        public FontWeight Header6FontWeight { get; set; }
+
+        /// <summary>
+        /// Gets or sets the font size for level 6 headers.
+        /// </summary>
+        public double Header6FontSize { get; set; }
+
+        /// <summary>
+        /// Gets or sets the margin for level 6 headers.
+        /// </summary>
+        public Thickness Header6Margin { get; set; }
 
         /// <summary>
         /// Gets or sets the brush used to render a horizontal rule.  If this is <c>null</c>, then
@@ -152,12 +237,22 @@ namespace UniversalMarkdown.Display
         /// <summary>
         /// The margin used for horizontal rules.
         /// </summary>
-        public Thickness HorizontalRuleMargin { get; set; } = new Thickness(0, 7, 0, 7);
+        public Thickness HorizontalRuleMargin { get; set; }
 
         /// <summary>
         /// Gets or sets the vertical thickness of the horizontal rule.
         /// </summary>
-        public double HorizontalRuleThickness { get; set; } = 2;
+        public double HorizontalRuleThickness { get; set; }
+
+        /// <summary>
+        /// Gets or sets the margin used by lists.
+        /// </summary>
+        public Thickness ListMargin { get; set; }
+
+        /// <summary>
+        /// Gets or sets the margin used for paragraphs.
+        /// </summary>
+        public Thickness ParagraphMargin { get; set; }
 
         /// <summary>
         /// Gets or sets the brush used to render a quote border.  If this is <c>null</c>, then
@@ -166,9 +261,19 @@ namespace UniversalMarkdown.Display
         public Brush QuoteBorderBrush { get; set; }
 
         /// <summary>
-        /// Gets or sets the horizontal thickness of quote borders.
+        /// Gets or sets the thickness of quote borders.
         /// </summary>
-        public double QuoteBorderThickness { get; set; } = 2;
+        public Thickness QuoteBorderThickness { get; set; }
+
+        /// <summary>
+        /// Gets or sets the space outside of quote borders.
+        /// </summary>
+        public Thickness QuoteMargin { get; set; }
+
+        /// <summary>
+        /// Gets or sets the space between the quote border and the text.
+        /// </summary>
+        public Thickness QuotePadding { get; set; }
 
         /// <summary>
         /// Gets or sets the brush used to render table borders.  If this is <c>null</c>, then
@@ -179,13 +284,22 @@ namespace UniversalMarkdown.Display
         /// <summary>
         /// Gets or sets the thickness of any table borders.
         /// </summary>
-        public double TableBorderThickness { get; set; } = 1;
+        public double TableBorderThickness { get; set; }
 
         /// <summary>
         /// The padding inside each cell.
         /// </summary>
-        public Thickness TableCellPadding { get; set; } = new Thickness(9, 4, 9, 4);
+        public Thickness TableCellPadding { get; set; }
 
+        /// <summary>
+        /// Gets or sets the margin used by tables.
+        /// </summary>
+        public Thickness TableMargin { get; set; }
+
+        /// <summary>
+        /// Gets or sets the word wrapping behavior.
+        /// </summary>
+        public TextWrapping TextWrapping { get; set; }
 
 
         /// <summary>
@@ -301,7 +415,7 @@ namespace UniversalMarkdown.Display
             var textBlock = CreateOrReuseRichTextBlock(blockUIElementCollection);
 
             var paragraph = new Paragraph();
-            paragraph.Margin = DefaultMargin;
+            paragraph.Margin = ParagraphMargin;
             RenderInlineChildren(element.Inlines, paragraph.Inlines, paragraph);
             textBlock.Blocks.Add(paragraph);
         }
@@ -320,29 +434,35 @@ namespace UniversalMarkdown.Display
             switch (element.HeaderLevel)
             {
                 case 1:
-                    paragraph.Margin = new Thickness(0, 15, 0, 15);
-                    paragraph.FontSize = 20.0;
-                    paragraph.FontWeight = FontWeights.Bold;
+                    paragraph.Margin = Header1Margin;
+                    paragraph.FontSize = Header1FontSize;
+                    paragraph.FontWeight = Header1FontWeight;
                     break;
                 case 2:
-                    paragraph.Margin = new Thickness(0, 15, 0, 15);
-                    paragraph.FontSize = 20.0;
+                    paragraph.Margin = Header2Margin;
+                    paragraph.FontSize = Header2FontSize;
+                    paragraph.FontWeight = Header2FontWeight;
                     break;
                 case 3:
-                    paragraph.Margin = new Thickness(0, 10, 0, 10);
-                    paragraph.FontSize = 17.0;
-                    paragraph.FontWeight = FontWeights.Bold;
+                    paragraph.Margin = Header3Margin;
+                    paragraph.FontSize = Header3FontSize;
+                    paragraph.FontWeight = Header3FontWeight;
                     break;
                 case 4:
-                    paragraph.Margin = new Thickness(0, 10, 0, 10);
-                    paragraph.FontSize = 17.0;
+                    paragraph.Margin = Header4Margin;
+                    paragraph.FontSize = Header4FontSize;
+                    paragraph.FontWeight = Header4FontWeight;
                     break;
                 case 5:
-                    paragraph.Margin = new Thickness(0, 10, 0, 5);
-                    paragraph.FontWeight = FontWeights.Bold;
+                    paragraph.Margin = Header5Margin;
+                    paragraph.FontSize = Header5FontSize;
+                    paragraph.FontWeight = Header5FontWeight;
                     break;
                 case 6:
-                    paragraph.Margin = new Thickness(0, 10, 0, 0);
+                    paragraph.Margin = Header6Margin;
+                    paragraph.FontSize = Header6FontSize;
+                    paragraph.FontWeight = Header6FontWeight;
+
                     var underline = new Underline();
                     childInlines = underline.Inlines;
                     paragraph.Inlines.Add(underline);
@@ -365,7 +485,7 @@ namespace UniversalMarkdown.Display
         {
             // Create a grid with two columns.
             Grid grid = new Grid();
-            grid.Margin = DefaultMargin;
+            grid.Margin = ListMargin;
 
             // The first column for the bullet (or number) and the second for the text.
             grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(40) });
@@ -380,6 +500,7 @@ namespace UniversalMarkdown.Display
 
                 // Add the bullet or number.
                 var bullet = CreateTextBlock();
+                bullet.Margin = ParagraphMargin;
                 switch (element.Style)
                 {
                     case ListStyle.Bulleted:
@@ -432,10 +553,10 @@ namespace UniversalMarkdown.Display
             RenderBlocks(element.Blocks, stackPanel.Children);
 
             var border = new Border();
-            border.Margin = new Thickness(DefaultMargin.Left + 12, DefaultMargin.Top, DefaultMargin.Right, DefaultMargin.Bottom);
+            border.Margin = QuoteMargin;
             border.BorderBrush = QuoteBorderBrush ?? Foreground;
-            border.BorderThickness = new Thickness(QuoteBorderThickness, 0, 0, 0);
-            border.Padding = new Thickness(12, 0, 0, 0);
+            border.BorderThickness = QuoteBorderThickness;
+            border.Padding = QuotePadding;
             border.Child = stackPanel;
 
             blockUIElementCollection.Add(border);
@@ -450,7 +571,6 @@ namespace UniversalMarkdown.Display
         private void RenderCode(CodeBlock element, UIElementCollection blockUIElementCollection)
         {
             var textBlock = CreateTextBlock();
-            textBlock.Margin = new Thickness(DefaultMargin.Left, 0, DefaultMargin.Right, 0);
             textBlock.FontFamily = CodeFontFamily ?? FontFamily;
             textBlock.Foreground = CodeForeground ?? Foreground;
             textBlock.Text = element.Text;
@@ -460,7 +580,8 @@ namespace UniversalMarkdown.Display
             border.BorderBrush = CodeBorderBrush;
             border.BorderThickness = CodeBorderThickness;
             border.Padding = CodePadding;
-            border.Margin = DefaultMargin;
+            border.Margin = CodeMargin;
+            border.HorizontalAlignment = HorizontalAlignment.Left;
             border.Child = textBlock;
 
             // Add it to the blocks
@@ -476,7 +597,7 @@ namespace UniversalMarkdown.Display
         {
             var table = new MarkdownTable(element.ColumnDefinitions.Count, element.Rows.Count, TableBorderThickness, TableBorderBrush);
             table.HorizontalAlignment = HorizontalAlignment.Left;
-            table.Margin = DefaultMargin;
+            table.Margin = TableMargin;
 
             // Add each row.
             for (int rowIndex = 0; rowIndex < element.Rows.Count; rowIndex++)
@@ -633,8 +754,7 @@ namespace UniversalMarkdown.Display
         /// <param name="context"></param>
         private void RenderMarkdownLink(MarkdownLinkInline element, InlineCollection currentInlines, RenderContext context)
         {
-            // Create the text run
-            Hyperlink link = new Hyperlink();
+            var link = new Hyperlink();
 
             // Register the link
             m_linkRegister.RegisterNewHyperLink(link, element.Url);
@@ -654,8 +774,7 @@ namespace UniversalMarkdown.Display
         /// <param name="context"></param>
         private void RenderRawHyperlink(RawHyperlinkInline element, InlineCollection currentInlines, RenderContext context)
         {
-            // Create the text run
-            Hyperlink link = new Hyperlink();
+            var link = new Hyperlink();
 
             // Register the link
             m_linkRegister.RegisterNewHyperLink(link, element.Url);
@@ -677,8 +796,7 @@ namespace UniversalMarkdown.Display
         /// <param name="context"></param>
         private void RenderRawSubreddit(RawSubredditInline element, InlineCollection currentInlines, RenderContext context)
         {
-            // Create the hyper link
-            Hyperlink link = new Hyperlink();
+            var link = new Hyperlink();
 
             // Register the link
             m_linkRegister.RegisterNewHyperLink(link, element.Text);
@@ -783,6 +901,10 @@ namespace UniversalMarkdown.Display
             currentInlines.Add(run);
         }
 
+        #endregion
+
+        #region Helper methods
+
         /// <summary>
         /// Performs an action against any runs that occur within the given span.
         /// </summary>
@@ -856,9 +978,8 @@ namespace UniversalMarkdown.Display
             result.FontStyle = FontStyle;
             result.FontWeight = FontWeight;
             result.Foreground = Foreground;
-            result.HorizontalAlignment = HorizontalAlignment;
             result.IsTextSelectionEnabled = IsTextSelectionEnabled;
-            result.TextWrapping = TextWrapping.Wrap;
+            result.TextWrapping = TextWrapping;
             if (blockUIElementCollection != null)
                 blockUIElementCollection.Add(result);
             return result;
@@ -878,10 +999,8 @@ namespace UniversalMarkdown.Display
             result.FontStyle = FontStyle;
             result.FontWeight = FontWeight;
             result.Foreground = Foreground;
-            result.HorizontalAlignment = HorizontalAlignment;
             result.IsTextSelectionEnabled = IsTextSelectionEnabled;
-            result.Margin = DefaultMargin;
-            result.TextWrapping = TextWrapping.Wrap;
+            result.TextWrapping = TextWrapping;
             return result;
         }
 

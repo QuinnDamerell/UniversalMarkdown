@@ -95,7 +95,7 @@ namespace UniversalMarkdown.Display
             while (remainingColumnCount > 0)
             {
                 // Calculate the fair width of all columns.
-                double fairWidth = remainingContentWidth / remainingColumnCount;
+                double fairWidth = Math.Max(0, remainingContentWidth / remainingColumnCount);
 
                 // Are there any columns less than that?  If so, they get what they are asking for.
                 bool recalculationNeeded = false;

@@ -56,7 +56,7 @@ namespace UniversalMarkdown.Helpers
                     ItalicTextInline.AddTripChars(s_triggerList);
                     MarkdownLinkInline.AddTripChars(s_triggerList);
                     RawHyperlinkInline.AddTripChars(s_triggerList);
-                    RawSubredditInline.AddTripChars(s_triggerList);
+                    RedditLinkInline.AddTripChars(s_triggerList);
                     StrikethroughTextInline.AddTripChars(s_triggerList);
                     SuperscriptTextInline.AddTripChars(s_triggerList);
                     CodeInline.AddTripChars(s_triggerList);
@@ -158,7 +158,7 @@ namespace UniversalMarkdown.Helpers
                                 break;
                             case MarkdownInlineType.RawSubreddit:
                                 if (!ignoreLinks)
-                                    parsedElement = RawSubredditInline.Parse(markdown, pos, endingPos, out parsedElementEnd);
+                                    parsedElement = RedditLinkInline.Parse(markdown, pos, endingPos, out parsedElementEnd);
                                 break;
                             case MarkdownInlineType.Strikethrough:
                                 parsedElement = StrikethroughTextInline.Parse(markdown, pos, endingPos, out parsedElementEnd);

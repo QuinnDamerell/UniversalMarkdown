@@ -29,18 +29,17 @@ using Windows.UI.Xaml.Shapes;
 
 namespace UniversalMarkdown.Display
 {
-    public class XamlRenderer
+    internal class XamlRenderer
     {
         /// <summary>
         /// An interface that is used to register hyperlinks.
         /// </summary>
-        ILinkRegister m_linkRegister;
+        private ILinkRegister m_linkRegister;
 
         public XamlRenderer(ILinkRegister linkRegister)
         {
             m_linkRegister = linkRegister;
         }
-
 
         /// <summary>
         /// Gets or sets a brush that provides the background of the control.
@@ -649,7 +648,7 @@ namespace UniversalMarkdown.Display
             public RenderContext Clone()
             {
                 return new RenderContext { TrimLeadingWhitespace = TrimLeadingWhitespace, WithinHyperlink = WithinHyperlink };
-            }
+        }
         }
 
         /// <summary>
@@ -705,7 +704,7 @@ namespace UniversalMarkdown.Display
                     RenderRawHyperlink(inlineCollection, (RawHyperlinkInline)element, parent, context);
                     break;
                 case MarkdownInlineType.RawSubreddit:
-                    RenderRawSubreddit(inlineCollection, (RawSubredditInline)element, parent, context);
+                    RenderRawSubreddit(inlineCollection, (RedditLinkInline)element, parent, context);
                     break;
                 case MarkdownInlineType.Strikethrough:
                     RenderStrikethroughRun(inlineCollection, (StrikethroughTextInline)element, parent, context);
@@ -774,20 +773,20 @@ namespace UniversalMarkdown.Display
             {
                 // Regular ol' hyperlink.
 
-                var link = new Hyperlink();
+            var link = new Hyperlink();
 
-                // Register the link
-                m_linkRegister.RegisterNewHyperLink(link, element.Url);
+            // Register the link
+            m_linkRegister.RegisterNewHyperLink(link, element.Url);
 
-                // Render the children into the link inline.
+            // Render the children into the link inline.
                 var childContext = context.Clone();
                 childContext.WithinHyperlink = true;
                 RenderInlineChildren(link.Inlines, element.Inlines, link, childContext);
                 context.TrimLeadingWhitespace = childContext.TrimLeadingWhitespace;
 
-                // Add it to the current inlines
+            // Add it to the current inlines
                 inlineCollection.Add(link);
-            }
+        }
             else
             {
                 // THE HACK IS ON!
@@ -832,12 +831,12 @@ namespace UniversalMarkdown.Display
         /// <param name="element"> The parsed inline element to render. </param>
         /// <param name="parent"> The container element. </param>
         /// <param name="context"> Persistent state. </param>
-        private void RenderRawSubreddit(InlineCollection inlineCollection, RawSubredditInline element, TextElement parent, RenderContext context)
+        private void RenderRawSubreddit(InlineCollection inlineCollection, RedditLinkInline element, TextElement parent, RenderContext context)
         {
             var link = new Hyperlink();
 
             // Register the link
-            m_linkRegister.RegisterNewHyperLink(link, element.Text);
+            m_linkRegister.RegisterNewHyperLink(link, element.Url);
 
             // Add the subreddit text
             Run subreddit = new Run();
@@ -910,7 +909,7 @@ namespace UniversalMarkdown.Display
         {
             // Le <sigh>, InlineUIContainers are not allowed within hyperlinks.
             if (context.WithinHyperlink)
-            {
+        {
                 RenderInlineChildren(inlineCollection, element.Inlines, parent, context);
                 return;
             }

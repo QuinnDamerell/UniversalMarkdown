@@ -21,7 +21,7 @@ using Windows.UI.Xaml.Documents;
 
 namespace UniversalMarkdown.Interfaces
 {
-    public interface ILinkRegister
+    internal interface ILinkRegister
     {
         void RegisterNewHyperLink(Hyperlink newHyperlink, string linkUrl);
     }

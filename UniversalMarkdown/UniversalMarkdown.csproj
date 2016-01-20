@@ -130,7 +130,7 @@
     <Compile Include="Parse\Inlines\SuperscriptTextInline.cs" />
     <Compile Include="Parse\Inlines\StrikethroughTextInline.cs" />
     <Compile Include="Parse\Inlines\RawHyperlinkInline.cs" />
-    <Compile Include="Parse\Inlines\RawSubredditInline.cs" />
+    <Compile Include="Parse\Inlines\RedditLinkInline.cs" />
     <Compile Include="Parse\Inlines\MarkdownLinkInline.cs" />
     <Compile Include="Parse\Inlines\ItalicTextInline.cs" />
     <Compile Include="Parse\Inlines\BoldTextInline.cs" />

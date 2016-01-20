@@ -19,12 +19,21 @@ using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
 {
-    public class RawHyperlinkInline : MarkdownInline, ILinkElement
+    public class RawHyperlinkInline : MarkdownInline, IInlineLeaf, ILinkElement
     {
         /// <summary>
         /// The raw URL.
         /// </summary>
         public string Url { get; set; }
+
+        /// <summary>
+        /// The hyperlink text is the same as the URL.
+        /// </summary>
+        string IInlineLeaf.Text
+        {
+            get { return Url; }
+            set { Url = value; }
+        }
 
         /// <summary>
         /// Raw URLs do not have a tooltip.

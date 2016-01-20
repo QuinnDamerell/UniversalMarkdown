@@ -18,7 +18,7 @@ using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
 {
-    public class StrikethroughTextInline : MarkdownInline
+    public class StrikethroughTextInline : MarkdownInline, IInlineContainer
     {
         /// <summary>
         /// The contents of the inline.

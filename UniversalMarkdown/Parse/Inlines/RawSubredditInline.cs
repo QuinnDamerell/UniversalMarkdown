@@ -18,7 +18,7 @@ using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
 {
-    public class RawSubredditInline : MarkdownInline, ILinkElement
+    public class RawSubredditInline : MarkdownInline, IInlineLeaf, ILinkElement
     {
         /// <summary>
         /// The subreddit link text e.g. "r/news" or "/r/worldnews".

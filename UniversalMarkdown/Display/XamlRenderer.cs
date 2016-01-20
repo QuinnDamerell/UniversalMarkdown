@@ -16,6 +16,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using UniversalMarkdown.Helpers;
 using UniversalMarkdown.Interfaces;
 using UniversalMarkdown.Parse;
 using UniversalMarkdown.Parse.Elements;
@@ -764,19 +765,41 @@ namespace UniversalMarkdown.Display
         /// <param name="context"> Persistent state. </param>
         private void RenderMarkdownLink(InlineCollection inlineCollection, MarkdownLinkInline element, TextElement parent, RenderContext context)
         {
-            var link = new Hyperlink();
+            // HACK: Superscript is not allowed within a hyperlink.  But if we switch it around, so
+            // that the superscript is outside the hyperlink, then it will render correctly.
+            // This assumes that the entire hyperlink is to be rendered as superscript.
+            bool allTextIsSuperscript = ExciseSuperscriptRuns(element);
 
-            // Register the link
-            m_linkRegister.RegisterNewHyperLink(link, element.Url);
+            if (allTextIsSuperscript == false)
+            {
+                // Regular ol' hyperlink.
 
-            // Render the children into the link inline.
-            var childContext = context.Clone();
-            childContext.WithinHyperlink = true;
-            RenderInlineChildren(link.Inlines, element.Inlines, link, childContext);
-            context.TrimLeadingWhitespace = childContext.TrimLeadingWhitespace;
+                var link = new Hyperlink();
 
-            // Add it to the current inlines
-            inlineCollection.Add(link);
+                // Register the link
+                m_linkRegister.RegisterNewHyperLink(link, element.Url);
+
+                // Render the children into the link inline.
+                var childContext = context.Clone();
+                childContext.WithinHyperlink = true;
+                RenderInlineChildren(link.Inlines, element.Inlines, link, childContext);
+                context.TrimLeadingWhitespace = childContext.TrimLeadingWhitespace;
+
+                // Add it to the current inlines
+                inlineCollection.Add(link);
+            }
+            else
+            {
+                // THE HACK IS ON!
+
+                // Create a fake superscript element.
+                var fakeSuperscript = new SuperscriptTextInline();
+                fakeSuperscript.Inlines = new List<MarkdownInline> { element };
+
+                // Now render it.
+                RenderSuperscriptRun(inlineCollection, fakeSuperscript, parent, context);
+                
+            }
         }
 
         /// <summary>
@@ -1031,6 +1054,44 @@ namespace UniversalMarkdown.Display
             result.IsTextSelectionEnabled = IsTextSelectionEnabled;
             result.TextWrapping = TextWrapping;
             return result;
+        }
+
+        /// <summary>
+        /// Removes all superscript elements from the given container.
+        /// </summary>
+        /// <param name="container"></param>
+        /// <returns> <c>true</c> if all text is superscript (level 1); <c>false</c> otherwise. </returns>
+        private bool ExciseSuperscriptRuns(IInlineContainer container, int superscriptLevel = 0)
+        {
+            bool allTextIsSuperscript = true;
+            for (int i = 0; i < container.Inlines.Count; i ++)
+            {
+                var inline = container.Inlines[i];
+                if (inline is SuperscriptTextInline)
+                {
+                    // Remove any nested superscripts.
+                    if (ExciseSuperscriptRuns((IInlineContainer)inline, superscriptLevel + 1) == false)
+                        allTextIsSuperscript = false;
+
+                    // Remove the superscript element, insert all the children.
+                    container.Inlines.RemoveAt(i);
+                    foreach (var superscriptInline in ((SuperscriptTextInline)inline).Inlines)
+                        container.Inlines.Insert(i++, superscriptInline);
+                    i--;
+                }
+                else if (inline is IInlineContainer)
+                {
+                    // Remove any superscripts.
+                    if (ExciseSuperscriptRuns((IInlineContainer)inline, superscriptLevel) == false)
+                        allTextIsSuperscript = false;
+                }
+                else if (inline is IInlineLeaf && superscriptLevel != 1)
+                {
+                    if (!Common.IsBlankOrWhiteSpace(((IInlineLeaf)inline).Text))
+                        allTextIsSuperscript = false;
+                }
+            }
+            return allTextIsSuperscript;
         }
 
         #endregion

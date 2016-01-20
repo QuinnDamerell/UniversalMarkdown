@@ -20,6 +20,7 @@ using UniversalMarkdown.Helpers;
 using UniversalMarkdown.Interfaces;
 using UniversalMarkdown.Parse;
 using Windows.UI;
+using Windows.UI.Core;
 using Windows.UI.Text;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -846,6 +847,8 @@ namespace UniversalMarkdown
             m_listeningHyperlinks.Add(newHyperlink);
         }
 
+        private bool multiClickDetectionTriggered;
+
         /// <summary>
         /// Fired when a user taps one of the link elements
         /// </summary>
@@ -853,17 +856,25 @@ namespace UniversalMarkdown
         /// <param name="args"></param>
         private void Hyperlink_Click(Hyperlink sender, HyperlinkClickEventArgs args)
         {
+            // Links that are nested within superscript elements cause the Click event to fire multiple times.
+            // e.g. this markdown "[^bot](http://www.reddit.com/r/youtubefactsbot/wiki/index)"
+            // Therefore we detect and ignore multiple clicks.
+            if (multiClickDetectionTriggered)
+                return;
+            multiClickDetectionTriggered = true;
+            var task = Dispatcher.RunAsync(CoreDispatcherPriority.High, () => multiClickDetectionTriggered = false);
+
             // Get the hyperlink URL.
             var url = (string)sender.GetValue(HyperlinkUrlProperty);
-            if (url != null)
+            if (url == null)
+                return;
+            
+            // Fire off the event.
+            var eventArgs = new OnMarkdownLinkTappedArgs()
             {
-                OnMarkdownLinkTappedArgs eventArgs = new OnMarkdownLinkTappedArgs()
-                {
-                    Link = url
-                };
-
-                m_onMarkdownLinkTapped.Raise(this, eventArgs);
-            }
+                Link = url
+            };
+            m_onMarkdownLinkTapped.Raise(this, eventArgs);
         }
 
         #endregion

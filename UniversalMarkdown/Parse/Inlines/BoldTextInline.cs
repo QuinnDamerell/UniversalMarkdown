@@ -18,7 +18,7 @@ using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
 {
-    public class BoldTextInline : MarkdownInline
+    public class BoldTextInline : MarkdownInline, IInlineContainer
     {
         /// <summary>
         /// The contents of the inline.

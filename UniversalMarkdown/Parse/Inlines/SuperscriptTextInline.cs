@@ -18,7 +18,7 @@ using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
 {
-    public class SuperscriptTextInline : MarkdownInline
+    public class SuperscriptTextInline : MarkdownInline, IInlineContainer
     {
         /// <summary>
         /// The contents of the inline.

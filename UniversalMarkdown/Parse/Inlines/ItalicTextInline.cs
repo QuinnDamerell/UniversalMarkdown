@@ -18,7 +18,7 @@ using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
 {
-    public class ItalicTextInline : MarkdownInline
+    public class ItalicTextInline : MarkdownInline, IInlineContainer
     {
         /// <summary>
         /// The contents of the inline.

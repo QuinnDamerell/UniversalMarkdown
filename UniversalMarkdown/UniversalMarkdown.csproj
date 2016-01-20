@@ -124,6 +124,8 @@
     <Compile Include="Parse\Blocks\TableBlock.cs" />
     <Compile Include="Parse\Blocks\QuoteBlock.cs" />
     <Compile Include="Parse\Inlines\CodeInline.cs" />
+    <Compile Include="Parse\Inlines\IInlineContainer.cs" />
+    <Compile Include="Parse\Inlines\IInlineLeaf.cs" />
     <Compile Include="Parse\Inlines\ILinkElement.cs" />
     <Compile Include="Parse\Inlines\SuperscriptTextInline.cs" />
     <Compile Include="Parse\Inlines\StrikethroughTextInline.cs" />

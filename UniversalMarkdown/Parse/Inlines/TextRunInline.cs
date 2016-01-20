@@ -19,7 +19,7 @@ using System.Text;
 
 namespace UniversalMarkdown.Parse.Elements
 {
-    public class TextRunInline : MarkdownInline
+    public class TextRunInline : MarkdownInline, IInlineLeaf
     {
         /// <summary>
         /// The text for this run.

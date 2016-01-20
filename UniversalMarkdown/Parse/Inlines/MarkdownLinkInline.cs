@@ -18,7 +18,7 @@ using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
 {
-    public class MarkdownLinkInline : MarkdownInline, ILinkElement
+    public class MarkdownLinkInline : MarkdownInline, IInlineContainer, ILinkElement
     {
         /// <summary>
         /// The contents of the inline.

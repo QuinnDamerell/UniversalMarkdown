@@ -349,5 +349,18 @@ namespace UniversalMarkdown.Helpers
         {
             return c == ' ' || c == '\t' || c == '\r' || c == '\n';
         }
+
+        /// <summary>
+        /// Determines if a string is blank or comprised entirely of whitespace characters.
+        /// </summary>
+        /// <param name="str"></param>
+        /// <returns></returns>
+        public static bool IsBlankOrWhiteSpace(string str)
+        {
+            for (int i = 0; i < str.Length; i++)
+                if (!IsWhiteSpace(str[i]))
+                    return false;
+            return true;
+        }
     }
 }

@@ -18,7 +18,7 @@ using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
 {
-    public class CodeInline : MarkdownInline
+    public class CodeInline : MarkdownInline, IInlineLeaf
     {
         /// <summary>
         /// The text to display as code.

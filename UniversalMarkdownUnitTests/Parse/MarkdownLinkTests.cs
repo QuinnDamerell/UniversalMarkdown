@@ -74,6 +74,16 @@ namespace UniversalMarkdownUnitTests.Parse
 
         [UITestMethod]
         [TestCategory("Parse - inline")]
+        public void MarkdownLink_NestedSquareBrackets()
+        {
+            AssertEqual("[one [two] three](http://reddit.com)",
+                new ParagraphBlock().AddChildren(
+                    new MarkdownLinkInline { Url = "http://reddit.com" }.AddChildren(
+                        new TextRunInline { Text = "one [two] three" })));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void MarkdownLink_WithTooltip()
         {
             AssertEqual(@"[Wikipedia](http://en.wikipedia.org ""tooltip text"")",

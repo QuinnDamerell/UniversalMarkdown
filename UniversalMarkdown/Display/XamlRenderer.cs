@@ -643,6 +643,12 @@ namespace UniversalMarkdown.Display
         private class RenderContext
         {
             public bool TrimLeadingWhitespace;
+            public bool WithinHyperlink;
+
+            public RenderContext Clone()
+            {
+                return new RenderContext { TrimLeadingWhitespace = TrimLeadingWhitespace, WithinHyperlink = WithinHyperlink };
+            }
         }
 
         /// <summary>
@@ -764,7 +770,10 @@ namespace UniversalMarkdown.Display
             m_linkRegister.RegisterNewHyperLink(link, element.Url);
 
             // Render the children into the link inline.
-            RenderInlineChildren(link.Inlines, element.Inlines, link, context);
+            var childContext = context.Clone();
+            childContext.WithinHyperlink = true;
+            RenderInlineChildren(link.Inlines, element.Inlines, link, childContext);
+            context.TrimLeadingWhitespace = childContext.TrimLeadingWhitespace;
 
             // Add it to the current inlines
             inlineCollection.Add(link);
@@ -876,14 +885,19 @@ namespace UniversalMarkdown.Display
         /// <param name="context"> Persistent state. </param>
         private void RenderSuperscriptRun(InlineCollection inlineCollection, SuperscriptTextInline element, TextElement parent, RenderContext context)
         {
+            // Le <sigh>, InlineUIContainers are not allowed within hyperlinks.
+            if (context.WithinHyperlink)
+            {
+                RenderInlineChildren(inlineCollection, element.Inlines, parent, context);
+                return;
+            }
+
             var paragraph = new Paragraph();
             paragraph.FontSize = parent.FontSize * 0.8;
             paragraph.FontFamily = parent.FontFamily;
             paragraph.FontStyle = parent.FontStyle;
             paragraph.FontWeight = parent.FontWeight;
-            var childContext = new RenderContext { TrimLeadingWhitespace = context.TrimLeadingWhitespace };
-            RenderInlineChildren(paragraph.Inlines, element.Inlines, paragraph, childContext);
-            context.TrimLeadingWhitespace = childContext.TrimLeadingWhitespace;
+            RenderInlineChildren(paragraph.Inlines, element.Inlines, paragraph, context);
 
             var richTextBlock = CreateOrReuseRichTextBlock(null);
             richTextBlock.Blocks.Add(paragraph);

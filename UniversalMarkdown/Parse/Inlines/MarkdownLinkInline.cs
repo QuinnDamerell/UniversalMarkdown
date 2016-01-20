@@ -68,10 +68,23 @@ namespace UniversalMarkdown.Parse.Elements
             if (linkTextOpen == maxEnd || markdown[linkTextOpen] != '[')
                 return null;
 
-            // Find the ']' character.
-            int linkTextClose = Common.IndexOf(markdown, ']', linkTextOpen, maxEnd);
-            if (linkTextClose == -1)
-                return null;
+            // Find the ']' character, keeping in mind that [test [0-9]](http://www.test.com) is allowed.
+            int pos = linkTextOpen + 1;
+            int linkTextClose;
+            int openSquareBracketCount = 0;
+            while (true)
+            {
+                linkTextClose = markdown.IndexOfAny(new char[] { '[', ']' }, pos, maxEnd - pos);
+                if (linkTextClose == -1)
+                    return null;
+                if (markdown[linkTextClose] == '[')
+                    openSquareBracketCount++;
+                else if (openSquareBracketCount > 0)
+                    openSquareBracketCount--;
+                else
+                    break;
+                pos = linkTextClose + 1;
+            }
 
             // Find the '(' character.
             int linkOpen = Common.IndexOf(markdown, '(', linkTextClose, maxEnd);

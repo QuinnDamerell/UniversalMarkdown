@@ -416,7 +416,7 @@ namespace UniversalMarkdown.Display
 
             var paragraph = new Paragraph();
             paragraph.Margin = ParagraphMargin;
-            RenderInlineChildren(element.Inlines, paragraph.Inlines, paragraph);
+            RenderInlineChildren(paragraph.Inlines, element.Inlines, paragraph);
             textBlock.Blocks.Add(paragraph);
         }
 
@@ -470,7 +470,7 @@ namespace UniversalMarkdown.Display
             }
 
             // Render the children into the para inline.
-            RenderInlineChildren(element.Inlines, childInlines, paragraph);
+            RenderInlineChildren(childInlines, element.Inlines, paragraph);
 
             // Add it to the blocks
             textBlock.Blocks.Add(paragraph);
@@ -626,7 +626,7 @@ namespace UniversalMarkdown.Display
                     if (rowIndex == 0)
                         cellContent.FontWeight = FontWeights.Bold;
                     var paragraph = new Paragraph();
-                    RenderInlineChildren(cell.Inlines, paragraph.Inlines, paragraph);
+                    RenderInlineChildren(paragraph.Inlines, cell.Inlines, paragraph);
                     cellContent.Blocks.Add(paragraph);
                     table.Children.Add(cellContent);
                 }
@@ -642,71 +642,72 @@ namespace UniversalMarkdown.Display
         // Helper class for holding persistent state.
         private class RenderContext
         {
-            public Paragraph ParentParagraph;
             public bool TrimLeadingWhitespace;
         }
 
         /// <summary>
         /// Renders all of the children for the given element.
         /// </summary>
+        /// <param name="inlineCollection"> The list to add to. </param>
         /// <param name="inlineElements"> The inline elements to render. </param>
-        /// <param name="currentInlines"> The list to add to. </param>
         /// <param name="parentParagraph"> The parent Paragraph. </param>
-        private void RenderInlineChildren(IList<MarkdownInline> inlineElements, InlineCollection currentInlines, Paragraph parentParagraph)
+        private void RenderInlineChildren(InlineCollection inlineCollection, IList<MarkdownInline> inlineElements, Paragraph parentParagraph)
         {
-            RenderInlineChildren(inlineElements, currentInlines, new RenderContext { ParentParagraph = parentParagraph, TrimLeadingWhitespace = true });
+            RenderInlineChildren(inlineCollection, inlineElements, parentParagraph, new RenderContext { TrimLeadingWhitespace = true });
         }
 
         /// <summary>
         /// Renders all of the children for the given element.
         /// </summary>
-        /// <param name="inlineElements"> The inline elements to render. </param>
-        /// <param name="currentInlines"> The list to add to. </param>
-        /// <param name="context"> The parent block. </param>
-        private void RenderInlineChildren(IList<MarkdownInline> inlineElements, InlineCollection currentInlines, RenderContext context)
+        /// <param name="inlineCollection"> The list to add to. </param>
+        /// <param name="inlineElements"> The parsed inline elements to render. </param>
+        /// <param name="parent"> The container element. </param>
+        /// <param name="context"> Persistent state. </param>
+        private void RenderInlineChildren(InlineCollection inlineCollection, IList<MarkdownInline> inlineElements, TextElement parent, RenderContext context)
         {
             foreach (MarkdownInline element in inlineElements)
             {
-                RenderInline(element, currentInlines, context);
+                RenderInline(inlineCollection, element, parent, context);
             }
         }
 
         /// <summary>
-        /// Called to render an inline element
+        /// Called to render an inline element.
         /// </summary>
-        /// <param name="element"></param>
-        /// <param name="currentInlines"></param>
-        /// <param name="context"></param>
-        private void RenderInline(MarkdownInline element, InlineCollection currentInlines, RenderContext context)
+        /// <param name="inlineCollection"> The list to add to. </param>
+        /// <param name="element"> The parsed inline element to render. </param>
+        /// <param name="parent"> The container element. </param>
+        /// <param name="context"> Persistent state. </param>
+        private void RenderInline(InlineCollection inlineCollection, MarkdownInline element, TextElement parent, RenderContext context)
         {
             switch (element.Type)
             {
                 case MarkdownInlineType.TextRun:
-                    RenderTextRun((TextRunInline)element, currentInlines, context);
+                    RenderTextRun(inlineCollection, (TextRunInline)element, parent, context);
                     break;
                 case MarkdownInlineType.Italic:
-                    RenderItalicRun((ItalicTextInline)element, currentInlines, context);
+                    RenderItalicRun(inlineCollection, (ItalicTextInline)element, parent, context);
                     break;
                 case MarkdownInlineType.Bold:
-                    RenderBoldRun((BoldTextInline)element, currentInlines, context);
+                    RenderBoldRun(inlineCollection, (BoldTextInline)element, parent, context);
                     break;
                 case MarkdownInlineType.MarkdownLink:
-                    RenderMarkdownLink((MarkdownLinkInline)element, currentInlines, context);
+                    RenderMarkdownLink(inlineCollection, (MarkdownLinkInline)element, parent, context);
                     break;
                 case MarkdownInlineType.RawHyperlink:
-                    RenderRawHyperlink((RawHyperlinkInline)element, currentInlines, context);
+                    RenderRawHyperlink(inlineCollection, (RawHyperlinkInline)element, parent, context);
                     break;
                 case MarkdownInlineType.RawSubreddit:
-                    RenderRawSubreddit((RawSubredditInline)element, currentInlines, context);
+                    RenderRawSubreddit(inlineCollection, (RawSubredditInline)element, parent, context);
                     break;
                 case MarkdownInlineType.Strikethrough:
-                    RenderStrikethroughRun((StrikethroughTextInline)element, currentInlines, context);
+                    RenderStrikethroughRun(inlineCollection, (StrikethroughTextInline)element, parent, context);
                     break;
                 case MarkdownInlineType.Superscript:
-                    RenderSuperscriptRun((SuperscriptTextInline)element, currentInlines, context);
+                    RenderSuperscriptRun(inlineCollection, (SuperscriptTextInline)element, parent, context);
                     break;
                 case MarkdownInlineType.Code:
-                    RenderCodeRun((CodeInline)element, currentInlines, context);
+                    RenderCodeRun(inlineCollection, (CodeInline)element, parent, context);
                     break;
             }
         }
@@ -714,45 +715,48 @@ namespace UniversalMarkdown.Display
         /// <summary>
         /// Renders a text run element.
         /// </summary>
-        /// <param name="element"></param>
-        /// <param name="currentInlines"></param>
-        /// <param name="context"></param>
-        private void RenderTextRun(TextRunInline element, InlineCollection currentInlines, RenderContext context)
+        /// <param name="inlineCollection"> The list to add to. </param>
+        /// <param name="element"> The parsed inline element to render. </param>
+        /// <param name="parent"> The container element. </param>
+        /// <param name="context"> Persistent state. </param>
+        private void RenderTextRun(InlineCollection inlineCollection, TextRunInline element, TextElement parent, RenderContext context)
         {
             // Create the text run
             Run textRun = new Run();
             textRun.Text = CollapseWhitespace(context, element.Text);
 
             // Add it
-            currentInlines.Add(textRun);
+            inlineCollection.Add(textRun);
         }
 
         /// <summary>
         /// Renders a bold run element.
         /// </summary>
-        /// <param name="element"></param>
-        /// <param name="currentInlines"></param>
-        /// <param name="context"></param>
-        private void RenderBoldRun(BoldTextInline element, InlineCollection currentInlines, RenderContext context)
+        /// <param name="inlineCollection"> The list to add to. </param>
+        /// <param name="element"> The parsed inline element to render. </param>
+        /// <param name="parent"> The container element. </param>
+        /// <param name="context"> Persistent state. </param>
+        private void RenderBoldRun(InlineCollection inlineCollection, BoldTextInline element, TextElement parent, RenderContext context)
         {
             // Create the text run
             Span boldSpan = new Span();
             boldSpan.FontWeight = FontWeights.Bold;
 
             // Render the children into the bold inline.
-            RenderInlineChildren(element.Inlines, boldSpan.Inlines, context);
+            RenderInlineChildren(boldSpan.Inlines, element.Inlines, boldSpan, context);
 
             // Add it to the current inlines
-            currentInlines.Add(boldSpan);
+            inlineCollection.Add(boldSpan);
         }
 
         /// <summary>
         /// Renders a link element
         /// </summary>
-        /// <param name="element"></param>
-        /// <param name="currentInlines"></param>
-        /// <param name="context"></param>
-        private void RenderMarkdownLink(MarkdownLinkInline element, InlineCollection currentInlines, RenderContext context)
+        /// <param name="inlineCollection"> The list to add to. </param>
+        /// <param name="element"> The parsed inline element to render. </param>
+        /// <param name="parent"> The container element. </param>
+        /// <param name="context"> Persistent state. </param>
+        private void RenderMarkdownLink(InlineCollection inlineCollection, MarkdownLinkInline element, TextElement parent, RenderContext context)
         {
             var link = new Hyperlink();
 
@@ -760,19 +764,20 @@ namespace UniversalMarkdown.Display
             m_linkRegister.RegisterNewHyperLink(link, element.Url);
 
             // Render the children into the link inline.
-            RenderInlineChildren(element.Inlines, link.Inlines, context);
+            RenderInlineChildren(link.Inlines, element.Inlines, link, context);
 
             // Add it to the current inlines
-            currentInlines.Add(link);
+            inlineCollection.Add(link);
         }
 
         /// <summary>
-        /// Renders a raw link element
+        /// Renders a raw link element.
         /// </summary>
-        /// <param name="element"></param>
-        /// <param name="currentInlines"></param>
-        /// <param name="context"></param>
-        private void RenderRawHyperlink(RawHyperlinkInline element, InlineCollection currentInlines, RenderContext context)
+        /// <param name="inlineCollection"> The list to add to. </param>
+        /// <param name="element"> The parsed inline element to render. </param>
+        /// <param name="parent"> The container element. </param>
+        /// <param name="context"> Persistent state. </param>
+        private void RenderRawHyperlink(InlineCollection inlineCollection, RawHyperlinkInline element, TextElement parent, RenderContext context)
         {
             var link = new Hyperlink();
 
@@ -785,16 +790,17 @@ namespace UniversalMarkdown.Display
             link.Inlines.Add(linkText);
 
             // Add it to the current inlines
-            currentInlines.Add(link);
+            inlineCollection.Add(link);
         }
 
         /// <summary>
-        /// Renders a raw subreddit element
+        /// Renders a raw subreddit/user link element.
         /// </summary>
-        /// <param name="element"></param>
-        /// <param name="currentInlines"></param>
-        /// <param name="context"></param>
-        private void RenderRawSubreddit(RawSubredditInline element, InlineCollection currentInlines, RenderContext context)
+        /// <param name="inlineCollection"> The list to add to. </param>
+        /// <param name="element"> The parsed inline element to render. </param>
+        /// <param name="parent"> The container element. </param>
+        /// <param name="context"> Persistent state. </param>
+        private void RenderRawSubreddit(InlineCollection inlineCollection, RawSubredditInline element, TextElement parent, RenderContext context)
         {
             var link = new Hyperlink();
 
@@ -807,41 +813,43 @@ namespace UniversalMarkdown.Display
             link.Inlines.Add(subreddit);
 
             // Add it to the current inlines
-            currentInlines.Add(link);
+            inlineCollection.Add(link);
         }
 
         /// <summary>
-        /// Renders a text run element
+        /// Renders a text run element.
         /// </summary>
-        /// <param name="element"></param>
-        /// <param name="currentInlines"></param>
-        /// <param name="context"></param>
-        private void RenderItalicRun(ItalicTextInline element, InlineCollection currentInlines, RenderContext context)
+        /// <param name="inlineCollection"> The list to add to. </param>
+        /// <param name="element"> The parsed inline element to render. </param>
+        /// <param name="parent"> The container element. </param>
+        /// <param name="context"> Persistent state. </param>
+        private void RenderItalicRun(InlineCollection inlineCollection, ItalicTextInline element, TextElement parent, RenderContext context)
         {
             // Create the text run
             Span italicSpan = new Span();
             italicSpan.FontStyle = FontStyle.Italic;
 
             // Render the children into the italic inline.
-            RenderInlineChildren(element.Inlines, italicSpan.Inlines, context);
+            RenderInlineChildren(italicSpan.Inlines, element.Inlines, italicSpan, context);
 
             // Add it to the current inlines
-            currentInlines.Add(italicSpan);
+            inlineCollection.Add(italicSpan);
         }
 
         /// <summary>
-        /// Renders a strikethrough element
+        /// Renders a strikethrough element.
         /// </summary>
-        /// <param name="element"></param>
-        /// <param name="currentInlines"></param>
-        /// <param name="context"></param>
-        private void RenderStrikethroughRun(StrikethroughTextInline element, InlineCollection currentInlines, RenderContext context)
+        /// <param name="inlineCollection"> The list to add to. </param>
+        /// <param name="element"> The parsed inline element to render. </param>
+        /// <param name="parent"> The container element. </param>
+        /// <param name="context"> Persistent state. </param>
+        private void RenderStrikethroughRun(InlineCollection inlineCollection, StrikethroughTextInline element, TextElement parent, RenderContext context)
         {
             Span span = new Span();
             span.FontFamily = new FontFamily("Consolas");
 
             // Render the children into the inline.
-            RenderInlineChildren(element.Inlines, span.Inlines, context);
+            RenderInlineChildren(span.Inlines, element.Inlines, span, context);
 
             AlterChildRuns(span, (parentSpan, run) =>
             {
@@ -856,20 +864,26 @@ namespace UniversalMarkdown.Display
             });
 
             // Add it to the current inlines
-            currentInlines.Add(span);
+            inlineCollection.Add(span);
         }
 
         /// <summary>
-        /// Renders a superscript element
+        /// Renders a superscript element.
         /// </summary>
-        /// <param name="element"></param>
-        /// <param name="currentInlines"></param>
-        /// <param name="context"></param>
-        private void RenderSuperscriptRun(SuperscriptTextInline element, InlineCollection currentInlines, RenderContext context)
+        /// <param name="inlineCollection"> The list to add to. </param>
+        /// <param name="element"> The parsed inline element to render. </param>
+        /// <param name="parent"> The container element. </param>
+        /// <param name="context"> Persistent state. </param>
+        private void RenderSuperscriptRun(InlineCollection inlineCollection, SuperscriptTextInline element, TextElement parent, RenderContext context)
         {
             var paragraph = new Paragraph();
-            paragraph.FontSize = context.ParentParagraph.FontSize * 0.8;
-            RenderInlineChildren(element.Inlines, paragraph.Inlines, paragraph);
+            paragraph.FontSize = parent.FontSize * 0.8;
+            paragraph.FontFamily = parent.FontFamily;
+            paragraph.FontStyle = parent.FontStyle;
+            paragraph.FontWeight = parent.FontWeight;
+            var childContext = new RenderContext { TrimLeadingWhitespace = context.TrimLeadingWhitespace };
+            RenderInlineChildren(paragraph.Inlines, element.Inlines, paragraph, childContext);
+            context.TrimLeadingWhitespace = childContext.TrimLeadingWhitespace;
 
             var richTextBlock = CreateOrReuseRichTextBlock(null);
             richTextBlock.Blocks.Add(paragraph);
@@ -882,23 +896,24 @@ namespace UniversalMarkdown.Display
             inlineUIContainer.Child = border;
 
             // Add it to the current inlines
-            currentInlines.Add(inlineUIContainer);
+            inlineCollection.Add(inlineUIContainer);
         }
 
         /// <summary>
         /// Renders a code element
         /// </summary>
-        /// <param name="element"></param>
-        /// <param name="currentInlines"></param>
-        /// <param name="context"></param>
-        private void RenderCodeRun(CodeInline element, InlineCollection currentInlines, RenderContext context)
+        /// <param name="inlineCollection"> The list to add to. </param>
+        /// <param name="element"> The parsed inline element to render. </param>
+        /// <param name="parent"> The container element. </param>
+        /// <param name="context"> Persistent state. </param>
+        private void RenderCodeRun(InlineCollection inlineCollection, CodeInline element, TextElement parent, RenderContext context)
         {
             var run = new Run();
             run.FontFamily = CodeFontFamily ?? FontFamily;
             run.Text = CollapseWhitespace(context, element.Text);
 
             // Add it to the current inlines
-            currentInlines.Add(run);
+            inlineCollection.Add(run);
         }
 
         #endregion

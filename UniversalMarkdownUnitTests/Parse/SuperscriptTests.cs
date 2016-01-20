@@ -58,6 +58,19 @@ namespace UniversalMarkdownUnitTests.Parse
 
         [UITestMethod]
         [TestCategory("Parse - inline")]
+        public void Superscript_TwoInARow()
+        {
+            AssertEqual("^a ^b",
+                new ParagraphBlock().AddChildren(
+                    new SuperscriptTextInline().AddChildren(
+                        new TextRunInline { Text = "a" }),
+                    new TextRunInline { Text = " " },
+                    new SuperscriptTextInline().AddChildren(
+                        new TextRunInline { Text = "b" })));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void Superscript_Escape()
         {
             // Escaped caret.

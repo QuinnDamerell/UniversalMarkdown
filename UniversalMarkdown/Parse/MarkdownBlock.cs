@@ -30,6 +30,7 @@ namespace UniversalMarkdown.Parse
         Code,
         Header,
         List,
+        ListItemBuilder,
         HorizontalRule,
         Table,
     };

@@ -15,7 +15,7 @@ namespace UniversalMarkdownUnitTests.Parse
         {
             AssertEqual("- List",
                 new ListBlock { Style = ListStyle.Bulleted }.AddChildren(
-                    new ListItemBlock { Blocks = new List<MarkdownBlock> { new ParagraphBlock().AddChildren(new TextRunInline { Text = "List" }) } }));
+                    new ListItemBlock().AddChildren(new ParagraphBlock().AddChildren(new TextRunInline { Text = "List" }))));
         }
 
         [UITestMethod]
@@ -33,9 +33,9 @@ namespace UniversalMarkdownUnitTests.Parse
                 new ParagraphBlock().AddChildren(
                     new TextRunInline { Text = "before" }),
                 new ListBlock { Style = ListStyle.Bulleted }.AddChildren(
-                    new ListItemBlock { Blocks = new List<MarkdownBlock> { new ParagraphBlock().AddChildren(new TextRunInline { Text = "List item 1" }) } },
-                    new ListItemBlock { Blocks = new List<MarkdownBlock> { new ParagraphBlock().AddChildren(new TextRunInline { Text = "List item 2" }) } },
-                    new ListItemBlock { Blocks = new List<MarkdownBlock> { new ParagraphBlock().AddChildren(new TextRunInline { Text = "List item 3" }) } }),
+                    new ListItemBlock().AddChildren(new ParagraphBlock().AddChildren(new TextRunInline { Text = "List item 1" })),
+                    new ListItemBlock().AddChildren(new ParagraphBlock().AddChildren(new TextRunInline { Text = "List item 2" })),
+                    new ListItemBlock().AddChildren(new ParagraphBlock().AddChildren(new TextRunInline { Text = "List item 3" }))),
                 new ParagraphBlock().AddChildren(
                     new TextRunInline { Text = "after" }));
         }
@@ -49,24 +49,215 @@ namespace UniversalMarkdownUnitTests.Parse
 
                 * List item 2"),
                 new ListBlock { Style = ListStyle.Bulleted }.AddChildren(
-                    new ListItemBlock { Blocks = new List<MarkdownBlock> { new ParagraphBlock().AddChildren(new TextRunInline { Text = "List item 1" }) } },
-                    new ListItemBlock { Blocks = new List<MarkdownBlock> { new ParagraphBlock().AddChildren(new TextRunInline { Text = "List item 2" }) } }));
+                    new ListItemBlock().AddChildren(new ParagraphBlock().AddChildren(new TextRunInline { Text = "List item 1" })),
+                    new ListItemBlock().AddChildren(new ParagraphBlock().AddChildren(new TextRunInline { Text = "List item 2" }))));
         }
 
         [UITestMethod]
         [TestCategory("Parse - block")]
-        public void BulletedList_Nested()
+        public void BulletedList_WithBlocks()
+        {
+            AssertEqual(CollapseWhitespace(@"
+                * #Header
+
+                 ___
+                *  #Not a header
+
+                 ___"),
+                new ListBlock { Style = ListStyle.Bulleted }.AddChildren(
+                    new ListItemBlock().AddChildren(
+                        new HeaderBlock { HeaderLevel = 1 }.AddChildren(new TextRunInline { Text = "Header" }),
+                        new HorizontalRuleBlock()),
+                    new ListItemBlock().AddChildren(
+                        new ParagraphBlock().AddChildren(new TextRunInline { Text = " #Not a header" }),
+                        new HorizontalRuleBlock())));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - block")]
+        public void BulletedList_Nested_Simple()
         {
             AssertEqual(CollapseWhitespace(@"
                 - List item 1
                     - Nested item
                 + List item 2"),
                 new ListBlock().AddChildren(
-                    new TextRunInline { Text = "List item 1" },
-                    new ListBlock().AddChildren(
-                        new TextRunInline { Text = "Nested item" }),
-                    new TextRunInline { Text = "List item 2" }));
+                    new ListItemBlock().AddChildren(
+                        new ParagraphBlock().AddChildren(new TextRunInline { Text = "List item 1" }),
+                        new ListBlock().AddChildren(
+                            new ListItemBlock().AddChildren(new ParagraphBlock().AddChildren(new TextRunInline { Text = "Nested item" })))),
+                    new ListItemBlock().AddChildren(new ParagraphBlock().AddChildren(new TextRunInline { Text = "List item 2" }))));
         }
+
+        [UITestMethod]
+        [TestCategory("Parse - block")]
+        public void BulletedList_Nested_Complex()
+        {
+            // This is super weird.
+            AssertEqual(CollapseWhitespace(@"
+                - #Level 1
+                - #Level 1
+                    - #Level 2
+                        - #Level 3
+                            - #Level 4  
+                level 4, line 2
+
+                     text"),
+                new ListBlock().AddChildren(
+                    new ListItemBlock().AddChildren(new ParagraphBlock().AddChildren(new TextRunInline { Text = "#Level 1" })),
+                    new ListItemBlock().AddChildren(
+                        new HeaderBlock { HeaderLevel = 1 }.AddChildren(new TextRunInline { Text = "Level 1" }),
+                        new ListBlock().AddChildren(
+                            new ListItemBlock().AddChildren(
+                                new HeaderBlock { HeaderLevel = 1 }.AddChildren(new TextRunInline { Text = "Level 2" }),
+                                new ListBlock().AddChildren(
+                                    new ListItemBlock().AddChildren(
+                                        new ParagraphBlock().AddChildren(new TextRunInline { Text = "#Level 3" }),
+                                        new ListBlock().AddChildren(
+                                            new ListItemBlock().AddChildren(
+                                                new ParagraphBlock().AddChildren(new TextRunInline { Text = "#Level 4\r\nlevel 4, line 2" }))))),
+                                new ParagraphBlock().AddChildren(new TextRunInline { Text = "text" }))))));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - block")]
+        public void BulletedList_Nested_MinSpace()
+        {
+            // 1 space is the min relative indentation.
+            AssertEqual(CollapseWhitespace(@"
+                - List item 1
+                 - Nested item"),
+                new ListBlock().AddChildren(
+                    new ListItemBlock().AddChildren(
+                        new ParagraphBlock().AddChildren(new TextRunInline { Text = "List item 1" }),
+                        new ListBlock().AddChildren(
+                            new ListItemBlock().AddChildren(new ParagraphBlock().AddChildren(new TextRunInline { Text = "Nested item" }))))));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - block")]
+        public void BulletedList_Nested_MaxSpace()
+        {
+            // 7 spaces is the max relative indentation for two items.
+            AssertEqual(CollapseWhitespace(@"
+                - List item 1
+                       - Nested item"),
+                new ListBlock().AddChildren(
+                    new ListItemBlock().AddChildren(
+                        new ParagraphBlock().AddChildren(new TextRunInline { Text = "List item 1" }),
+                        new ListBlock().AddChildren(
+                            new ListItemBlock().AddChildren(new ParagraphBlock().AddChildren(new TextRunInline { Text = "Nested item" }))))));
+
+            // 11 spaces is the max relative indentation for three items.
+            AssertEqual(CollapseWhitespace(@"
+                - List item 1
+                 - List item 2
+                           - List item 3"),
+            new ListBlock().AddChildren(
+                new ListItemBlock().AddChildren(
+                    new ParagraphBlock().AddChildren(new TextRunInline { Text = "List item 1" }),
+                    new ListBlock().AddChildren(
+                        new ListItemBlock().AddChildren(
+                            new ParagraphBlock().AddChildren(new TextRunInline { Text = "List item 2" }),
+                            new ListBlock().AddChildren(
+                                new ListItemBlock().AddChildren(new ParagraphBlock().AddChildren(new TextRunInline { Text = "List item 3" }))))))));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - block")]
+        public void BulletedList_Nested_SpaceDifference()
+        {
+            // This is weird.
+            AssertEqual(CollapseWhitespace(@"
+                 - List item 1
+                - Nested item"),
+                new ListBlock().AddChildren(
+                    new ListItemBlock().AddChildren(
+                        new ParagraphBlock().AddChildren(new TextRunInline { Text = "List item 1" }),
+                        new ListBlock().AddChildren(
+                            new ListItemBlock().AddChildren(new ParagraphBlock().AddChildren(new TextRunInline { Text = "Nested item" }))))));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - block")]
+        public void BulletedList_Nested_Combo()
+        {
+            AssertEqual(CollapseWhitespace(@"
+                   - List item 1
+                - List item 2
+                - List item 3"),
+                new ListBlock().AddChildren(
+                    new ListItemBlock().AddChildren(
+                        new ParagraphBlock().AddChildren(new TextRunInline { Text = "List item 1" }),
+                        new ListBlock().AddChildren(
+                            new ListItemBlock().AddChildren(new ParagraphBlock().AddChildren(new TextRunInline { Text = "List item 2" })),
+                            new ListItemBlock().AddChildren(new ParagraphBlock().AddChildren(new TextRunInline { Text = "List item 3" }))))));
+            AssertEqual(CollapseWhitespace(@"
+                   - List item 1
+                - List item 2
+                  - List item 3"),
+                new ListBlock().AddChildren(
+                    new ListItemBlock().AddChildren(
+                        new ParagraphBlock().AddChildren(new TextRunInline { Text = "List item 1" }),
+                        new ListBlock().AddChildren(
+                            new ListItemBlock().AddChildren(new ParagraphBlock().AddChildren(new TextRunInline { Text = "List item 2" })),
+                            new ListItemBlock().AddChildren(new ParagraphBlock().AddChildren(new TextRunInline { Text = "List item 3" }))))));
+            AssertEqual(CollapseWhitespace(@"
+                   - List item 1
+                - List item 2
+                   - List item 3"),
+                new ListBlock().AddChildren(
+                    new ListItemBlock().AddChildren(
+                        new ParagraphBlock().AddChildren(new TextRunInline { Text = "List item 1" }),
+                        new ListBlock().AddChildren(
+                            new ListItemBlock().AddChildren(new ParagraphBlock().AddChildren(new TextRunInline { Text = "List item 2" })))),
+                    new ListItemBlock().AddChildren(new ParagraphBlock().AddChildren(new TextRunInline { Text = "List item 3" }))));
+            AssertEqual(CollapseWhitespace(@"
+                   - List item 1
+                - List item 2
+                    - List item 3"),
+                new ListBlock().AddChildren(
+                    new ListItemBlock().AddChildren(
+                        new ParagraphBlock().AddChildren(new TextRunInline { Text = "List item 1" }),
+                        new ListBlock().AddChildren(
+                            new ListItemBlock().AddChildren(new ParagraphBlock().AddChildren(new TextRunInline { Text = "List item 2" })),
+                            new ListItemBlock().AddChildren(new ParagraphBlock().AddChildren(new TextRunInline { Text = "List item 3" }))))));
+            AssertEqual(CollapseWhitespace(@"
+                   - List item 1
+                - List item 2
+                     - List item 3"),
+                new ListBlock().AddChildren(
+                    new ListItemBlock().AddChildren(
+                        new ParagraphBlock().AddChildren(new TextRunInline { Text = "List item 1" }),
+                        new ListBlock().AddChildren(
+                            new ListItemBlock().AddChildren(
+                                new ParagraphBlock().AddChildren(new TextRunInline { Text = "List item 2" }),
+                                new ListBlock().AddChildren(
+                                    new ListItemBlock().AddChildren(new ParagraphBlock().AddChildren(new TextRunInline { Text = "List item 3" }))))))));
+            AssertEqual(CollapseWhitespace(@"
+                - List item 1
+                 - List item 2
+                    - List item 3"),
+                new ListBlock().AddChildren(
+                    new ListItemBlock().AddChildren(
+                        new ParagraphBlock().AddChildren(new TextRunInline { Text = "List item 1" }),
+                        new ListBlock().AddChildren(
+                            new ListItemBlock().AddChildren(new ParagraphBlock().AddChildren(new TextRunInline { Text = "List item 2" })),
+                            new ListItemBlock().AddChildren(new ParagraphBlock().AddChildren(new TextRunInline { Text = "List item 3" }))))));
+            AssertEqual(CollapseWhitespace(@"
+                - List item 1
+                 - List item 2
+                     - List item 3"),
+                new ListBlock().AddChildren(
+                    new ListItemBlock().AddChildren(
+                        new ParagraphBlock().AddChildren(new TextRunInline { Text = "List item 1" }),
+                        new ListBlock().AddChildren(
+                            new ListItemBlock().AddChildren(
+                                new ParagraphBlock().AddChildren(new TextRunInline { Text = "List item 2" }),
+                                new ListBlock().AddChildren(
+                                    new ListItemBlock().AddChildren(new ParagraphBlock().AddChildren(new TextRunInline { Text = "List item 3" }))))))));
+        }
+
 
         [UITestMethod]
         [TestCategory("Parse - block")]
@@ -89,6 +280,34 @@ namespace UniversalMarkdownUnitTests.Parse
                 after"),
                 new ParagraphBlock().AddChildren(
                     new TextRunInline { Text = "before * List after" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - block")]
+        public void BulletedList_Negative_TooMuchSpaceToBeNested()
+        {
+            // 7 spaces is the maximum indentation for two items.
+            AssertEqual(CollapseWhitespace(@"
+                * a
+                        * b"),
+                new ListBlock().AddChildren(
+                    new ListItemBlock().AddChildren(
+                        new ParagraphBlock().AddChildren(
+                            new TextRunInline { Text = "a  * b" }))));
+
+            // 11 spaces is the maximum indentation for three items.
+            AssertEqual(CollapseWhitespace(@"
+                * a
+                 * b
+                            * c"),
+                new ListBlock().AddChildren(
+                    new ListItemBlock().AddChildren(
+                        new ParagraphBlock().AddChildren(
+                            new TextRunInline { Text = "a" }),
+                        new ListBlock().AddChildren(
+                            new ListItemBlock().AddChildren(
+                                new ParagraphBlock().AddChildren(
+                                    new TextRunInline { Text = "b  * c" }))))));
         }
 
         [UITestMethod]

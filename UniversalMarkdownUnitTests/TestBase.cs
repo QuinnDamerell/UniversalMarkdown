@@ -22,14 +22,20 @@ namespace UniversalMarkdownUnitTests
         /// <returns> The input text, but with some whitespace removed. </returns>
         protected static string CollapseWhitespace(string input)
         {
-            // Count the number of spaces on the first non-empty line.
-            int spacesToRemove = 0;
-            var match = Regex.Match(input, @"[ ]*(?=[^\s])", RegexOptions.Multiline);
-            if (match != null)
-                spacesToRemove = match.Length;
+            // Count the minimum number of spaces.
+            int spacesToRemove = int.MaxValue;
+            foreach (Match match in Regex.Matches(input, @"^[ ]*(?=[^\s])", RegexOptions.Multiline))
+                spacesToRemove = Math.Min(spacesToRemove, match.Length);
+            if (spacesToRemove < int.MaxValue)
+            {
+                // Remove that many spaces from every line, and convert other spaces to tabs.
+                input = input.Replace("\r\n" + new string(' ', spacesToRemove), "\r\n");
+            }
 
-            // Remove that many spaces from every line, and convert other spaces to tabs.
-            return input.TrimStart().Replace("\r\n" + new string(' ', spacesToRemove), "\r\n");
+            // Remove first blank line.
+            if (input.StartsWith(Environment.NewLine))
+                input = input.Substring(Environment.NewLine.Length);
+            return input;
         }
 
         private static ConcurrentDictionary<Type, Dictionary<string, object>> defaultValueCache =

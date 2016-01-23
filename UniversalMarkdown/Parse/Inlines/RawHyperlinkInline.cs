@@ -22,18 +22,14 @@ namespace UniversalMarkdown.Parse.Elements
     public class RawHyperlinkInline : MarkdownInline, IInlineLeaf, ILinkElement
     {
         /// <summary>
-        /// The raw URL.
+        /// The text to display.
         /// </summary>
-        public string Url { get; set; }
+        public string Text { get; set; }
 
         /// <summary>
-        /// The hyperlink text is the same as the URL.
+        /// The URL to link to.
         /// </summary>
-        string IInlineLeaf.Text
-        {
-            get { return Url; }
-            set { Url = value; }
-        }
+        public string Url { get; set; }
 
         /// <summary>
         /// Raw URLs do not have a tooltip.
@@ -115,7 +111,8 @@ namespace UniversalMarkdown.Parse.Elements
                     return null;
 
                 actualEnd = innerEnd + 1;
-                return new RawHyperlinkInline { Url = markdown.Substring(start, innerEnd - start) };
+                var url = markdown.Substring(start, innerEnd - start);
+                return new RawHyperlinkInline { Url = url, Text = url };
             }
             else
             {
@@ -137,9 +134,10 @@ namespace UniversalMarkdown.Parse.Elements
                     actualEnd--;
                 }
 
-                return new RawHyperlinkInline { Url = markdown.Substring(start, actualEnd - start) };
-                }
+                var url = markdown.Substring(start, actualEnd - start);
+                return new RawHyperlinkInline { Url = url, Text = url };
             }
+        }
 
         /// <summary>
         /// Converts the object into it's textual representation.
@@ -147,9 +145,9 @@ namespace UniversalMarkdown.Parse.Elements
         /// <returns> The textual representation of this object. </returns>
         public override string ToString()
         {
-            if (Url == null)
+            if (Text == null)
                 return base.ToString();
-            return Url;
+            return Text;
         }
     }
 }

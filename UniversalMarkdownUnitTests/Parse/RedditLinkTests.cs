@@ -37,6 +37,171 @@ namespace UniversalMarkdownUnitTests.Parse
 
         [UITestMethod]
         [TestCategory("Parse - inline")]
+        public void SubredditLink_WithBeginningEscape()
+        {
+            AssertEqual(@"\/r/subreddit",
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "/r/subreddit" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void SubredditLink_WithMiddleEscape()
+        {
+            AssertEqual(@"r\/subreddit",
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "r/subreddit" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void Hyperlink_EndCharacters()
+        {
+            AssertEqual(CollapseWhitespace(@"
+                /r/news)
+
+                /r/news).
+
+                /r/news)a
+
+                /r/news}
+
+                /r/news}a
+
+                /r/news]
+
+                /r/news]a
+
+                /r/news>
+
+                /r/news|
+
+                /r/news`
+
+                /r/news^
+
+                /r/news~
+
+                /r/news[
+
+                /r/news(
+
+                /r/news{
+
+                /r/news<
+
+                /r/news<a
+
+                /r/news#
+
+                /r/news%
+
+                /r/news!
+
+                /r/news!a
+
+                /r/news;
+
+                /r/news;a
+
+                /r/news.
+
+                /r/news.a
+
+                /r/news-
+
+                /r/news=
+
+                /r/news_
+
+                /r/news*
+
+                /r/news&
+
+                /r/news?
+
+                /r/news?a
+
+                /r/news,
+
+                /r/news,a
+
+                /r/news0"),
+                new ParagraphBlock().AddChildren(new RedditLinkInline { Text = "/r/news" }, new TextRunInline { Text = ")" }),
+                new ParagraphBlock().AddChildren(new RedditLinkInline { Text = "/r/news" }, new TextRunInline { Text = ")." }),
+                new ParagraphBlock().AddChildren(new RedditLinkInline { Text = "/r/news" }, new TextRunInline { Text = ")a" }),
+                new ParagraphBlock().AddChildren(new RedditLinkInline { Text = "/r/news" }, new TextRunInline { Text = "}" }),
+                new ParagraphBlock().AddChildren(new RedditLinkInline { Text = "/r/news" }, new TextRunInline { Text = "}a" }),
+                new ParagraphBlock().AddChildren(new RedditLinkInline { Text = "/r/news" }, new TextRunInline { Text = "]" }),
+                new ParagraphBlock().AddChildren(new RedditLinkInline { Text = "/r/news" }, new TextRunInline { Text = "]a" }),
+                new ParagraphBlock().AddChildren(new RedditLinkInline { Text = "/r/news" }, new TextRunInline { Text = ">" }),
+                new ParagraphBlock().AddChildren(new RedditLinkInline { Text = "/r/news" }, new TextRunInline { Text = "|" }),
+                new ParagraphBlock().AddChildren(new RedditLinkInline { Text = "/r/news" }, new TextRunInline { Text = "`" }),
+                new ParagraphBlock().AddChildren(new RedditLinkInline { Text = "/r/news" }, new TextRunInline { Text = "^" }),
+                new ParagraphBlock().AddChildren(new RedditLinkInline { Text = "/r/news" }, new TextRunInline { Text = "~" }),
+                new ParagraphBlock().AddChildren(new RedditLinkInline { Text = "/r/news" }, new TextRunInline { Text = "[" }),
+                new ParagraphBlock().AddChildren(new RedditLinkInline { Text = "/r/news" }, new TextRunInline { Text = "(" }),
+                new ParagraphBlock().AddChildren(new RedditLinkInline { Text = "/r/news" }, new TextRunInline { Text = "{" }),
+                new ParagraphBlock().AddChildren(new RedditLinkInline { Text = "/r/news" }, new TextRunInline { Text = "<" }),
+                new ParagraphBlock().AddChildren(new RedditLinkInline { Text = "/r/news" }, new TextRunInline { Text = "<a" }),
+                new ParagraphBlock().AddChildren(new RedditLinkInline { Text = "/r/news" }, new TextRunInline { Text = "#" }),
+                new ParagraphBlock().AddChildren(new RedditLinkInline { Text = "/r/news" }, new TextRunInline { Text = "%" }),
+                new ParagraphBlock().AddChildren(new RedditLinkInline { Text = "/r/news" }, new TextRunInline { Text = "!" }),
+                new ParagraphBlock().AddChildren(new RedditLinkInline { Text = "/r/news" }, new TextRunInline { Text = "!a" }),
+                new ParagraphBlock().AddChildren(new RedditLinkInline { Text = "/r/news" }, new TextRunInline { Text = ";" }),
+                new ParagraphBlock().AddChildren(new RedditLinkInline { Text = "/r/news" }, new TextRunInline { Text = ";a" }),
+                new ParagraphBlock().AddChildren(new RedditLinkInline { Text = "/r/news" }, new TextRunInline { Text = "." }),
+                new ParagraphBlock().AddChildren(new RedditLinkInline { Text = "/r/news" }, new TextRunInline { Text = ".a" }),
+                new ParagraphBlock().AddChildren(new RedditLinkInline { Text = "/r/news" }, new TextRunInline { Text = "-" }),
+                new ParagraphBlock().AddChildren(new RedditLinkInline { Text = "/r/news" }, new TextRunInline { Text = "=" }),
+                new ParagraphBlock().AddChildren(new RedditLinkInline { Text = "/r/news_" }),
+                new ParagraphBlock().AddChildren(new RedditLinkInline { Text = "/r/news" }, new TextRunInline { Text = "*" }),
+                new ParagraphBlock().AddChildren(new RedditLinkInline { Text = "/r/news" }, new TextRunInline { Text = "&" }),
+                new ParagraphBlock().AddChildren(new RedditLinkInline { Text = "/r/news" }, new TextRunInline { Text = "?" }),
+                new ParagraphBlock().AddChildren(new RedditLinkInline { Text = "/r/news" }, new TextRunInline { Text = "?a" }),
+                new ParagraphBlock().AddChildren(new RedditLinkInline { Text = "/r/news" }, new TextRunInline { Text = "," }),
+                new ParagraphBlock().AddChildren(new RedditLinkInline { Text = "/r/news" }, new TextRunInline { Text = ",a" }),
+                new ParagraphBlock().AddChildren(new RedditLinkInline { Text = "/r/news0" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void Hyperlink_PlusCharacter()
+        {
+            // The plus character is treated strangely.
+            AssertEqual(CollapseWhitespace(@"
+                /r/+
+
+                /r/+a
+
+                /r/+ab
+
+                /r/a+b
+
+                /r/a+bc
+
+                /r/ab+c
+
+                /r/ab+cd
+
+                /r/a+
+
+                /r/ab+"),
+                new ParagraphBlock().AddChildren(new TextRunInline { Text = "/r/+" }),
+                new ParagraphBlock().AddChildren(new TextRunInline { Text = "/r/+a" }),
+                new ParagraphBlock().AddChildren(new TextRunInline { Text = "/r/+ab" }),
+                new ParagraphBlock().AddChildren(new TextRunInline { Text = "/r/a+b" }),
+                new ParagraphBlock().AddChildren(new TextRunInline { Text = "/r/a+bc" }),
+                new ParagraphBlock().AddChildren(new TextRunInline { Text = "/r/ab+c" }),
+                new ParagraphBlock().AddChildren(new RedditLinkInline { Text = "/r/ab+cd", LinkType = RedditLinkType.Subreddit }),
+                new ParagraphBlock().AddChildren(new TextRunInline { Text = "/r/a+" }),
+                new ParagraphBlock().AddChildren(new TextRunInline { Text = "/r/ab+" }));
+        }
+
+
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void SubredditLink_Negative_SurroundingText()
         {
             AssertEqual("bear/subreddit",

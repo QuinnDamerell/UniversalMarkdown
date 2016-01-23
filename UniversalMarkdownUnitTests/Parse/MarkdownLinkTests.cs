@@ -84,6 +84,59 @@ namespace UniversalMarkdownUnitTests.Parse
 
         [UITestMethod]
         [TestCategory("Parse - inline")]
+        public void MarkdownLink_WhiteSpaceInText()
+        {
+            AssertEqual("start[ middle ](http://reddit.com)end",
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "start" },
+                    new MarkdownLinkInline { Url = "http://reddit.com" }.AddChildren(
+                        new TextRunInline { Text = " middle " }),
+                    new TextRunInline { Text = "end" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void MarkdownLink_WhiteSpaceInUrl()
+        {
+            AssertEqual("[text](  http://reddit.com  )",
+                new ParagraphBlock().AddChildren(
+                    new MarkdownLinkInline { Url = "http://reddit.com" }.AddChildren(
+                        new TextRunInline { Text = "text" })));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void MarkdownLink_OtherSchemes()
+        {
+            AssertEqual(CollapseWhitespace(@"
+                [text](http://reddit.com)
+
+                [text](https://reddit.com)
+
+                [text](ftp://reddit.com)
+
+                [text](steam://reddit.com)
+
+                [text](irc://reddit.com)
+
+                [text](news://reddit.com)
+
+                [text](mumble://reddit.com)
+
+                [text](ssh://reddit.com)"),
+                new ParagraphBlock().AddChildren(
+                    new MarkdownLinkInline { Url = "http://reddit.com" }.AddChildren(new TextRunInline { Text = "text" }),
+                    new MarkdownLinkInline { Url = "https://reddit.com" }.AddChildren(new TextRunInline { Text = "text" }),
+                    new MarkdownLinkInline { Url = "ftp://reddit.com" }.AddChildren(new TextRunInline { Text = "text" }),
+                    new MarkdownLinkInline { Url = "steam://reddit.com" }.AddChildren(new TextRunInline { Text = "text" }),
+                    new MarkdownLinkInline { Url = "irc://reddit.com" }.AddChildren(new TextRunInline { Text = "text" }),
+                    new MarkdownLinkInline { Url = "news://reddit.com" }.AddChildren(new TextRunInline { Text = "text" }),
+                    new MarkdownLinkInline { Url = "mumble://reddit.com" }.AddChildren(new TextRunInline { Text = "text" }),
+                    new MarkdownLinkInline { Url = "ssh://reddit.com" }.AddChildren(new TextRunInline { Text = "text" })));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void MarkdownLink_WithTooltip()
         {
             AssertEqual(@"[Wikipedia](http://en.wikipedia.org ""tooltip text"")",
@@ -101,6 +154,24 @@ namespace UniversalMarkdownUnitTests.Parse
                 new ParagraphBlock().AddChildren(
                     new MarkdownLinkInline { Url = "http://en.wikipedia.org/wiki/Pica_(disorder)" }.AddChildren(
                         new TextRunInline { Text = "test" })));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void MarkdownLink_Negative_UrlMustBeValid()
+        {
+            AssertEqual("[text](ha)",
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "[text](ha)" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void MarkdownLink_Negative_UrlMustHaveKnownScheme()
+        {
+            AssertEqual("[text](hahaha://test)",
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "[text](hahaha://test)" }));
         }
     }
 }

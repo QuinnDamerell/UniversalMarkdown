@@ -13,7 +13,7 @@ namespace UniversalMarkdownUnitTests.Parse
         {
             AssertEqual("http://reddit.com",
                 new ParagraphBlock().AddChildren(
-                    new RawHyperlinkInline { Url = "http://reddit.com" }));
+                    new RawHyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com" }));
         }
 
         [UITestMethod]
@@ -23,7 +23,7 @@ namespace UniversalMarkdownUnitTests.Parse
             AssertEqual("Narwhal http://reddit.com fail whale",
                 new ParagraphBlock().AddChildren(
                     new TextRunInline { Text = "Narwhal " },
-                    new RawHyperlinkInline { Url = "http://reddit.com" },
+                    new RawHyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com" },
                     new TextRunInline { Text = " fail whale" }));
         }
 
@@ -33,7 +33,7 @@ namespace UniversalMarkdownUnitTests.Parse
         {
             AssertEqual("HTTP://reddit.com",
                 new ParagraphBlock().AddChildren(
-                    new RawHyperlinkInline { Url = "HTTP://reddit.com" }));
+                    new RawHyperlinkInline { Url = "HTTP://reddit.com", Text = "HTTP://reddit.com" }));
         }
 
         [UITestMethod]
@@ -43,9 +43,9 @@ namespace UniversalMarkdownUnitTests.Parse
             AssertEqual("The best site (http://reddit.com) goes well with http://www.wikipedia.com, don't you think?",
                 new ParagraphBlock().AddChildren(
                     new TextRunInline { Text = "The best site (" },
-                    new RawHyperlinkInline { Url = "http://reddit.com" },
+                    new RawHyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com" },
                     new TextRunInline { Text = ") goes well with " },
-                    new RawHyperlinkInline { Url = "http://www.wikipedia.com" },
+                    new RawHyperlinkInline { Url = "http://www.wikipedia.com", Text = "http://www.wikipedia.com" },
                     new TextRunInline { Text = ", don't you think?" }));
         }
 
@@ -55,7 +55,16 @@ namespace UniversalMarkdownUnitTests.Parse
         {
             AssertEqual("https://reddit.com",
                 new ParagraphBlock().AddChildren(
-                    new RawHyperlinkInline { Url = "https://reddit.com" }));
+                    new RawHyperlinkInline { Url = "https://reddit.com", Text = "https://reddit.com" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void Hyperlink_Mailto()
+        {
+            AssertEqual("bob@bob.com",
+                new ParagraphBlock().AddChildren(
+                    new RawHyperlinkInline { Url = "mailto:bob@bob.com", Text = "bob@bob.com" }));
         }
 
         [UITestMethod]
@@ -64,7 +73,7 @@ namespace UniversalMarkdownUnitTests.Parse
         {
             AssertEqual("<http://reddit.com>",
                 new ParagraphBlock().AddChildren(
-                    new RawHyperlinkInline { Url = "http://reddit.com" }));
+                    new RawHyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com" }));
         }
 
         [UITestMethod]
@@ -73,7 +82,7 @@ namespace UniversalMarkdownUnitTests.Parse
         {
             AssertEqual("<http://reddit>",
                 new ParagraphBlock().AddChildren(
-                    new RawHyperlinkInline { Url = "http://reddit" }));
+                    new RawHyperlinkInline { Url = "http://reddit", Text = "http://reddit" }));
         }
 
         [UITestMethod]
@@ -82,7 +91,7 @@ namespace UniversalMarkdownUnitTests.Parse
         {
             AssertEqual("<http://reddit.com.>",
                 new ParagraphBlock().AddChildren(
-                    new RawHyperlinkInline { Url = "http://reddit.com." }));
+                    new RawHyperlinkInline { Url = "http://reddit.com.", Text = "http://reddit.com." }));
         }
 
         [UITestMethod]
@@ -92,7 +101,7 @@ namespace UniversalMarkdownUnitTests.Parse
             AssertEqual("< http://reddit.com >",
                 new ParagraphBlock().AddChildren(
                     new TextRunInline { Text = "< " },
-                    new RawHyperlinkInline { Url = "http://reddit.com" },
+                    new RawHyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com" },
                     new TextRunInline { Text = " >" }));
         }
 
@@ -103,7 +112,7 @@ namespace UniversalMarkdownUnitTests.Parse
             AssertEqual("0http://reddit.com",
                 new ParagraphBlock().AddChildren(
                     new TextRunInline { Text = "0" },
-                    new RawHyperlinkInline { Url = "http://reddit.com" }));
+                    new RawHyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com" }));
         }
 
         [UITestMethod]
@@ -180,42 +189,78 @@ namespace UniversalMarkdownUnitTests.Parse
                 http://reddit.com,
 
                 http://reddit.com,a"),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com" }, new TextRunInline { Text = ")" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com" }, new TextRunInline { Text = ")." }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com)a" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com" }, new TextRunInline { Text = "}" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com}a" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com" }, new TextRunInline { Text = "]" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com]a" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com>" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com|" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com`" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com^" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com~" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com[" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com(" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com{" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com" }, new TextRunInline { Text = "<" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com" }, new TextRunInline { Text = "<a" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com#" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com%" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com" }, new TextRunInline { Text = "!" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com!a" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com" }, new TextRunInline { Text = ";" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com;a" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com" }, new TextRunInline { Text = "." }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com.a" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com-" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com+" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com=" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com_" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com*" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com&" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com" }, new TextRunInline { Text = "?" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com?a" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com" }, new TextRunInline { Text = "," }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com,a" }));
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com" }, new TextRunInline { Text = ")" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com" }, new TextRunInline { Text = ")." }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com)a", Text = "http://reddit.com)a" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com" }, new TextRunInline { Text = "}" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com}a", Text = "http://reddit.com}a" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com" }, new TextRunInline { Text = "]" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com]a", Text = "http://reddit.com]a" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com>", Text = "http://reddit.com>" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com|", Text = "http://reddit.com|" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com`", Text = "http://reddit.com`" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com^", Text = "http://reddit.com^" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com~", Text = "http://reddit.com~" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com[", Text = "http://reddit.com[" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com(", Text = "http://reddit.com(" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com{", Text = "http://reddit.com{" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com" }, new TextRunInline { Text = "<" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com" }, new TextRunInline { Text = "<a" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com#", Text = "http://reddit.com#" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com%", Text = "http://reddit.com%" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com" }, new TextRunInline { Text = "!" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com!a", Text = "http://reddit.com!a" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com" }, new TextRunInline { Text = ";" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com;a", Text = "http://reddit.com;a" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com" }, new TextRunInline { Text = "." }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com.a", Text = "http://reddit.com.a" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com-", Text = "http://reddit.com-" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com+", Text = "http://reddit.com+" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com=", Text = "http://reddit.com=" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com_", Text = "http://reddit.com_" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com*", Text = "http://reddit.com*" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com&", Text = "http://reddit.com&" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com" }, new TextRunInline { Text = "?" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com?a", Text = "http://reddit.com?a" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com" }, new TextRunInline { Text = "," }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com,a", Text = "http://reddit.com,a" }));
         }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void Hyperlink_OtherSchemes()
+        {
+            AssertEqual(CollapseWhitespace(@"
+                http://test.com
+
+                https://test.com
+
+                ftp://test.com
+
+                mailto:dfg@test.com
+
+                steam://test.com
+
+                irc://test.com
+
+                news://test.com
+
+                mumble://test.com
+
+                ssh://test.com"),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://test.com", Text = "http://test.com" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "https://test.com", Text = "https://test.com" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "ftp://test.com", Text = "ftp://test.com" }),
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "mailto:" },
+                    new RawHyperlinkInline { Url = "dfg@test.com" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "steam://test.com", Text = "steam://test.com" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "irc://test.com", Text = "irc://test.com" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "mumble://test.com", Text = "mumble://test.com" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "ssh://test.com", Text = "ssh://test.com" }));
+        }
+
+        
 
         [UITestMethod]
         [TestCategory("Parse - inline")]
@@ -260,6 +305,15 @@ namespace UniversalMarkdownUnitTests.Parse
             AssertEqual("<http://>",
                 new ParagraphBlock().AddChildren(
                     new TextRunInline { Text = "<http://>" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void Hyperlink_Negative_MailtoNeedsADot()
+        {
+            AssertEqual("bob@bob",
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "bob@bob" }));
         }
     }
 }

@@ -258,6 +258,38 @@ namespace UniversalMarkdownUnitTests.Parse
                                     new ListItemBlock().AddChildren(new ParagraphBlock().AddChildren(new TextRunInline { Text = "List item 3" }))))))));
         }
 
+        [UITestMethod]
+        [TestCategory("Parse - block")]
+        public void BulletedList_Nested_Paragraph()
+        {
+            AssertEqual(CollapseWhitespace(@"
+                * 1
+                 * 2
+
+                 3"),
+            new ListBlock().AddChildren(
+                new ListItemBlock().AddChildren(
+                    new ParagraphBlock().AddChildren(new TextRunInline { Text = "1" }),
+                    new ListBlock().AddChildren(
+                        new ListItemBlock().AddChildren(new ParagraphBlock().AddChildren(new TextRunInline { Text = "2" }))),
+                    new ParagraphBlock().AddChildren(new TextRunInline { Text = "3" }))));
+
+            AssertEqual(CollapseWhitespace(@"
+                * 1
+                 * 2
+                * 3
+
+                     4"),
+                new ListBlock().AddChildren(
+                    new ListItemBlock().AddChildren(
+                        new ParagraphBlock().AddChildren(new TextRunInline { Text = "1" }),
+                        new ListBlock().AddChildren(
+                            new ListItemBlock().AddChildren(new ParagraphBlock().AddChildren(new TextRunInline { Text = "2" })))),
+                    new ListItemBlock().AddChildren(
+                        new ParagraphBlock().AddChildren(new TextRunInline { Text = "3" }),
+                        new ParagraphBlock().AddChildren(new TextRunInline { Text = " 4" }))));
+        }
+
 
         [UITestMethod]
         [TestCategory("Parse - block")]

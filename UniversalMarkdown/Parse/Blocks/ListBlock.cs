@@ -173,7 +173,7 @@ namespace UniversalMarkdown.Parse.Elements
                             int spaceCount = firstNonWhiteSpaceChar - start;
                             if (spaceCount == 0)
                                 break;
-                            russianDollIndex = Math.Min(russianDolls.Count - 1, (spaceCount - 1) / 4);
+                            russianDollIndex = Math.Min(russianDollIndex, (spaceCount - 1) / 4);
                             ListBlock listToAddTo = russianDolls[russianDollIndex].List;
                             currentListItem = listToAddTo.Items[listToAddTo.Items.Count - 1];
                             currentListItem.Blocks.Add(new ListItemBuilder());

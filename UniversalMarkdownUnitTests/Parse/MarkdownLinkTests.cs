@@ -1,4 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestPlatform.UnitTestFramework;
+using System.Collections.Generic;
+using UniversalMarkdown.Parse;
 using UniversalMarkdown.Parse.Elements;
 using UITestMethodAttribute = Microsoft.VisualStudio.TestPlatform.UnitTestFramework.AppContainer.UITestMethodAttribute;
 
@@ -154,6 +156,15 @@ namespace UniversalMarkdownUnitTests.Parse
                 new ParagraphBlock().AddChildren(
                     new MarkdownLinkInline { Url = "http://en.wikipedia.org/wiki/Pica_(disorder)" }.AddChildren(
                         new TextRunInline { Text = "test" })));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void MarkdownLink_Empty()
+        {
+            AssertEqual(@"[](https://www.reddit.com)",
+                new ParagraphBlock().AddChildren(
+                    new MarkdownLinkInline { Url = "https://www.reddit.com", Inlines = new List<MarkdownInline>() }));
         }
 
         [UITestMethod]

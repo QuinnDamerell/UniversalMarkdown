@@ -764,6 +764,10 @@ namespace UniversalMarkdown.Display
         /// <param name="context"> Persistent state. </param>
         private void RenderMarkdownLink(InlineCollection inlineCollection, MarkdownLinkInline element, TextElement parent, RenderContext context)
         {
+            // Avoid crash when link text is empty.
+            if (element.Inlines.Count == 0)
+                return;
+
             // HACK: Superscript is not allowed within a hyperlink.  But if we switch it around, so
             // that the superscript is outside the hyperlink, then it will render correctly.
             // This assumes that the entire hyperlink is to be rendered as superscript.
@@ -772,21 +776,20 @@ namespace UniversalMarkdown.Display
             if (allTextIsSuperscript == false)
             {
                 // Regular ol' hyperlink.
+                var link = new Hyperlink();
 
-            var link = new Hyperlink();
+                // Register the link
+                m_linkRegister.RegisterNewHyperLink(link, element.Url);
 
-            // Register the link
-            m_linkRegister.RegisterNewHyperLink(link, element.Url);
-
-            // Render the children into the link inline.
+                // Render the children into the link inline.
                 var childContext = context.Clone();
                 childContext.WithinHyperlink = true;
                 RenderInlineChildren(link.Inlines, element.Inlines, link, childContext);
                 context.TrimLeadingWhitespace = childContext.TrimLeadingWhitespace;
 
-            // Add it to the current inlines
+                // Add it to the current inlines
                 inlineCollection.Add(link);
-        }
+            }
             else
             {
                 // THE HACK IS ON!
@@ -817,7 +820,7 @@ namespace UniversalMarkdown.Display
 
             // Make a text block for the link
             Run linkText = new Run();
-            linkText.Text = CollapseWhitespace(context, element.Url);
+            linkText.Text = CollapseWhitespace(context, element.Text);
             link.Inlines.Add(linkText);
 
             // Add it to the current inlines

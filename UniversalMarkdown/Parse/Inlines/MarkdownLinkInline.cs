@@ -18,6 +18,9 @@ using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
 {
+    /// <summary>
+    /// Represents a type of hyperlink where the text can be different from the target URL.
+    /// </summary>
     public class MarkdownLinkInline : MarkdownInline, IInlineContainer, ILinkElement
     {
         /// <summary>

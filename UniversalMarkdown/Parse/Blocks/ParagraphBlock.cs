@@ -13,11 +13,7 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
@@ -29,9 +25,12 @@ namespace UniversalMarkdown.Parse.Elements
         /// </summary>
         public IList<MarkdownInline> Inlines { get; set; }
 
-        public ParagraphBlock()
-            : base(MarkdownBlockType.Paragraph)
-        { }
+        /// <summary>
+        /// Initializes a new paragraph block.
+        /// </summary>
+        public ParagraphBlock() : base(MarkdownBlockType.Paragraph)
+        {
+        }
 
         /// <summary>
         /// Parses paragraph text.

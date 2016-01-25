@@ -18,6 +18,9 @@ using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
 {
+    /// <summary>
+    /// Represents a span that contains bold text.
+    /// </summary>
     public class BoldTextInline : MarkdownInline, IInlineContainer
     {
         /// <summary>

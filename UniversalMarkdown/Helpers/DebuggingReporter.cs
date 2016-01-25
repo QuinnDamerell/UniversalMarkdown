@@ -22,7 +22,7 @@ using System.Threading.Tasks;
 
 namespace UniversalMarkdown.Helpers
 {
-    class DebuggingReporter
+    internal class DebuggingReporter
     {
         /// <summary>
         /// Reports a critical error.

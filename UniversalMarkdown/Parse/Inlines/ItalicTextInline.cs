@@ -18,6 +18,9 @@ using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
 {
+    /// <summary>
+    /// Represents a span containing italic text.
+    /// </summary>
     public class ItalicTextInline : MarkdownInline, IInlineContainer
     {
         /// <summary>

@@ -13,7 +13,7 @@ namespace UniversalMarkdownUnitTests.Parse
         {
             AssertEqual("http://reddit.com",
                 new ParagraphBlock().AddChildren(
-                    new RawHyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com" }));
+                    new HyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com", LinkType = HyperlinkType.FullUrl }));
         }
 
         [UITestMethod]
@@ -23,7 +23,7 @@ namespace UniversalMarkdownUnitTests.Parse
             AssertEqual("Narwhal http://reddit.com fail whale",
                 new ParagraphBlock().AddChildren(
                     new TextRunInline { Text = "Narwhal " },
-                    new RawHyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com" },
+                    new HyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com", LinkType = HyperlinkType.FullUrl },
                     new TextRunInline { Text = " fail whale" }));
         }
 
@@ -33,7 +33,7 @@ namespace UniversalMarkdownUnitTests.Parse
         {
             AssertEqual("HTTP://reddit.com",
                 new ParagraphBlock().AddChildren(
-                    new RawHyperlinkInline { Url = "HTTP://reddit.com", Text = "HTTP://reddit.com" }));
+                    new HyperlinkInline { Url = "HTTP://reddit.com", Text = "HTTP://reddit.com", LinkType = HyperlinkType.FullUrl }));
         }
 
         [UITestMethod]
@@ -43,9 +43,9 @@ namespace UniversalMarkdownUnitTests.Parse
             AssertEqual("The best site (http://reddit.com) goes well with http://www.wikipedia.com, don't you think?",
                 new ParagraphBlock().AddChildren(
                     new TextRunInline { Text = "The best site (" },
-                    new RawHyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com" },
+                    new HyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com", LinkType = HyperlinkType.FullUrl },
                     new TextRunInline { Text = ") goes well with " },
-                    new RawHyperlinkInline { Url = "http://www.wikipedia.com", Text = "http://www.wikipedia.com" },
+                    new HyperlinkInline { Url = "http://www.wikipedia.com", Text = "http://www.wikipedia.com", LinkType = HyperlinkType.FullUrl },
                     new TextRunInline { Text = ", don't you think?" }));
         }
 
@@ -55,7 +55,7 @@ namespace UniversalMarkdownUnitTests.Parse
         {
             AssertEqual("https://reddit.com",
                 new ParagraphBlock().AddChildren(
-                    new RawHyperlinkInline { Url = "https://reddit.com", Text = "https://reddit.com" }));
+                    new HyperlinkInline { Url = "https://reddit.com", Text = "https://reddit.com", LinkType = HyperlinkType.FullUrl }));
         }
 
         [UITestMethod]
@@ -64,7 +64,7 @@ namespace UniversalMarkdownUnitTests.Parse
         {
             AssertEqual("bob@bob.com",
                 new ParagraphBlock().AddChildren(
-                    new RawHyperlinkInline { Url = "mailto:bob@bob.com", Text = "bob@bob.com" }));
+                    new HyperlinkInline { Url = "mailto:bob@bob.com", Text = "bob@bob.com", LinkType = HyperlinkType.Email }));
         }
 
         [UITestMethod]
@@ -73,7 +73,7 @@ namespace UniversalMarkdownUnitTests.Parse
         {
             AssertEqual("<http://reddit.com>",
                 new ParagraphBlock().AddChildren(
-                    new RawHyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com" }));
+                    new HyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com", LinkType = HyperlinkType.BracketedUrl }));
         }
 
         [UITestMethod]
@@ -82,7 +82,7 @@ namespace UniversalMarkdownUnitTests.Parse
         {
             AssertEqual("<http://reddit>",
                 new ParagraphBlock().AddChildren(
-                    new RawHyperlinkInline { Url = "http://reddit", Text = "http://reddit" }));
+                    new HyperlinkInline { Url = "http://reddit", Text = "http://reddit", LinkType = HyperlinkType.BracketedUrl }));
         }
 
         [UITestMethod]
@@ -91,7 +91,7 @@ namespace UniversalMarkdownUnitTests.Parse
         {
             AssertEqual("<http://reddit.com.>",
                 new ParagraphBlock().AddChildren(
-                    new RawHyperlinkInline { Url = "http://reddit.com.", Text = "http://reddit.com." }));
+                    new HyperlinkInline { Url = "http://reddit.com.", Text = "http://reddit.com.", LinkType = HyperlinkType.BracketedUrl }));
         }
 
         [UITestMethod]
@@ -101,7 +101,7 @@ namespace UniversalMarkdownUnitTests.Parse
             AssertEqual("< http://reddit.com >",
                 new ParagraphBlock().AddChildren(
                     new TextRunInline { Text = "< " },
-                    new RawHyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com" },
+                    new HyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com", LinkType = HyperlinkType.FullUrl },
                     new TextRunInline { Text = " >" }));
         }
 
@@ -112,7 +112,7 @@ namespace UniversalMarkdownUnitTests.Parse
             AssertEqual("0http://reddit.com",
                 new ParagraphBlock().AddChildren(
                     new TextRunInline { Text = "0" },
-                    new RawHyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com" }));
+                    new HyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com", LinkType = HyperlinkType.FullUrl }));
         }
 
         [UITestMethod]
@@ -189,41 +189,41 @@ namespace UniversalMarkdownUnitTests.Parse
                 http://reddit.com,
 
                 http://reddit.com,a"),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com" }, new TextRunInline { Text = ")" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com" }, new TextRunInline { Text = ")." }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com)a", Text = "http://reddit.com)a" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com" }, new TextRunInline { Text = "}" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com}a", Text = "http://reddit.com}a" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com" }, new TextRunInline { Text = "]" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com]a", Text = "http://reddit.com]a" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com>", Text = "http://reddit.com>" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com|", Text = "http://reddit.com|" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com`", Text = "http://reddit.com`" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com^", Text = "http://reddit.com^" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com~", Text = "http://reddit.com~" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com[", Text = "http://reddit.com[" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com(", Text = "http://reddit.com(" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com{", Text = "http://reddit.com{" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com" }, new TextRunInline { Text = "<" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com" }, new TextRunInline { Text = "<a" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com#", Text = "http://reddit.com#" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com%", Text = "http://reddit.com%" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com" }, new TextRunInline { Text = "!" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com!a", Text = "http://reddit.com!a" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com" }, new TextRunInline { Text = ";" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com;a", Text = "http://reddit.com;a" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com" }, new TextRunInline { Text = "." }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com.a", Text = "http://reddit.com.a" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com-", Text = "http://reddit.com-" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com+", Text = "http://reddit.com+" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com=", Text = "http://reddit.com=" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com_", Text = "http://reddit.com_" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com*", Text = "http://reddit.com*" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com&", Text = "http://reddit.com&" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com" }, new TextRunInline { Text = "?" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com?a", Text = "http://reddit.com?a" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com" }, new TextRunInline { Text = "," }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://reddit.com,a", Text = "http://reddit.com,a" }));
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com", LinkType = HyperlinkType.FullUrl }, new TextRunInline { Text = ")" }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com", LinkType = HyperlinkType.FullUrl }, new TextRunInline { Text = ")." }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Url = "http://reddit.com)a", Text = "http://reddit.com)a", LinkType = HyperlinkType.FullUrl }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com", LinkType = HyperlinkType.FullUrl }, new TextRunInline { Text = "}" }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Url = "http://reddit.com}a", Text = "http://reddit.com}a", LinkType = HyperlinkType.FullUrl }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com", LinkType = HyperlinkType.FullUrl }, new TextRunInline { Text = "]" }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Url = "http://reddit.com]a", Text = "http://reddit.com]a", LinkType = HyperlinkType.FullUrl }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Url = "http://reddit.com>", Text = "http://reddit.com>", LinkType = HyperlinkType.FullUrl }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Url = "http://reddit.com|", Text = "http://reddit.com|", LinkType = HyperlinkType.FullUrl }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Url = "http://reddit.com`", Text = "http://reddit.com`", LinkType = HyperlinkType.FullUrl }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Url = "http://reddit.com^", Text = "http://reddit.com^", LinkType = HyperlinkType.FullUrl }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Url = "http://reddit.com~", Text = "http://reddit.com~", LinkType = HyperlinkType.FullUrl }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Url = "http://reddit.com[", Text = "http://reddit.com[", LinkType = HyperlinkType.FullUrl }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Url = "http://reddit.com(", Text = "http://reddit.com(", LinkType = HyperlinkType.FullUrl }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Url = "http://reddit.com{", Text = "http://reddit.com{", LinkType = HyperlinkType.FullUrl }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com", LinkType = HyperlinkType.FullUrl }, new TextRunInline { Text = "<" }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com", LinkType = HyperlinkType.FullUrl }, new TextRunInline { Text = "<a" }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Url = "http://reddit.com#", Text = "http://reddit.com#", LinkType = HyperlinkType.FullUrl }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Url = "http://reddit.com%", Text = "http://reddit.com%", LinkType = HyperlinkType.FullUrl }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com", LinkType = HyperlinkType.FullUrl }, new TextRunInline { Text = "!" }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Url = "http://reddit.com!a", Text = "http://reddit.com!a", LinkType = HyperlinkType.FullUrl }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com", LinkType = HyperlinkType.FullUrl }, new TextRunInline { Text = ";" }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Url = "http://reddit.com;a", Text = "http://reddit.com;a", LinkType = HyperlinkType.FullUrl }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com", LinkType = HyperlinkType.FullUrl }, new TextRunInline { Text = "." }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Url = "http://reddit.com.a", Text = "http://reddit.com.a", LinkType = HyperlinkType.FullUrl }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Url = "http://reddit.com-", Text = "http://reddit.com-", LinkType = HyperlinkType.FullUrl }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Url = "http://reddit.com+", Text = "http://reddit.com+", LinkType = HyperlinkType.FullUrl }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Url = "http://reddit.com=", Text = "http://reddit.com=", LinkType = HyperlinkType.FullUrl }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Url = "http://reddit.com_", Text = "http://reddit.com_", LinkType = HyperlinkType.FullUrl }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Url = "http://reddit.com*", Text = "http://reddit.com*", LinkType = HyperlinkType.FullUrl }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Url = "http://reddit.com&", Text = "http://reddit.com&", LinkType = HyperlinkType.FullUrl }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com", LinkType = HyperlinkType.FullUrl }, new TextRunInline { Text = "?" }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Url = "http://reddit.com?a", Text = "http://reddit.com?a", LinkType = HyperlinkType.FullUrl }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Url = "http://reddit.com", Text = "http://reddit.com", LinkType = HyperlinkType.FullUrl }, new TextRunInline { Text = "," }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Url = "http://reddit.com,a", Text = "http://reddit.com,a", LinkType = HyperlinkType.FullUrl }));
         }
 
         [UITestMethod]
@@ -248,19 +248,17 @@ namespace UniversalMarkdownUnitTests.Parse
                 mumble://test.com
 
                 ssh://test.com"),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "http://test.com", Text = "http://test.com" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "https://test.com", Text = "https://test.com" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "ftp://test.com", Text = "ftp://test.com" }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Url = "http://test.com", Text = "http://test.com", LinkType = HyperlinkType.FullUrl }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Url = "https://test.com", Text = "https://test.com", LinkType = HyperlinkType.FullUrl }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Url = "ftp://test.com", Text = "ftp://test.com", LinkType = HyperlinkType.FullUrl }),
                 new ParagraphBlock().AddChildren(
                     new TextRunInline { Text = "mailto:" },
-                    new RawHyperlinkInline { Url = "dfg@test.com" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "steam://test.com", Text = "steam://test.com" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "irc://test.com", Text = "irc://test.com" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "mumble://test.com", Text = "mumble://test.com" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Url = "ssh://test.com", Text = "ssh://test.com" }));
+                    new HyperlinkInline { Url = "dfg@test.com" }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Url = "steam://test.com", Text = "steam://test.com", LinkType = HyperlinkType.FullUrl }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Url = "irc://test.com", Text = "irc://test.com", LinkType = HyperlinkType.FullUrl }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Url = "mumble://test.com", Text = "mumble://test.com", LinkType = HyperlinkType.FullUrl }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Url = "ssh://test.com", Text = "ssh://test.com", LinkType = HyperlinkType.FullUrl }));
         }
-
-        
 
         [UITestMethod]
         [TestCategory("Parse - inline")]
@@ -327,11 +325,20 @@ namespace UniversalMarkdownUnitTests.Parse
 
         [UITestMethod]
         [TestCategory("Parse - inline")]
+        public void Hyperlink_Negative_AngleBracketDomainOnly()
+        {
+            AssertEqual("<www.reddit.com>",
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "<www.reddit.com>" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void SubredditLink_WithSlash()
         {
             AssertEqual("/r/subreddit",
                 new ParagraphBlock().AddChildren(
-                    new RawHyperlinkInline { Text = "/r/subreddit", Url = "/r/subreddit", LinkType = HyperlinkType.Subreddit }));
+                    new HyperlinkInline { Text = "/r/subreddit", Url = "/r/subreddit", LinkType = HyperlinkType.Subreddit }));
         }
 
         [UITestMethod]
@@ -340,7 +347,7 @@ namespace UniversalMarkdownUnitTests.Parse
         {
             AssertEqual("r/subreddit",
                 new ParagraphBlock().AddChildren(
-                    new RawHyperlinkInline { Text = "r/subreddit", Url = "/r/subreddit", LinkType = HyperlinkType.Subreddit }));
+                    new HyperlinkInline { Text = "r/subreddit", Url = "/r/subreddit", LinkType = HyperlinkType.Subreddit }));
         }
 
         [UITestMethod]
@@ -350,7 +357,7 @@ namespace UniversalMarkdownUnitTests.Parse
             // Subreddit names can be min two chars long.
             AssertEqual("/r/ab",
                 new ParagraphBlock().AddChildren(
-                    new RawHyperlinkInline { Text = "/r/ab", Url = "/r/ab", LinkType = HyperlinkType.Subreddit }));
+                    new HyperlinkInline { Text = "/r/ab", Url = "/r/ab", LinkType = HyperlinkType.Subreddit }));
         }
 
         [UITestMethod]
@@ -445,41 +452,41 @@ namespace UniversalMarkdownUnitTests.Parse
                 /r/news,a
 
                 /r/news0"),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = ")" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = ")." }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = ")a" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = "}" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = "}a" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = "]" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = "]a" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = ">" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = "|" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = "`" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = "^" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = "~" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = "[" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = "(" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = "{" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = "<" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = "<a" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = "#" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = "%" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = "!" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = "!a" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = ";" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = ";a" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = "." }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = ".a" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = "-" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = "=" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news_", Url = "/r/news_" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = "*" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = "&" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = "?" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = "?a" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = "," }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = ",a" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news0", Url = "/r/news0" }));
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Text = "/r/news", Url = "/r/news", LinkType = HyperlinkType.Subreddit }, new TextRunInline { Text = ")" }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Text = "/r/news", Url = "/r/news", LinkType = HyperlinkType.Subreddit }, new TextRunInline { Text = ")." }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Text = "/r/news", Url = "/r/news", LinkType = HyperlinkType.Subreddit }, new TextRunInline { Text = ")a" }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Text = "/r/news", Url = "/r/news", LinkType = HyperlinkType.Subreddit }, new TextRunInline { Text = "}" }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Text = "/r/news", Url = "/r/news", LinkType = HyperlinkType.Subreddit }, new TextRunInline { Text = "}a" }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Text = "/r/news", Url = "/r/news", LinkType = HyperlinkType.Subreddit }, new TextRunInline { Text = "]" }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Text = "/r/news", Url = "/r/news", LinkType = HyperlinkType.Subreddit }, new TextRunInline { Text = "]a" }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Text = "/r/news", Url = "/r/news", LinkType = HyperlinkType.Subreddit }, new TextRunInline { Text = ">" }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Text = "/r/news", Url = "/r/news", LinkType = HyperlinkType.Subreddit }, new TextRunInline { Text = "|" }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Text = "/r/news", Url = "/r/news", LinkType = HyperlinkType.Subreddit }, new TextRunInline { Text = "`" }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Text = "/r/news", Url = "/r/news", LinkType = HyperlinkType.Subreddit }, new TextRunInline { Text = "^" }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Text = "/r/news", Url = "/r/news", LinkType = HyperlinkType.Subreddit }, new TextRunInline { Text = "~" }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Text = "/r/news", Url = "/r/news", LinkType = HyperlinkType.Subreddit }, new TextRunInline { Text = "[" }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Text = "/r/news", Url = "/r/news", LinkType = HyperlinkType.Subreddit }, new TextRunInline { Text = "(" }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Text = "/r/news", Url = "/r/news", LinkType = HyperlinkType.Subreddit }, new TextRunInline { Text = "{" }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Text = "/r/news", Url = "/r/news", LinkType = HyperlinkType.Subreddit }, new TextRunInline { Text = "<" }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Text = "/r/news", Url = "/r/news", LinkType = HyperlinkType.Subreddit }, new TextRunInline { Text = "<a" }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Text = "/r/news", Url = "/r/news", LinkType = HyperlinkType.Subreddit }, new TextRunInline { Text = "#" }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Text = "/r/news", Url = "/r/news", LinkType = HyperlinkType.Subreddit }, new TextRunInline { Text = "%" }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Text = "/r/news", Url = "/r/news", LinkType = HyperlinkType.Subreddit }, new TextRunInline { Text = "!" }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Text = "/r/news", Url = "/r/news", LinkType = HyperlinkType.Subreddit }, new TextRunInline { Text = "!a" }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Text = "/r/news", Url = "/r/news", LinkType = HyperlinkType.Subreddit }, new TextRunInline { Text = ";" }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Text = "/r/news", Url = "/r/news", LinkType = HyperlinkType.Subreddit }, new TextRunInline { Text = ";a" }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Text = "/r/news", Url = "/r/news", LinkType = HyperlinkType.Subreddit }, new TextRunInline { Text = "." }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Text = "/r/news", Url = "/r/news", LinkType = HyperlinkType.Subreddit }, new TextRunInline { Text = ".a" }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Text = "/r/news", Url = "/r/news", LinkType = HyperlinkType.Subreddit }, new TextRunInline { Text = "-" }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Text = "/r/news", Url = "/r/news", LinkType = HyperlinkType.Subreddit }, new TextRunInline { Text = "=" }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Text = "/r/news_", Url = "/r/news_", LinkType = HyperlinkType.Subreddit }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Text = "/r/news", Url = "/r/news", LinkType = HyperlinkType.Subreddit }, new TextRunInline { Text = "*" }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Text = "/r/news", Url = "/r/news", LinkType = HyperlinkType.Subreddit }, new TextRunInline { Text = "&" }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Text = "/r/news", Url = "/r/news", LinkType = HyperlinkType.Subreddit }, new TextRunInline { Text = "?" }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Text = "/r/news", Url = "/r/news", LinkType = HyperlinkType.Subreddit }, new TextRunInline { Text = "?a" }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Text = "/r/news", Url = "/r/news", LinkType = HyperlinkType.Subreddit }, new TextRunInline { Text = "," }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Text = "/r/news", Url = "/r/news", LinkType = HyperlinkType.Subreddit }, new TextRunInline { Text = ",a" }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Text = "/r/news0", Url = "/r/news0", LinkType = HyperlinkType.Subreddit }));
         }
 
         [UITestMethod]
@@ -511,7 +518,7 @@ namespace UniversalMarkdownUnitTests.Parse
                 new ParagraphBlock().AddChildren(new TextRunInline { Text = "/r/a+b" }),
                 new ParagraphBlock().AddChildren(new TextRunInline { Text = "/r/a+bc" }),
                 new ParagraphBlock().AddChildren(new TextRunInline { Text = "/r/ab+c" }),
-                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/ab+cd", Url = "/r/ab+cd", LinkType = HyperlinkType.Subreddit }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Text = "/r/ab+cd", Url = "/r/ab+cd", LinkType = HyperlinkType.Subreddit }),
                 new ParagraphBlock().AddChildren(new TextRunInline { Text = "/r/a+" }),
                 new ParagraphBlock().AddChildren(new TextRunInline { Text = "/r/ab+" }));
         }
@@ -570,7 +577,7 @@ namespace UniversalMarkdownUnitTests.Parse
         {
             AssertEqual("/u/quinbd",
                 new ParagraphBlock().AddChildren(
-                    new RawHyperlinkInline { Text = "/u/quinbd", Url = "/u/quinbd", LinkType = HyperlinkType.User }));
+                    new HyperlinkInline { Text = "/u/quinbd", Url = "/u/quinbd", LinkType = HyperlinkType.User }));
         }
 
         [UITestMethod]
@@ -579,7 +586,7 @@ namespace UniversalMarkdownUnitTests.Parse
         {
             AssertEqual("u/quinbd",
                 new ParagraphBlock().AddChildren(
-                    new RawHyperlinkInline { Text = "u/quinbd", Url = "/u/quinbd", LinkType = HyperlinkType.User }));
+                    new HyperlinkInline { Text = "u/quinbd", Url = "/u/quinbd", LinkType = HyperlinkType.User }));
         }
 
         [UITestMethod]
@@ -589,7 +596,7 @@ namespace UniversalMarkdownUnitTests.Parse
             // User names can be one char long.
             AssertEqual("/u/u",
                 new ParagraphBlock().AddChildren(
-                    new RawHyperlinkInline { Text = "/u/u", Url = "/u/u", LinkType = HyperlinkType.User }));
+                    new HyperlinkInline { Text = "/u/u", Url = "/u/u", LinkType = HyperlinkType.User }));
         }
 
         [UITestMethod]

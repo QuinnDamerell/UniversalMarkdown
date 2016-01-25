@@ -18,6 +18,10 @@ using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
 {
+    /// <summary>
+    /// Represents a span containing code, or other text that is to be displayed using a
+    /// fixed-width font.
+    /// </summary>
     public class CodeInline : MarkdownInline, IInlineLeaf
     {
         /// <summary>

@@ -18,6 +18,9 @@ using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
 {
+    /// <summary>
+    /// Represents a span containing strikethrough text.
+    /// </summary>
     public class StrikethroughTextInline : MarkdownInline, IInlineContainer
     {
         /// <summary>

@@ -58,7 +58,7 @@ namespace UniversalMarkdown.Helpers
             BoldTextInline.AddTripChars(s_triggerList);
             ItalicTextInline.AddTripChars(s_triggerList);
             MarkdownLinkInline.AddTripChars(s_triggerList);
-            RawHyperlinkInline.AddTripChars(s_triggerList);
+            HyperlinkInline.AddTripChars(s_triggerList);
             StrikethroughTextInline.AddTripChars(s_triggerList);
             SuperscriptTextInline.AddTripChars(s_triggerList);
             CodeInline.AddTripChars(s_triggerList);
@@ -178,15 +178,15 @@ namespace UniversalMarkdown.Helpers
                                 break;
                             case InlineParseMethod.AngleBracketLink:
                                 if (!ignoreLinks)
-                                    parseResult = RawHyperlinkInline.ParseAngleBracketLink(markdown, pos, end);
+                                    parseResult = HyperlinkInline.ParseAngleBracketLink(markdown, pos, end);
                                 break;
                             case InlineParseMethod.Url:
                                 if (!ignoreLinks)
-                                    parseResult = RawHyperlinkInline.ParseUrl(markdown, pos, end);
+                                    parseResult = HyperlinkInline.ParseUrl(markdown, pos, end);
                                 break;
                             case InlineParseMethod.RedditLink:
                                 if (!ignoreLinks)
-                                    parseResult = RawHyperlinkInline.ParseRedditLink(markdown, pos, end);
+                                    parseResult = HyperlinkInline.ParseRedditLink(markdown, pos, end);
                                 break;
                             case InlineParseMethod.Strikethrough:
                                 parseResult = StrikethroughTextInline.Parse(markdown, pos, end);
@@ -339,27 +339,6 @@ namespace UniversalMarkdown.Helpers
                 currentPos++;
             }
             return ifNotFoundReturnLength ? endingPos : -1;
-        }
-
-        /// <summary>
-        /// Finds the next char that is not a letter or digit in a range.
-        /// </summary>
-        /// <param name="markdown"></param>
-        /// <param name="startingPos"></param>
-        /// <param name="endingPos"></param>
-        /// <returns></returns>
-        public static int FindNextNonLetterDigitOrUnderscore(string markdown, int startingPos, int endingPos, bool ifNotFoundReturnLenght)
-        {
-            int currentPos = startingPos;
-            while (currentPos < markdown.Length && currentPos < endingPos)
-            {
-                if (!Char.IsLetterOrDigit(markdown[currentPos]) && markdown[currentPos] != '_')
-                {
-                    return currentPos;
-                }
-                currentPos++;
-            }
-            return ifNotFoundReturnLenght ? endingPos : -1;
         }
 
         /// <summary>

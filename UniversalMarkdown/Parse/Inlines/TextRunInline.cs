@@ -19,6 +19,9 @@ using System.Text;
 
 namespace UniversalMarkdown.Parse.Elements
 {
+    /// <summary>
+    /// Represents a span containing plain text.
+    /// </summary>
     public class TextRunInline : MarkdownInline, IInlineLeaf
     {
         /// <summary>

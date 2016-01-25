@@ -113,7 +113,7 @@
     <Compile Include="Helpers\Common.cs" />
     <Compile Include="Helpers\DebuggingReporter.cs" />
     <Compile Include="Helpers\SmartWeakEvent.cs" />
-    <Compile Include="Interfaces\ILinkRegister.cs" />
+    <Compile Include="Display\ILinkRegister.cs" />
     <Compile Include="MarkdownTextBlock.xaml.cs">
       <DependentUpon>MarkdownTextBlock.xaml</DependentUpon>
     </Compile>
@@ -129,7 +129,7 @@
     <Compile Include="Parse\Inlines\ILinkElement.cs" />
     <Compile Include="Parse\Inlines\SuperscriptTextInline.cs" />
     <Compile Include="Parse\Inlines\StrikethroughTextInline.cs" />
-    <Compile Include="Parse\Inlines\RawHyperlinkInline.cs" />
+    <Compile Include="Parse\Inlines\HyperlinkInline.cs" />
     <Compile Include="Parse\Inlines\MarkdownLinkInline.cs" />
     <Compile Include="Parse\Inlines\ItalicTextInline.cs" />
     <Compile Include="Parse\Inlines\BoldTextInline.cs" />

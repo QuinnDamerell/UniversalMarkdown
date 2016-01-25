@@ -31,7 +31,7 @@ namespace UniversalMarkdown.Helpers
     /// <summary>
     /// A class for managing a weak event.
     /// </summary>
-    public sealed class SmartWeakEvent<T> where T : class
+    internal sealed class SmartWeakEvent<T> where T : class
     {
         struct EventEntry
         {

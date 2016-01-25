@@ -13,20 +13,19 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
 {
     public class HorizontalRuleBlock : MarkdownBlock
     {
+        /// <summary>
+        /// Initializes a new horizontal rule block.
+        /// </summary>
         public HorizontalRuleBlock()
             : base(MarkdownBlockType.HorizontalRule)
-        { }
+        {
+        }
 
         /// <summary>
         /// Parses a horizontal rule.

@@ -18,6 +18,9 @@ using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
 {
+    /// <summary>
+    /// Represents a span containing superscript text.
+    /// </summary>
     public class SuperscriptTextInline : MarkdownInline, IInlineContainer
     {
         /// <summary>

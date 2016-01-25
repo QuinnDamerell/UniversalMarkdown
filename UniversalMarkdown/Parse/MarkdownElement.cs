@@ -13,10 +13,6 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 
-using System.Collections.Generic;
-using UniversalMarkdown.Helpers;
-using UniversalMarkdown.Parse.Elements;
-
 namespace UniversalMarkdown.Parse
 {
     public abstract class MarkdownElement

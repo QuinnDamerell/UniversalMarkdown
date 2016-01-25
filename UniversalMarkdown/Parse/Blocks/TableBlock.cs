@@ -33,8 +33,10 @@ namespace UniversalMarkdown.Parse.Elements
         /// </summary>
         public IList<TableColumnDefinition> ColumnDefinitions { get; set; }
 
-        public TableBlock()
-            : base(MarkdownBlockType.Table)
+        /// <summary>
+        /// Initializes a new table block.
+        /// </summary>
+        public TableBlock() : base(MarkdownBlockType.Table)
         {
         }
 

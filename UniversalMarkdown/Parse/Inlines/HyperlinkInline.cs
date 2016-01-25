@@ -21,12 +21,42 @@ namespace UniversalMarkdown.Parse.Elements
 {
     public enum HyperlinkType
     {
-        Url,
+        /// <summary>
+        /// A hyperlink surrounded by angle brackets (e.g. "<http://www.reddit.com>").
+        /// </summary>
+        BracketedUrl,
+
+        /// <summary>
+        /// A fully qualified hyperlink (e.g. "http://www.reddit.com").
+        /// </summary>
+        FullUrl,
+
+        /// <summary>
+        /// A URL without a scheme (e.g. "www.reddit.com").
+        /// </summary>
+        PartialUrl,
+
+        /// <summary>
+        /// An email address (e.g. "test@reddit.com").
+        /// </summary>
+        Email,
+
+        /// <summary>
+        /// A subreddit link (e.g. "/r/news").
+        /// </summary>
         Subreddit,
+
+        /// <summary>
+        /// A user link (e.g. "/u/quinbd").
+        /// </summary>
         User,
     }
 
-    public class RawHyperlinkInline : MarkdownInline, IInlineLeaf, ILinkElement
+    /// <summary>
+    /// Represents a type of hyperlink where the text and the target URL cannot be controlled
+    /// independently.
+    /// </summary>
+    public class HyperlinkInline : MarkdownInline, IInlineLeaf, ILinkElement
     {
         /// <summary>
         /// The text to display.
@@ -39,7 +69,7 @@ namespace UniversalMarkdown.Parse.Elements
         public string Url { get; set; }
 
         /// <summary>
-        /// Raw URLs do not have a tooltip.
+        /// This type of hyperlink does not have a tooltip.
         /// </summary>
         string ILinkElement.Tooltip => null;
 
@@ -51,7 +81,7 @@ namespace UniversalMarkdown.Parse.Elements
         /// <summary>
         /// Initializes a new markdown URL.
         /// </summary>
-        public RawHyperlinkInline() : base(MarkdownInlineType.RawHyperlink)
+        public HyperlinkInline() : base(MarkdownInlineType.RawHyperlink)
         {
         }
 
@@ -103,7 +133,7 @@ namespace UniversalMarkdown.Parse.Elements
                 return null;
 
             var url = markdown.Substring(innerStart, innerEnd - innerStart);
-            return new Common.InlineParseResult(new RawHyperlinkInline { Url = url, Text = url, LinkType = HyperlinkType.Url }, start, innerEnd + 1);
+            return new Common.InlineParseResult(new HyperlinkInline { Url = url, Text = url, LinkType = HyperlinkType.BracketedUrl }, start, innerEnd + 1);
         }
 
         /// <summary>
@@ -156,7 +186,7 @@ namespace UniversalMarkdown.Parse.Elements
             }
 
             var url = markdown.Substring(start, end - start);
-            return new Common.InlineParseResult(new RawHyperlinkInline { Url = url, Text = url, LinkType = HyperlinkType.Url }, start, end);
+            return new Common.InlineParseResult(new HyperlinkInline { Url = url, Text = url, LinkType = HyperlinkType.FullUrl }, start, end);
         }
 
         /// <summary>
@@ -202,7 +232,7 @@ namespace UniversalMarkdown.Parse.Elements
                 return null;
 
             // Find the end of the link.
-            int end = Common.FindNextNonLetterDigitOrUnderscore(markdown, start + 3, maxEnd, true);
+            int end = FindNextNonLetterDigitOrUnderscore(markdown, start + 3, maxEnd);
 
             // Subreddit names must be at least two characters long, users at least one.
             if (end - start < (linkType == HyperlinkType.User ? 4 : 5))
@@ -210,7 +240,7 @@ namespace UniversalMarkdown.Parse.Elements
 
             // We found something!
             var text = markdown.Substring(start, end - start);
-            return new Common.InlineParseResult(new RawHyperlinkInline { Text = text, Url = text, LinkType = linkType }, start, end);
+            return new Common.InlineParseResult(new HyperlinkInline { Text = text, Url = text, LinkType = linkType }, start, end);
         }
 
         /// <summary>
@@ -242,7 +272,7 @@ namespace UniversalMarkdown.Parse.Elements
                 return null;
 
             // Find the end of the link.
-            int end = Common.FindNextNonLetterDigitOrUnderscore(markdown, start + 2, maxEnd, true);
+            int end = FindNextNonLetterDigitOrUnderscore(markdown, start + 2, maxEnd);
 
             // Subreddit names must be at least two characters long, users at least one.
             if (end - start < (linkType == HyperlinkType.User ? 3 : 4))
@@ -250,7 +280,28 @@ namespace UniversalMarkdown.Parse.Elements
 
             // We found something!
             var text = markdown.Substring(start, end - start);
-            return new Common.InlineParseResult(new RawHyperlinkInline { Text = text, Url = "/" + text, LinkType = linkType }, start, end);
+            return new Common.InlineParseResult(new HyperlinkInline { Text = text, Url = "/" + text, LinkType = linkType }, start, end);
+        }
+
+        /// <summary>
+        /// Finds the next char that is not a letter or digit in a range.
+        /// </summary>
+        /// <param name="markdown"></param>
+        /// <param name="start"></param>
+        /// <param name="end"></param>
+        /// <returns></returns>
+        private static int FindNextNonLetterDigitOrUnderscore(string markdown, int start, int end)
+        {
+            int pos = start;
+            while (pos < markdown.Length && pos < end)
+            {
+                if (!char.IsLetterOrDigit(markdown[pos]) && markdown[pos] != '_')
+                {
+                    return pos;
+                }
+                pos++;
+            }
+            return end;
         }
 
         /// <summary>

@@ -296,7 +296,7 @@ namespace UniversalMarkdown.Parse.Elements
         internal static Common.InlineParseResult ParsePartialLink(string markdown, int tripPos, int maxEnd)
         {
             int start = tripPos - 3;
-            if (start < 0 || markdown.Substring(start, 3) != "www")
+            if (start < 0 || markdown[start] != 'w' || markdown[start + 1] != 'w' || markdown[start + 2] != 'w')
                 return null;
 
             // The character before the "www" must be non-alphanumeric i.e. "bwww.reddit.com" is not a valid URL.

@@ -307,7 +307,7 @@ namespace UniversalMarkdown.Display
         /// </summary>
         /// <param name="markdownTree"></param>
         /// <returns> A XAML UI element. </returns>
-        public UIElement Render(Markdown markdownTree)
+        public UIElement Render(MarkdownDocument markdownTree)
         {
             var stackPanel = new StackPanel();
             RenderBlocks(markdownTree.Blocks, stackPanel.Children);
@@ -703,9 +703,6 @@ namespace UniversalMarkdown.Display
                 case MarkdownInlineType.RawHyperlink:
                     RenderRawHyperlink(inlineCollection, (RawHyperlinkInline)element, parent, context);
                     break;
-                case MarkdownInlineType.RawSubreddit:
-                    RenderRawSubreddit(inlineCollection, (RedditLinkInline)element, parent, context);
-                    break;
                 case MarkdownInlineType.Strikethrough:
                     RenderStrikethroughRun(inlineCollection, (StrikethroughTextInline)element, parent, context);
                     break;
@@ -822,29 +819,6 @@ namespace UniversalMarkdown.Display
             Run linkText = new Run();
             linkText.Text = CollapseWhitespace(context, element.Text);
             link.Inlines.Add(linkText);
-
-            // Add it to the current inlines
-            inlineCollection.Add(link);
-        }
-
-        /// <summary>
-        /// Renders a raw subreddit/user link element.
-        /// </summary>
-        /// <param name="inlineCollection"> The list to add to. </param>
-        /// <param name="element"> The parsed inline element to render. </param>
-        /// <param name="parent"> The container element. </param>
-        /// <param name="context"> Persistent state. </param>
-        private void RenderRawSubreddit(InlineCollection inlineCollection, RedditLinkInline element, TextElement parent, RenderContext context)
-        {
-            var link = new Hyperlink();
-
-            // Register the link
-            m_linkRegister.RegisterNewHyperLink(link, element.Url);
-
-            // Add the subreddit text
-            Run subreddit = new Run();
-            subreddit.Text = CollapseWhitespace(context, element.Text);
-            link.Inlines.Add(subreddit);
 
             // Add it to the current inlines
             inlineCollection.Add(link);

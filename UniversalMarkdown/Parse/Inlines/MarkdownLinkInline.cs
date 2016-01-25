@@ -46,9 +46,9 @@ namespace UniversalMarkdown.Parse.Elements
         /// Returns the chars that if found means we might have a match.
         /// </summary>
         /// <returns></returns>
-        internal static void AddTripChars(List<InlineTripCharHelper> tripCharHelpers)
+        internal static void AddTripChars(List<Common.InlineTripCharHelper> tripCharHelpers)
         {
-            tripCharHelpers.Add(new InlineTripCharHelper() { FirstChar = '[', Type = MarkdownInlineType.MarkdownLink });
+            tripCharHelpers.Add(new Common.InlineTripCharHelper() { FirstChar = '[', Method = Common.InlineParseMethod.MarkdownLink });
         }
 
         /// <summary>
@@ -59,10 +59,8 @@ namespace UniversalMarkdown.Parse.Elements
         /// <param name="maxEnd"> The location to stop parsing. </param>
         /// <param name="actualEnd"> Set to the end of the span when the return value is non-null. </param>
         /// <returns> A parsed markdown link, or <c>null</c> if this is not a markdown link. </returns>
-        internal static MarkdownLinkInline Parse(string markdown, int start, int maxEnd, out int actualEnd)
+        internal static Common.InlineParseResult Parse(string markdown, int start, int maxEnd)
         {
-            actualEnd = start;
-
             // Expect a '[' character.
             int linkTextOpen = start;
             if (linkTextOpen == maxEnd || markdown[linkTextOpen] != '[')
@@ -97,11 +95,10 @@ namespace UniversalMarkdown.Parse.Elements
                 return null;
 
             // We found something!
-            actualEnd = linkClose + 1;
             var result = new MarkdownLinkInline();
             result.Inlines = Common.ParseInlineChildren(markdown, linkTextOpen + 1, linkTextClose, ignoreLinks: true);
             result.Url = markdown.Substring(linkOpen + 1, linkClose - linkOpen - 1).Trim();
-            return result;
+            return new Common.InlineParseResult(result, start, linkClose + 1);
         }
 
         /// <summary>

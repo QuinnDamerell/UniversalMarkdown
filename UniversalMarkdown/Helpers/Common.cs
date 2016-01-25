@@ -21,52 +21,51 @@ using UniversalMarkdown.Parse.Elements;
 
 namespace UniversalMarkdown.Helpers
 {
-    /// <summary>
-    /// A helper class for the trip chars. This is an optimization. If we ask each class to go through the rage and look for it's self
-    /// we end up looping through the range n times, once for each inline. This class represent the first char that an inline needs to find
-    /// to has a possible match. We will go through the range once and look for everyone's trip chars, and if they can make a match from the trip
-    /// char then we will commit to them.
-    /// </summary>
-    internal class InlineTripCharHelper
-    {
-        // Note! Everything in first char and suffix should be lower case!
-        public char FirstChar;
-        public MarkdownInlineType Type;
-        public bool IgnoreEscapeChar;
-    }
-
-
     internal class Common
     {
+        internal enum InlineParseMethod
+        {
+            Bold,
+            Code,
+            Italic,
+            MarkdownLink,
+            AngleBracketLink,
+            Url,
+            RedditLink,
+            Strikethrough,
+            Superscript,
+        }
+
+        /// <summary>
+        /// A helper class for the trip chars. This is an optimization. If we ask each class to go
+        /// through the rage and look for itself we end up looping through the range n times, once
+        /// for each inline. This class represent a character that an inline needs to have a
+        /// possible match. We will go through the range once and look for everyone's trip chars,
+        /// and if they can make a match from the trip char then we will commit to them.
+        /// </summary>
+        internal class InlineTripCharHelper
+        {
+            // Note! Everything in first char and suffix should be lower case!
+            public char FirstChar;
+            public InlineParseMethod Method;
+        }
+
         private static List<InlineTripCharHelper> s_triggerList = new List<InlineTripCharHelper>();
         private static char[] s_tripCharacters;
 
-        /// <summary>
-        /// Returns a list of trip chars for all of the inlines. These are used to detect the
-        /// possible beginning of an inline.
-        /// </summary>
-        /// <returns></returns>
-        public static List<InlineTripCharHelper> GetInlineTriggersList()
+        static Common()
         {
-            lock (s_triggerList)
-            {
-                if (s_triggerList.Count == 0)
-                {
-                    BoldTextInline.AddTripChars(s_triggerList);
-                    ItalicTextInline.AddTripChars(s_triggerList);
-                    MarkdownLinkInline.AddTripChars(s_triggerList);
-                    RawHyperlinkInline.AddTripChars(s_triggerList);
-                    RedditLinkInline.AddTripChars(s_triggerList);
-                    StrikethroughTextInline.AddTripChars(s_triggerList);
-                    SuperscriptTextInline.AddTripChars(s_triggerList);
-                    CodeInline.AddTripChars(s_triggerList);
-                    // Text run doesn't have one.
+            BoldTextInline.AddTripChars(s_triggerList);
+            ItalicTextInline.AddTripChars(s_triggerList);
+            MarkdownLinkInline.AddTripChars(s_triggerList);
+            RawHyperlinkInline.AddTripChars(s_triggerList);
+            StrikethroughTextInline.AddTripChars(s_triggerList);
+            SuperscriptTextInline.AddTripChars(s_triggerList);
+            CodeInline.AddTripChars(s_triggerList);
+            // Text run doesn't have one.
 
-                    // Create an array of characters to search against using IndexOfAny.
-                    s_tripCharacters = s_triggerList.Select(trigger => trigger.FirstChar).Distinct().ToArray();
-                }
-            }
-            return s_triggerList;
+            // Create an array of characters to search against using IndexOfAny.
+            s_tripCharacters = s_triggerList.Select(trigger => trigger.FirstChar).Distinct().ToArray();
         }
 
         /// <summary>
@@ -85,107 +84,130 @@ namespace UniversalMarkdown.Helpers
             var inlines = new List<MarkdownInline>();
             while (currentParsePosition < maxEndingPos)
             {
-                int nextElementStart;
-                int nextElementEnd;
+                // Find the next inline element.
+                var parseResult = Common.FindNextInlineElement(markdown, currentParsePosition, maxEndingPos, ignoreLinks);
 
-                // Find the next element
-                MarkdownInline element = Common.FindNextInlineElement(markdown, currentParsePosition, maxEndingPos, out nextElementStart, out nextElementEnd, ignoreLinks);
-
-                // If the element we found doesn't start at the position we are looking for there is text between the element and
-                // the start. We need to wrap it into a Text Run
-                if (nextElementStart != currentParsePosition)
+                // If the element we found doesn't start at the position we are looking for there
+                // is text between the element and the start of the parsed element. We need to wrap
+                // it into a text run.
+                if (parseResult.Start != currentParsePosition)
                 {
-                    var textRun = TextRunInline.Parse(markdown, currentParsePosition, nextElementStart);
+                    var textRun = TextRunInline.Parse(markdown, currentParsePosition, parseResult.Start);
                     inlines.Add(textRun);
                 }
 
                 // Add the parsed element.
-                inlines.Add(element);
+                inlines.Add(parseResult.ParsedElement);
 
                 // Update the current position.
-                currentParsePosition = nextElementEnd;
+                currentParsePosition = parseResult.End;
             }
             return inlines;
         }
 
         /// <summary>
+        /// Represents the result of parsing an inline element.
+        /// </summary>
+        internal class InlineParseResult
+        {
+            public InlineParseResult(MarkdownInline parsedElement, int start, int end)
+            {
+                ParsedElement = parsedElement;
+                Start = start;
+                End = end;
+            }
+
+            /// <summary>
+            /// The element that was parsed (can be <c>null</c>).
+            /// </summary>
+            public MarkdownInline ParsedElement { get; private set; }
+
+            /// <summary>
+            /// The position of the first character in the parsed element.
+            /// </summary>
+            public int Start { get; private set; }
+
+            /// <summary>
+            /// The position of the character after the last character in the parsed element.
+            /// </summary>
+            public int End { get; private set; }
+        }
+
+        /// <summary>
         /// Finds the next inline element by matching trip chars and verifying the match.
         /// </summary>
+        /// <param name="markdown"> The markdown text to parse. </param>
+        /// <param name="start"> The position to start parsing. </param>
+        /// <param name="end"> The position to stop parsing. </param>
         /// <param name="ignoreLinks"> Indicates whether to parse links. </param>
         /// <returns></returns>
-        private static MarkdownInline FindNextInlineElement(string markdown, int startingPos, int endingPos, out int nextElementStart, out int nextElementEnd, bool ignoreLinks)
+        private static InlineParseResult FindNextInlineElement(string markdown, int start, int end, bool ignoreLinks)
         {
-            // Get the list of triggers.
-            List<InlineTripCharHelper> tripChars = GetInlineTriggersList();
-
             // Search for the next inline sequence.
-            for (int pos = startingPos; pos < endingPos; pos++)
+            for (int pos = start; pos < end; pos++)
             {
                 // IndexOfAny should be the fastest way to skip characters we don't care about.
-                pos = markdown.IndexOfAny(s_tripCharacters, pos, endingPos - pos);
+                pos = markdown.IndexOfAny(s_tripCharacters, pos, end - pos);
                 if (pos < 0)
                     break;
 
                 // Find the trigger(s) that matched.
-                char currentChar = Char.ToLower(markdown[pos]);
-                foreach (InlineTripCharHelper currentTripChar in tripChars)
+                char currentChar = markdown[pos];
+                foreach (InlineTripCharHelper currentTripChar in s_triggerList)
                 {
                     // Check if our current char matches the suffix char.
                     if (currentChar == currentTripChar.FirstChar)
                     {
                         // Don't match if the previous character was a backslash.
-                        if (pos > startingPos && markdown[pos - 1] == '\\' && currentTripChar.IgnoreEscapeChar == false)
+                        if (pos > start && markdown[pos - 1] == '\\')
                             continue;
 
                         // If we are here we have a possible match. Call into the inline class to verify.
-                        MarkdownInline parsedElement = null;
-                        int parsedElementEnd = pos;
-                        switch (currentTripChar.Type)
+                        InlineParseResult parseResult = null;
+                        switch (currentTripChar.Method)
                         {
-                            case MarkdownInlineType.Bold:
-                                parsedElement = BoldTextInline.Parse(markdown, pos, endingPos, out parsedElementEnd);
+                            case InlineParseMethod.Bold:
+                                parseResult = BoldTextInline.Parse(markdown, pos, end);
                                 break;
-                            case MarkdownInlineType.Italic:
-                                parsedElement = ItalicTextInline.Parse(markdown, pos, endingPos, out parsedElementEnd);
+                            case InlineParseMethod.Italic:
+                                parseResult = ItalicTextInline.Parse(markdown, pos, end);
                                 break;
-                            case MarkdownInlineType.MarkdownLink:
+                            case InlineParseMethod.MarkdownLink:
                                 if (!ignoreLinks)
-                                    parsedElement = MarkdownLinkInline.Parse(markdown, pos, endingPos, out parsedElementEnd);
+                                    parseResult = MarkdownLinkInline.Parse(markdown, pos, end);
                                 break;
-                            case MarkdownInlineType.RawHyperlink:
+                            case InlineParseMethod.AngleBracketLink:
                                 if (!ignoreLinks)
-                                    parsedElement = RawHyperlinkInline.Parse(markdown, pos, endingPos, out parsedElementEnd);
+                                    parseResult = RawHyperlinkInline.ParseAngleBracketLink(markdown, pos, end);
                                 break;
-                            case MarkdownInlineType.RawSubreddit:
+                            case InlineParseMethod.Url:
                                 if (!ignoreLinks)
-                                    parsedElement = RedditLinkInline.Parse(markdown, pos, endingPos, out parsedElementEnd);
+                                    parseResult = RawHyperlinkInline.ParseUrl(markdown, pos, end);
                                 break;
-                            case MarkdownInlineType.Strikethrough:
-                                parsedElement = StrikethroughTextInline.Parse(markdown, pos, endingPos, out parsedElementEnd);
+                            case InlineParseMethod.RedditLink:
+                                if (!ignoreLinks)
+                                    parseResult = RawHyperlinkInline.ParseRedditLink(markdown, pos, end);
                                 break;
-                            case MarkdownInlineType.Superscript:
-                                parsedElement = SuperscriptTextInline.Parse(markdown, pos, endingPos, out parsedElementEnd);
+                            case InlineParseMethod.Strikethrough:
+                                parseResult = StrikethroughTextInline.Parse(markdown, pos, end);
                                 break;
-                            case MarkdownInlineType.Code:
-                                parsedElement = CodeInline.Parse(markdown, pos, endingPos, out parsedElementEnd);
+                            case InlineParseMethod.Superscript:
+                                parseResult = SuperscriptTextInline.Parse(markdown, pos, end);
+                                break;
+                            case InlineParseMethod.Code:
+                                parseResult = CodeInline.Parse(markdown, pos, end);
                                 break;
                         }
 
-                        if (parsedElement != null)
-                        {
-                            nextElementStart = pos;
-                            nextElementEnd = parsedElementEnd;
-                            return parsedElement;
-                        }
+                        if (parseResult != null)
+                            return parseResult;
                     }
                 }
             }
 
             // If we didn't find any elements we have a normal text block.
             // Let us consume the entire range.
-            nextElementStart = startingPos;
-            nextElementEnd = endingPos;
-            return TextRunInline.Parse(markdown, startingPos, endingPos);
+            return new InlineParseResult(TextRunInline.Parse(markdown, start, end), start, end);
         }
 
 

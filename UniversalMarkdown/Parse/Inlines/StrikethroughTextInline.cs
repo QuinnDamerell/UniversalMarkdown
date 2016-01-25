@@ -36,9 +36,9 @@ namespace UniversalMarkdown.Parse.Elements
         /// Returns the chars that if found means we might have a match.
         /// </summary>
         /// <returns></returns>
-        internal static void AddTripChars(List<InlineTripCharHelper> tripCharHelpers)
+        internal static void AddTripChars(List<Common.InlineTripCharHelper> tripCharHelpers)
         {
-            tripCharHelpers.Add(new InlineTripCharHelper() { FirstChar = '~', Type = MarkdownInlineType.Strikethrough });
+            tripCharHelpers.Add(new Common.InlineTripCharHelper() { FirstChar = '~', Method = Common.InlineParseMethod.Strikethrough });
         }
 
         /// <summary>
@@ -49,10 +49,8 @@ namespace UniversalMarkdown.Parse.Elements
         /// <param name="maxEnd"> The location to stop parsing. </param>
         /// <param name="actualEnd"> Set to the end of the span when the return value is non-null. </param>
         /// <returns> A parsed strikethrough text span, or <c>null</c> if this is not a strikethrough text span. </returns>
-        internal static StrikethroughTextInline Parse(string markdown, int start, int maxEnd, out int actualEnd)
+        internal static Common.InlineParseResult Parse(string markdown, int start, int maxEnd)
         {
-            actualEnd = start;
-
             // Check the start sequence.
             if (start >= maxEnd - 1 || markdown.Substring(start, 2) != "~~")
                 return null;
@@ -76,10 +74,9 @@ namespace UniversalMarkdown.Parse.Elements
                 return null;
 
             // We found something!
-            actualEnd = innerEnd + 2;
             var result = new StrikethroughTextInline();
             result.Inlines = Common.ParseInlineChildren(markdown, innerStart, innerEnd);
-            return result;
+            return new Common.InlineParseResult(result, start, innerEnd + 2);
         }
 
         /// <summary>

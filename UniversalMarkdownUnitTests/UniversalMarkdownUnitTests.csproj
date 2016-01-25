@@ -97,7 +97,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Parse\MarkdownLinkTests.cs" />
-    <Compile Include="Parse\RedditLinkTests.cs" />
     <Compile Include="Parse\ParseTestExtensionMethods.cs" />
     <Compile Include="Parse\ParseTestBase.cs" />
     <Compile Include="Parse\SuperscriptTests.cs" />

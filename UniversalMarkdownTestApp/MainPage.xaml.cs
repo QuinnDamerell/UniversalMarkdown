@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices.WindowsRuntime;
 using UniversalMarkdown;
+using UniversalMarkdownTestApp.Code;
 using Windows.ApplicationModel;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
@@ -56,43 +57,28 @@ namespace UniversalMarkdownTestApp
 
         private async void BenchmarkButton_Click(object sender, RoutedEventArgs e)
         {
-            // Read the text to use as a benchmark.
-            var simpleMarkdownText = @"
-                Xamarin Studio is significantly different to MonoDevelop these days. It's tightly focused
-                on mobile dev rather than trying to be a general purpose IDE, and has a lot of additional
-                functionality and integrations through the plugin architecture that MD doesn't have.
-                Essentially MonoDevelop as most people use it is just a barebones text editor, solution pane etc.
-                and provides a base level container for plugins. Xamarin Studio is what you get when all those
-                plugins are added. It's like comparing two slices of bread to a club sandwich.
+            //// Read the text to use as a benchmark.
+            //var simpleMarkdownText = @"
+            //    Xamarin Studio is significantly different to MonoDevelop these days. It's tightly focused
+            //    on mobile dev rather than trying to be a general purpose IDE, and has a lot of additional
+            //    functionality and integrations through the plugin architecture that MD doesn't have.
+            //    Essentially MonoDevelop as most people use it is just a barebones text editor, solution pane etc.
+            //    and provides a base level container for plugins. Xamarin Studio is what you get when all those
+            //    plugins are added. It's like comparing two slices of bread to a club sandwich.
 
-                I use XS in my job daily and it's very capable at what it's designed for.";
-            var complexMarkdownText = await FileIO.ReadTextAsync(await Package.Current.InstalledLocation.GetFileAsync("InitialContent.md"));
+            //    I use XS in my job daily and it's very capable at what it's designed for.";
+            //var complexMarkdownText = await FileIO.ReadTextAsync(await Package.Current.InstalledLocation.GetFileAsync("InitialContent.md"));
 
-            // Give the test as good a chance as possible
-            // of avoiding garbage collection
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-            GC.Collect();
+            //// Give the test as good a chance as possible
+            //// of avoiding garbage collection
+            //GC.Collect();
+            //GC.WaitForPendingFinalizers();
+            //GC.Collect();
 
-            var stopWatch1 = System.Diagnostics.Stopwatch.StartNew();
-            int simpleIterations = 10000;
-            for (int i = 0; i < simpleIterations; i++)
-            {
-                var parser = new UniversalMarkdown.Parse.Markdown();
-                parser.Parse(simpleMarkdownText);
-            }
-            var simpleTimeMs = stopWatch1.ElapsedMilliseconds / (double)simpleIterations;
+            var elapsedTimeInMs = await BenchmarkRunner.Run(TimeSpan.FromSeconds(5));
 
-            var stopWatch2 = System.Diagnostics.Stopwatch.StartNew();
-            int complexIterations = 1000;
-            for (int i = 0; i < complexIterations; i++)
-            {
-                var parser = new UniversalMarkdown.Parse.Markdown();
-                parser.Parse(complexMarkdownText);
-            }
-            var complexTimeMs = stopWatch2.ElapsedMilliseconds / (double)complexIterations;
-
-            var dialog = new MessageDialog($"**Benchmark complete**\r\n\r\nTime to parse a simple comment: {simpleTimeMs}ms\r\n\r\nTime to parse a complex document: {complexTimeMs}ms");
+            
+            var dialog = new MessageDialog($"**Benchmark complete**\r\n\r\nTime to parse 2,807 comments: {elapsedTimeInMs:f2}ms");
             await dialog.ShowAsync();
         }
 
@@ -109,11 +95,17 @@ namespace UniversalMarkdownTestApp
         {
             private MarkdownTextBlock instance;
             private PropertyInfo property;
+            private bool CanRead;
+            private bool CanWrite;
+            private MethodInfo GetMethod;
 
             public EditableProperty(MarkdownTextBlock instance, PropertyInfo property)
             {
                 this.instance = instance;
                 this.property = property;
+                this.CanRead = property.CanRead;
+                this.CanWrite = property.CanWrite;
+                this.GetMethod = property.GetGetMethod();
                 this.Name = property.Name;
                 this.value = ConvertToString(property.GetValue(instance));
             }
@@ -266,7 +258,7 @@ namespace UniversalMarkdownTestApp
             foreach (var property in MarkdownTextBlock.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public).OrderBy(p => p.Name))
             {
                 var propertyType = property.PropertyType;
-                if (property.GetSetMethod() == null)
+                if (property.CanRead == false || property.CanWrite == false)
                     continue;
                 if (!(propertyType == typeof(string)) && !(propertyType == typeof(double)) &&
                     !(propertyType == typeof(bool)) && !(propertyType == typeof(int)) &&

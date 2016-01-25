@@ -36,9 +36,9 @@ namespace UniversalMarkdown.Parse.Elements
         /// Returns the chars that if found means we might have a match.
         /// </summary>
         /// <returns></returns>
-        internal static void AddTripChars(List<InlineTripCharHelper> tripCharHelpers)
+        internal static void AddTripChars(List<Common.InlineTripCharHelper> tripCharHelpers)
         {
-            tripCharHelpers.Add(new InlineTripCharHelper() { FirstChar = '^', Type = MarkdownInlineType.Superscript });
+            tripCharHelpers.Add(new Common.InlineTripCharHelper() { FirstChar = '^', Method = Common.InlineParseMethod.Superscript });
         }
 
         /// <summary>
@@ -49,17 +49,15 @@ namespace UniversalMarkdown.Parse.Elements
         /// <param name="maxEnd"> The location to stop parsing. </param>
         /// <param name="actualEnd"> Set to the end of the span when the return value is non-null. </param>
         /// <returns> A parsed superscript text span, or <c>null</c> if this is not a superscript text span. </returns>
-        internal static SuperscriptTextInline Parse(string markdown, int start, int maxEnd, out int actualEnd)
+        internal static Common.InlineParseResult Parse(string markdown, int start, int maxEnd)
         {
-            actualEnd = start;
-
             // Check the first character.
             if (start == maxEnd || markdown[start] != '^')
                 return null;
 
             // The content might be enclosed in parentheses.
             int innerStart = start + 1;
-            int innerEnd;
+            int innerEnd, end;
             if (innerStart < maxEnd && markdown[innerStart] == '(')
             {
                 // Find the end parenthesis.
@@ -67,7 +65,7 @@ namespace UniversalMarkdown.Parse.Elements
                 innerEnd = Common.IndexOf(markdown, ')', innerStart, maxEnd);
                 if (innerEnd == -1)
                     return null;
-                actualEnd = innerEnd + 1;
+                end = innerEnd + 1;
             }
             else
             {
@@ -75,13 +73,13 @@ namespace UniversalMarkdown.Parse.Elements
                 innerEnd = Common.FindNextWhiteSpace(markdown, innerStart, maxEnd, ifNotFoundReturnLength: true);
                 if (innerEnd == innerStart)
                     return null;   // No match if the character after the caret is a space.
-                actualEnd = innerEnd;
+                end = innerEnd;
             }
 
             // We found something!
             var result = new SuperscriptTextInline();
             result.Inlines = Common.ParseInlineChildren(markdown, innerStart, innerEnd);
-            return result;
+            return new Common.InlineParseResult(result, start, end);
         }
 
         /// <summary>

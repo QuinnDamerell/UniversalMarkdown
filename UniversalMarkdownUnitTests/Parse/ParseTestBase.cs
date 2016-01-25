@@ -17,7 +17,7 @@ namespace UniversalMarkdownUnitTests.Parse
                 SerializeElement(expected, block, indentLevel: 0);
             }
 
-            var parser = new Markdown();
+            var parser = new MarkdownDocument();
             parser.Parse(markdown);
 
             var actual = new StringBuilder();

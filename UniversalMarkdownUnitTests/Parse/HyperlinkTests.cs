@@ -273,6 +273,15 @@ namespace UniversalMarkdownUnitTests.Parse
 
         [UITestMethod]
         [TestCategory("Parse - inline")]
+        public void Hyperlink_Negative_SchemeOnly()
+        {
+            AssertEqual("http:",
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "http:" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void Hyperlink_Negative_PrefixOnly()
         {
             AssertEqual("http://",
@@ -314,6 +323,300 @@ namespace UniversalMarkdownUnitTests.Parse
             AssertEqual("bob@bob",
                 new ParagraphBlock().AddChildren(
                     new TextRunInline { Text = "bob@bob" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void SubredditLink_WithSlash()
+        {
+            AssertEqual("/r/subreddit",
+                new ParagraphBlock().AddChildren(
+                    new RawHyperlinkInline { Text = "/r/subreddit", Url = "/r/subreddit", LinkType = HyperlinkType.Subreddit }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void SubredditLink_WithoutSlash()
+        {
+            AssertEqual("r/subreddit",
+                new ParagraphBlock().AddChildren(
+                    new RawHyperlinkInline { Text = "r/subreddit", Url = "/r/subreddit", LinkType = HyperlinkType.Subreddit }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void SubredditLink_Short()
+        {
+            // Subreddit names can be min two chars long.
+            AssertEqual("/r/ab",
+                new ParagraphBlock().AddChildren(
+                    new RawHyperlinkInline { Text = "/r/ab", Url = "/r/ab", LinkType = HyperlinkType.Subreddit }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void SubredditLink_WithBeginningEscape()
+        {
+            AssertEqual(@"\/r/subreddit",
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "/r/subreddit" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void SubredditLink_WithMiddleEscape()
+        {
+            AssertEqual(@"r\/subreddit",
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "r/subreddit" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void SubredditLink_EndCharacters()
+        {
+            AssertEqual(CollapseWhitespace(@"
+                /r/news)
+
+                /r/news).
+
+                /r/news)a
+
+                /r/news}
+
+                /r/news}a
+
+                /r/news]
+
+                /r/news]a
+
+                /r/news>
+
+                /r/news|
+
+                /r/news`
+
+                /r/news^
+
+                /r/news~
+
+                /r/news[
+
+                /r/news(
+
+                /r/news{
+
+                /r/news<
+
+                /r/news<a
+
+                /r/news#
+
+                /r/news%
+
+                /r/news!
+
+                /r/news!a
+
+                /r/news;
+
+                /r/news;a
+
+                /r/news.
+
+                /r/news.a
+
+                /r/news-
+
+                /r/news=
+
+                /r/news_
+
+                /r/news*
+
+                /r/news&
+
+                /r/news?
+
+                /r/news?a
+
+                /r/news,
+
+                /r/news,a
+
+                /r/news0"),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = ")" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = ")." }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = ")a" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = "}" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = "}a" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = "]" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = "]a" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = ">" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = "|" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = "`" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = "^" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = "~" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = "[" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = "(" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = "{" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = "<" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = "<a" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = "#" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = "%" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = "!" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = "!a" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = ";" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = ";a" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = "." }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = ".a" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = "-" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = "=" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news_", Url = "/r/news_" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = "*" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = "&" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = "?" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = "?a" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = "," }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news", Url = "/r/news" }, new TextRunInline { Text = ",a" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/news0", Url = "/r/news0" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void Hyperlink_PlusCharacter()
+        {
+            // The plus character is treated strangely.
+            AssertEqual(CollapseWhitespace(@"
+                /r/+
+
+                /r/+a
+
+                /r/+ab
+
+                /r/a+b
+
+                /r/a+bc
+
+                /r/ab+c
+
+                /r/ab+cd
+
+                /r/a+
+
+                /r/ab+"),
+                new ParagraphBlock().AddChildren(new TextRunInline { Text = "/r/+" }),
+                new ParagraphBlock().AddChildren(new TextRunInline { Text = "/r/+a" }),
+                new ParagraphBlock().AddChildren(new TextRunInline { Text = "/r/+ab" }),
+                new ParagraphBlock().AddChildren(new TextRunInline { Text = "/r/a+b" }),
+                new ParagraphBlock().AddChildren(new TextRunInline { Text = "/r/a+bc" }),
+                new ParagraphBlock().AddChildren(new TextRunInline { Text = "/r/ab+c" }),
+                new ParagraphBlock().AddChildren(new RawHyperlinkInline { Text = "/r/ab+cd", Url = "/r/ab+cd", LinkType = HyperlinkType.Subreddit }),
+                new ParagraphBlock().AddChildren(new TextRunInline { Text = "/r/a+" }),
+                new ParagraphBlock().AddChildren(new TextRunInline { Text = "/r/ab+" }));
+        }
+
+
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void SubredditLink_Negative_SurroundingText()
+        {
+            AssertEqual("bear/subreddit",
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "bear/subreddit" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void SubredditLink_Negative_PrefixOnly()
+        {
+            AssertEqual("r/",
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "r/" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void SubredditLink_Negative_UppercaseWithoutSlash()
+        {
+            AssertEqual("R/baconit",
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "R/baconit" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void SubredditLink_Negative_UppercaseWithSlash()
+        {
+            AssertEqual("/R/baconit",
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "/R/baconit" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void SubredditLink_Negative_TooShort()
+        {
+            // The subreddit name must be at least 2 chars.
+            AssertEqual("r/a",
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "r/a" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void UserLink_WithSlash()
+        {
+            AssertEqual("/u/quinbd",
+                new ParagraphBlock().AddChildren(
+                    new RawHyperlinkInline { Text = "/u/quinbd", Url = "/u/quinbd", LinkType = HyperlinkType.User }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void UserLink_WithoutSlash()
+        {
+            AssertEqual("u/quinbd",
+                new ParagraphBlock().AddChildren(
+                    new RawHyperlinkInline { Text = "u/quinbd", Url = "/u/quinbd", LinkType = HyperlinkType.User }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void UserLink_Short()
+        {
+            // User names can be one char long.
+            AssertEqual("/u/u",
+                new ParagraphBlock().AddChildren(
+                    new RawHyperlinkInline { Text = "/u/u", Url = "/u/u", LinkType = HyperlinkType.User }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void UserLink_Negative_PrefixOnly()
+        {
+            AssertEqual("u/",
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "u/" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void UserLink_Negative_UppercaseWithoutSlash()
+        {
+            AssertEqual("U/quinbd",
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "U/quinbd" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void UserLink_Negative_UppercaseWithSlash()
+        {
+            AssertEqual("/U/quinbd",
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "/U/quinbd" }));
         }
     }
 }

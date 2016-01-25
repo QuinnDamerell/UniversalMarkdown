@@ -36,9 +36,9 @@ namespace UniversalMarkdown.Parse.Elements
         /// Returns the chars that if found means we might have a match.
         /// </summary>
         /// <returns></returns>
-        internal static void AddTripChars(List<InlineTripCharHelper> tripCharHelpers)
+        internal static void AddTripChars(List<Common.InlineTripCharHelper> tripCharHelpers)
         {
-            tripCharHelpers.Add(new InlineTripCharHelper() { FirstChar = '`', Type = MarkdownInlineType.Code });
+            tripCharHelpers.Add(new Common.InlineTripCharHelper() { FirstChar = '`', Method = Common.InlineParseMethod.Code });
         }
 
         /// <summary>
@@ -49,10 +49,8 @@ namespace UniversalMarkdown.Parse.Elements
         /// <param name="maxEnd"> The location to stop parsing. </param>
         /// <param name="actualEnd"> Set to the end of the span when the return value is non-null. </param>
         /// <returns> A parsed inline code span, or <c>null</c> if this is not an inline code span. </returns>
-        internal static CodeInline Parse(string markdown, int start, int maxEnd, out int actualEnd)
+        internal static Common.InlineParseResult Parse(string markdown, int start, int maxEnd)
         {
-            actualEnd = start;
-
             // Check the first char.
             if (start == maxEnd || markdown[start] != '`')
                 return null;
@@ -60,7 +58,7 @@ namespace UniversalMarkdown.Parse.Elements
             // There is an alternate syntax that starts and ends with two backticks.
             // e.g. ``sdf`sdf`` would be "sdf`sdf".
             int innerStart = start + 1;
-            int innerEnd;
+            int innerEnd, end;
             if (innerStart < maxEnd && markdown[innerStart] == '`')
             {
                 // Alternate double back-tick syntax.
@@ -70,7 +68,7 @@ namespace UniversalMarkdown.Parse.Elements
                 innerEnd = Common.IndexOf(markdown, "``", innerStart, maxEnd);
                 if (innerEnd == -1)
                     return null;
-                actualEnd = innerEnd + 2;
+                end = innerEnd + 2;
             }
             else
             {
@@ -80,7 +78,7 @@ namespace UniversalMarkdown.Parse.Elements
                 innerEnd = Common.IndexOf(markdown, '`', innerStart, maxEnd);
                 if (innerEnd == -1)
                     return null;
-                actualEnd = innerEnd + 1;
+                end = innerEnd + 1;
             }
 
             // The span must contain at least one character.
@@ -90,7 +88,7 @@ namespace UniversalMarkdown.Parse.Elements
             // We found something!
             var result = new CodeInline();
             result.Text = markdown.Substring(innerStart, innerEnd - innerStart).Trim(' ', '\t', '\r', '\n');
-            return result;
+            return new Common.InlineParseResult(result, start, end);
         }
 
         /// <summary>

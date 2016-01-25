@@ -25,8 +25,8 @@ namespace UniversalMarkdownUnitTests.Parse
 
         private static void AddChild<T>(T parent, object child)
         {
-            if (parent is Markdown)
-                AddChild(() => ((Markdown)(object)parent).Blocks, (value) => ((Markdown)(object)parent).Blocks = value, (MarkdownBlock)child);
+            if (parent is MarkdownDocument)
+                AddChild(() => ((MarkdownDocument)(object)parent).Blocks, (value) => ((MarkdownDocument)(object)parent).Blocks = value, (MarkdownBlock)child);
             else if (parent is HeaderBlock)
                 AddChild(() => ((HeaderBlock)(object)parent).Inlines, (value) => ((HeaderBlock)(object)parent).Inlines = value, (MarkdownInline)child);
             else if (parent is ListBlock)

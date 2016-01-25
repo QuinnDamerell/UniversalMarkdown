@@ -13,11 +13,8 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using UniversalMarkdown.Helpers;
 using UniversalMarkdown.Parse.Elements;
 
@@ -26,7 +23,7 @@ namespace UniversalMarkdown.Parse
     /// <summary>
     /// A class used to represent abstract markdown.
     /// </summary>
-    public class Markdown : MarkdownBlock
+    public class MarkdownDocument : MarkdownBlock
     {
         /// <summary>
         /// Holds the list of block elements.
@@ -36,7 +33,7 @@ namespace UniversalMarkdown.Parse
         /// <summary>
         /// Initializes a new markdown document.
         /// </summary>
-        public Markdown() : base(MarkdownBlockType.Root)
+        public MarkdownDocument() : base(MarkdownBlockType.Root)
         {
         }
 
@@ -235,11 +232,26 @@ namespace UniversalMarkdown.Parse
                             else
                                 paragraphText.Append(" ");
                         }
-                        paragraphText.Append(markdown.Substring(startOfLine, endOfLine - startOfLine));
 
                         // Add the last paragraph if we are at the end of the input text.
                         if (startOfNextLine >= end)
-                            blocks.Add(ParagraphBlock.Parse(paragraphText.ToString()));
+                        {
+                            if (paragraphText.Length == 0)
+                            {
+                                // Optimize for single line paragraphs.
+                                blocks.Add(ParagraphBlock.Parse(markdown.Substring(startOfLine, endOfLine - startOfLine)));
+                            }
+                            else
+                            {
+                                // Slow path.
+                                paragraphText.Append(markdown.Substring(startOfLine, endOfLine - startOfLine));
+                                blocks.Add(ParagraphBlock.Parse(paragraphText.ToString()));
+                            }
+                        }
+                        else
+                        {
+                            paragraphText.Append(markdown.Substring(startOfLine, endOfLine - startOfLine));
+                        }
                     }
                     else
                     {

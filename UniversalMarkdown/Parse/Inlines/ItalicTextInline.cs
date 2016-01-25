@@ -36,10 +36,10 @@ namespace UniversalMarkdown.Parse.Elements
         /// Returns the chars that if found means we might have a match.
         /// </summary>
         /// <returns></returns>
-        internal static void AddTripChars(List<InlineTripCharHelper> tripCharHelpers)
+        internal static void AddTripChars(List<Common.InlineTripCharHelper> tripCharHelpers)
         {
-            tripCharHelpers.Add(new InlineTripCharHelper() { FirstChar = '*', Type = MarkdownInlineType.Italic });
-            tripCharHelpers.Add(new InlineTripCharHelper() { FirstChar = '_', Type = MarkdownInlineType.Italic });
+            tripCharHelpers.Add(new Common.InlineTripCharHelper() { FirstChar = '*', Method = Common.InlineParseMethod.Italic });
+            tripCharHelpers.Add(new Common.InlineTripCharHelper() { FirstChar = '_', Method = Common.InlineParseMethod.Italic });
         }
 
         /// <summary>
@@ -50,10 +50,8 @@ namespace UniversalMarkdown.Parse.Elements
         /// <param name="maxEnd"> The location to stop parsing. </param>
         /// <param name="actualEnd"> Set to the end of the span when the return value is non-null. </param>
         /// <returns> A parsed italic text span, or <c>null</c> if this is not a italic text span. </returns>
-        internal static ItalicTextInline Parse(string markdown, int start, int maxEnd, out int actualEnd)
+        internal static Common.InlineParseResult Parse(string markdown, int start, int maxEnd)
         {
-            actualEnd = start;
-
             // Check the first char.
             char startChar = markdown[start];
             if (start == maxEnd || (startChar != '*' && startChar != '_'))
@@ -79,10 +77,9 @@ namespace UniversalMarkdown.Parse.Elements
                 return null;
 
             // We found something!
-            actualEnd = innerEnd + 1;
             var result = new ItalicTextInline();
             result.Inlines = Common.ParseInlineChildren(markdown, innerStart, innerEnd);
-            return result;
+            return new Common.InlineParseResult(result, start, innerEnd + 1);
         }
 
         /// <summary>

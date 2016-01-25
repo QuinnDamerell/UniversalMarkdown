@@ -45,7 +45,7 @@ namespace UniversalMarkdown.Parse.Elements
             var result = new QuoteBlock();
 
             // Recursively call into the markdown block parser.
-            result.Blocks = Markdown.Parse(markdown, startOfLine, maxEnd, quoteDepth: quoteDepth + 1, actualEnd: out actualEnd);
+            result.Blocks = MarkdownDocument.Parse(markdown, startOfLine, maxEnd, quoteDepth: quoteDepth + 1, actualEnd: out actualEnd);
 
             return result;
         }

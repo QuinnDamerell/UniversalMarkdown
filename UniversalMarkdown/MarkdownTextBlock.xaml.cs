@@ -743,7 +743,7 @@ namespace UniversalMarkdown
             try
             {
                 // Try to parse the markdown.
-                Markdown markdown = new Markdown();
+                MarkdownDocument markdown = new MarkdownDocument();
                 markdown.Parse(Markdown);
 
                 // Now try to display it

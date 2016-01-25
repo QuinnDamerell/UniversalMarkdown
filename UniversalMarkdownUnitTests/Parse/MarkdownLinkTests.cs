@@ -178,6 +178,25 @@ namespace UniversalMarkdownUnitTests.Parse
 
         [UITestMethod]
         [TestCategory("Parse - inline")]
+        public void MarkdownLink_WithTooltipAndQuotes()
+        {
+            AssertEqual(@"[text](http://reddit.com ""quoth the fox ""never more"""")",
+                new ParagraphBlock().AddChildren(
+                    new MarkdownLinkInline { Url = "http://reddit.com", Tooltip = @"quoth the fox ""never more""" }.AddChildren(
+                        new TextRunInline { Text = "text" })));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void MarkdownLink_WithTooltipOnly()
+        {
+            AssertEqual(@"[text](""tooltip"")",
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = @"[text](""tooltip"")" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void MarkdownLink_Escape()
         {
             // The link stops at the first ')'

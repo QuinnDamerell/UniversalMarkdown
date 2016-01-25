@@ -125,7 +125,9 @@ namespace UniversalMarkdown.Parse.Elements
             string url;
             string tooltip = null;
             bool lastUrlCharIsDoubleQuote = markdown[linkClose - 1] == '"';
-            int tooltipStart = Common.IndexOf(markdown, " \"", linkOpen + 1, linkClose - 1, reverseSearch: true);
+            int tooltipStart = Common.IndexOf(markdown, " \"", linkOpen, linkClose - 1);
+            if (tooltipStart == linkOpen)
+                return null;
             if (lastUrlCharIsDoubleQuote && tooltipStart != -1)
             {
                 // Extract the URL (resolving any escape sequences).

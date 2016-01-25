@@ -506,7 +506,7 @@ namespace UniversalMarkdownUnitTests.Parse
 
         [UITestMethod]
         [TestCategory("Parse - inline")]
-        public void Hyperlink_PlusCharacter()
+        public void SubredditLink_PlusCharacter()
         {
             // The plus character is treated strangely.
             AssertEqual(CollapseWhitespace(@"

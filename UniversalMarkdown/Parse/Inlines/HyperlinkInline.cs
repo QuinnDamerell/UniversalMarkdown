@@ -96,6 +96,7 @@ namespace UniversalMarkdown.Parse.Elements
             tripCharHelpers.Add(new Common.InlineTripCharHelper() { FirstChar = ':', Method = Common.InlineParseMethod.Url });
             tripCharHelpers.Add(new Common.InlineTripCharHelper() { FirstChar = '/', Method = Common.InlineParseMethod.RedditLink });
             tripCharHelpers.Add(new Common.InlineTripCharHelper() { FirstChar = '.', Method = Common.InlineParseMethod.PartialLink });
+            tripCharHelpers.Add(new Common.InlineTripCharHelper() { FirstChar = '@', Method = Common.InlineParseMethod.Email });
         }
 
         /// <summary>
@@ -181,7 +182,7 @@ namespace UniversalMarkdown.Parse.Elements
                 return null;
 
             // The URL must have at least one character after the http:// and at least one dot.
-            int pos = tripPos + 2;
+            int pos = tripPos + 3;
             int dotIndex = markdown.IndexOf('.', pos, maxEnd - pos);
             if (dotIndex == -1 || dotIndex == pos)
                 return null;
@@ -312,6 +313,59 @@ namespace UniversalMarkdown.Parse.Elements
 
             var url = markdown.Substring(start, end - start);
             return new Common.InlineParseResult(new HyperlinkInline { Url = "http://" + url, Text = url, LinkType = HyperlinkType.PartialUrl }, start, end);
+        }
+
+        /// <summary>
+        /// Attempts to parse an email address e.g. "test@reddit.com".
+        /// </summary>
+        /// <param name="markdown"> The markdown text. </param>
+        /// <param name="tripPos"> The location of the at character. </param>
+        /// <param name="maxEnd"> The location to stop parsing. </param>
+        /// <returns> A parsed URL, or <c>null</c> if this is not a URL. </returns>
+        internal static Common.InlineParseResult ParseEmailAddress(string markdown, int tripPos, int maxEnd)
+        {
+            // Search backwards until we find a character which is not a letter or digit.
+            int start = tripPos;
+            while (start > 0)
+            {
+                if (!char.IsLetterOrDigit(markdown[start - 1]))
+                    break;
+                start--;
+            }
+
+            // There must be at least one character before the '@'.
+            if (start == tripPos)
+                return null;
+
+            // Search forwards until we find a character which is not a letter or digit.
+            int dotIndex = tripPos + 1;
+            while (dotIndex < maxEnd)
+            {
+                if (!char.IsLetterOrDigit(markdown[dotIndex]))
+                    break;
+                dotIndex++;
+            }
+
+            // We are expecting a dot.
+            if (dotIndex == maxEnd || markdown[dotIndex] != '.')
+                return null;
+
+            // Search forwards until we find a character which is not a letter or digit.
+            int end = dotIndex + 1;
+            while (end < maxEnd)
+            {
+                if (!char.IsLetterOrDigit(markdown[end]) && markdown[end] != '.')
+                    break;
+                end++;
+            }
+
+            // There must be at least one character after the dot.
+            if (end == dotIndex + 1)
+                return null;
+
+            // We found an email address!
+            var emailAddress = markdown.Substring(start, end - start);
+            return new Common.InlineParseResult(new HyperlinkInline { Url = "mailto:" + emailAddress, Text = emailAddress, LinkType = HyperlinkType.Email }, start, end);
         }
 
         /// <summary>

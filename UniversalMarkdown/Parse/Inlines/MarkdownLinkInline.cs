@@ -91,13 +91,52 @@ namespace UniversalMarkdown.Parse.Elements
             if (linkOpen == -1)
                 return null;
 
-            // Find the '(' character.
-            int linkClose = Common.IndexOf(markdown, ')', linkOpen, maxEnd);
-            if (linkClose == -1)
+            // Skip whitespace.
+            linkOpen++;
+            while (linkOpen < maxEnd && Common.IsWhiteSpace(markdown[linkOpen]))
+                linkOpen++;
+
+            // Find the ')' character.
+            pos = linkOpen;
+            int linkClose = -1;
+            while (pos < maxEnd)
+            {
+                linkClose = Common.IndexOf(markdown, ')', pos, maxEnd);
+                if (linkClose == -1)
+                    return null;
+                if (markdown[linkClose - 1] != '\\')
+                    break;
+                pos = linkClose + 1;
+            }
+            if (pos >= maxEnd)
+                return null;
+            int end = linkClose + 1;
+
+            // Skip whitespace backwards.
+            while (linkClose > linkOpen && Common.IsWhiteSpace(markdown[linkClose - 1]))
+                linkClose--;
+
+            // If there is no text whatsoever, then this is not a valid link.
+            if (linkOpen == linkClose)
                 return null;
 
-            // Extract the URL.
-            var url = markdown.Substring(linkOpen + 1, linkClose - linkOpen - 1).Trim();
+            // Check if there is tooltip text.
+            
+            string url;
+            string tooltip = null;
+            bool lastUrlCharIsDoubleQuote = markdown[linkClose - 1] == '"';
+            int tooltipStart = Common.IndexOf(markdown, " \"", linkOpen + 1, linkClose - 1, reverseSearch: true);
+            if (lastUrlCharIsDoubleQuote && tooltipStart != -1)
+            {
+                // Extract the URL (resolving any escape sequences).
+                url = TextRunInline.ResolveEscapeSequences(markdown, linkOpen, tooltipStart).TrimEnd(' ', '\t', '\r', '\n');
+                tooltip = markdown.Substring(tooltipStart + 2, (linkClose - 1) - (tooltipStart + 2));
+            }
+            else
+            {
+                // Extract the URL (resolving any escape sequences).
+                url = TextRunInline.ResolveEscapeSequences(markdown, linkOpen, linkClose);
+            }
 
             // Relative links are allowed.
             if (!url.StartsWith("/"))
@@ -119,8 +158,9 @@ namespace UniversalMarkdown.Parse.Elements
             // We found something!
             var result = new MarkdownLinkInline();
             result.Inlines = Common.ParseInlineChildren(markdown, linkTextOpen + 1, linkTextClose, ignoreLinks: true);
-            result.Url = url;
-            return new Common.InlineParseResult(result, start, linkClose + 1);
+            result.Url = url.Replace(" ", "%20");
+            result.Tooltip = tooltip;
+            return new Common.InlineParseResult(result, start, end);
         }
 
         /// <summary>

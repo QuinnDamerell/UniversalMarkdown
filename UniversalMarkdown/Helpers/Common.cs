@@ -33,6 +33,7 @@ namespace UniversalMarkdown.Helpers
             Url,
             RedditLink,
             PartialLink,
+            Email,
             Strikethrough,
             Superscript,
         }
@@ -192,6 +193,10 @@ namespace UniversalMarkdown.Helpers
                             case InlineParseMethod.PartialLink:
                                 if (!ignoreLinks)
                                     parseResult = HyperlinkInline.ParsePartialLink(markdown, pos, end);
+                                break;
+                            case InlineParseMethod.Email:
+                                if (!ignoreLinks)
+                                    parseResult = HyperlinkInline.ParseEmailAddress(markdown, pos, end);
                                 break;
                             case InlineParseMethod.Strikethrough:
                                 parseResult = StrikethroughTextInline.Parse(markdown, pos, end);

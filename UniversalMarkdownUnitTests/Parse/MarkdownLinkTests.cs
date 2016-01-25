@@ -98,11 +98,31 @@ namespace UniversalMarkdownUnitTests.Parse
 
         [UITestMethod]
         [TestCategory("Parse - inline")]
-        public void MarkdownLink_WhiteSpaceInUrl()
+        public void MarkdownLink_WhiteSpaceSurroundingUrl()
         {
             AssertEqual("[text](  http://reddit.com  )",
                 new ParagraphBlock().AddChildren(
                     new MarkdownLinkInline { Url = "http://reddit.com" }.AddChildren(
+                        new TextRunInline { Text = "text" })));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void MarkdownLink_WhiteSpaceInUrl()
+        {
+            AssertEqual("[text](http://www.reddit .com)",
+                new ParagraphBlock().AddChildren(
+                    new MarkdownLinkInline { Url = "http://www.reddit%20.com" }.AddChildren(
+                        new TextRunInline { Text = "text" })));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void MarkdownLink_UrlEscapeSequence()
+        {
+            AssertEqual("[text](http://www.reddit%20.com)",
+                new ParagraphBlock().AddChildren(
+                    new MarkdownLinkInline { Url = "http://www.reddit%20.com" }.AddChildren(
                         new TextRunInline { Text = "text" })));
         }
 
@@ -142,8 +162,18 @@ namespace UniversalMarkdownUnitTests.Parse
         {
             AssertEqual(@"[Wikipedia](http://en.wikipedia.org ""tooltip text"")",
                 new ParagraphBlock().AddChildren(
-                    new MarkdownLinkInline { Url = "http://reddit.com", Tooltip = "tooltip text" }.AddChildren(
-                        new TextRunInline { Text = "reddit" })));
+                    new MarkdownLinkInline { Url = "http://en.wikipedia.org", Tooltip = "tooltip text" }.AddChildren(
+                        new TextRunInline { Text = "Wikipedia" })));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void MarkdownLink_WithTooltipAndWhiteSpace()
+        {
+            AssertEqual(@"[Wikipedia](   http://en.wikipedia.org   "" tooltip text ""   )",
+                new ParagraphBlock().AddChildren(
+                    new MarkdownLinkInline { Url = "http://en.wikipedia.org", Tooltip = " tooltip text " }.AddChildren(
+                        new TextRunInline { Text = "Wikipedia" })));
         }
 
         [UITestMethod]

@@ -648,7 +648,7 @@ namespace UniversalMarkdown.Display
             public RenderContext Clone()
             {
                 return new RenderContext { TrimLeadingWhitespace = TrimLeadingWhitespace, WithinHyperlink = WithinHyperlink };
-        }
+            }
         }
 
         /// <summary>
@@ -701,7 +701,7 @@ namespace UniversalMarkdown.Display
                     RenderMarkdownLink(inlineCollection, (MarkdownLinkInline)element, parent, context);
                     break;
                 case MarkdownInlineType.RawHyperlink:
-                    RenderRawHyperlink(inlineCollection, (HyperlinkInline)element, parent, context);
+                    RenderHyperlink(inlineCollection, (HyperlinkInline)element, parent, context);
                     break;
                 case MarkdownInlineType.Strikethrough:
                     RenderStrikethroughRun(inlineCollection, (StrikethroughTextInline)element, parent, context);
@@ -808,7 +808,7 @@ namespace UniversalMarkdown.Display
         /// <param name="element"> The parsed inline element to render. </param>
         /// <param name="parent"> The container element. </param>
         /// <param name="context"> Persistent state. </param>
-        private void RenderRawHyperlink(InlineCollection inlineCollection, HyperlinkInline element, TextElement parent, RenderContext context)
+        private void RenderHyperlink(InlineCollection inlineCollection, HyperlinkInline element, TextElement parent, RenderContext context)
         {
             var link = new Hyperlink();
 

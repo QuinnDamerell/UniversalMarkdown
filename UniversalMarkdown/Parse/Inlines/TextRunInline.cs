@@ -295,6 +295,9 @@ namespace UniversalMarkdown.Parse.Elements
             { "diams", 0x2666 }, // ♦
         };
 
+        // A list of characters that can be escaped.
+        private readonly static char[] escapeCharacters = new char[] { '\\', '`', '*', '_', '{', '}', '[', ']', '(', ')', '#', '+', '-', '.', '!', '|', '~', '^', '&', ':', '<', '>', '/' };
+
         /// <summary>
         /// Parses unformatted text.
         /// </summary>
@@ -327,7 +330,7 @@ namespace UniversalMarkdown.Parse.Elements
 
                     // Check if the character after the backslash can be escaped.
                     decodedChar = markdown[sequenceStartIndex + 1];
-                    if (Array.IndexOf(new char[] { '\\', '`', '*', '_', '{', '}', '[', ']', '(', ')', '#', '+', '-', '.', '!', '|', '~', '^', '&', ':', '<', '>', '/' }, decodedChar) < 0)
+                    if (Array.IndexOf(escapeCharacters, decodedChar) < 0)
                     {
                         // This character cannot be escaped.
                         continue;
@@ -369,6 +372,57 @@ namespace UniversalMarkdown.Parse.Elements
                 return new TextRunInline { Text = result.ToString() };
             }
             return new TextRunInline { Text = markdown.Substring(start, end - start) };
+        }
+
+        /// <summary>
+        /// Parses unformatted text.
+        /// </summary>
+        /// <param name="markdown"> The markdown text. </param>
+        /// <param name="start"> The location to start parsing. </param>
+        /// <param name="end"> The location to stop parsing. </param>
+        /// <returns> A parsed text span. </returns>
+        internal static string ResolveEscapeSequences(string markdown, int start, int end)
+        {
+            // Handle escape sequences only.
+            // Note: this code is designed to be as fast as possible in the case where there are no
+            // escape sequences (expected to be the common case).
+            StringBuilder result = null;
+            int textPos = start;
+            int searchPos = start;
+            while (searchPos < end)
+            {
+                // Look for the next backslash.
+                int sequenceStartIndex = markdown.IndexOf('\\', searchPos, end - searchPos);
+                if (sequenceStartIndex == -1)
+                    break;
+                searchPos = sequenceStartIndex + 1;
+
+                // This is an escape sequence, with one more character expected.
+                if (sequenceStartIndex >= end - 1)
+                    break;
+
+                // Check if the character after the backslash can be escaped.
+                char decodedChar = markdown[sequenceStartIndex + 1];
+                if (Array.IndexOf(escapeCharacters, decodedChar) < 0)
+                {
+                    // This character cannot be escaped.
+                    continue;
+                }
+
+                // This here's an escape sequence!
+                if (result == null)
+                    result = new StringBuilder(end - start);
+                result.Append(markdown.Substring(textPos, sequenceStartIndex - textPos));
+                result.Append(decodedChar);
+                searchPos = textPos = sequenceStartIndex + 2;
+            }
+
+            if (result != null)
+            {
+                result.Append(markdown.Substring(textPos, end - textPos));
+                return result.ToString();
+            }
+            return markdown.Substring(start, end - start);
         }
 
         /// <summary>

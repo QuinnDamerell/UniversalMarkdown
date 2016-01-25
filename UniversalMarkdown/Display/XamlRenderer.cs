@@ -778,15 +778,16 @@ namespace UniversalMarkdown.Display
             // HACK: Superscript is not allowed within a hyperlink.  But if we switch it around, so
             // that the superscript is outside the hyperlink, then it will render correctly.
             // This assumes that the entire hyperlink is to be rendered as superscript.
-            bool allTextIsSuperscript = ExciseSuperscriptRuns(element);
-
-            if (allTextIsSuperscript == false)
+            if (AllTextIsSuperscript(element) == false)
             {
                 // Regular ol' hyperlink.
                 var link = new Hyperlink();
 
                 // Register the link
                 m_linkRegister.RegisterNewHyperLink(link, element.Url);
+
+                // Remove superscripts.
+                RemoveSuperscriptRuns(element, insertCaret: true);
 
                 // Render the children into the link inline.
                 var childContext = context.Clone();
@@ -804,6 +805,9 @@ namespace UniversalMarkdown.Display
                 // Create a fake superscript element.
                 var fakeSuperscript = new SuperscriptTextInline();
                 fakeSuperscript.Inlines = new List<MarkdownInline> { element };
+
+                // Remove superscripts.
+                RemoveSuperscriptRuns(element, insertCaret: false);
 
                 // Now render it.
                 RenderSuperscriptRun(inlineCollection, fakeSuperscript, parent, context);
@@ -1043,24 +1047,54 @@ namespace UniversalMarkdown.Display
         }
 
         /// <summary>
-        /// Removes all superscript elements from the given container.
+        /// Checks if all text elements inside the given container are superscript.
         /// </summary>
         /// <param name="container"></param>
         /// <returns> <c>true</c> if all text is superscript (level 1); <c>false</c> otherwise. </returns>
-        private bool ExciseSuperscriptRuns(IInlineContainer container, int superscriptLevel = 0)
+        private bool AllTextIsSuperscript(IInlineContainer container, int superscriptLevel = 0)
         {
-            bool allTextIsSuperscript = true;
+            foreach (var inline in container.Inlines)
+            {
+                if (inline is SuperscriptTextInline)
+                {
+                    // Remove any nested superscripts.
+                    if (AllTextIsSuperscript((IInlineContainer)inline, superscriptLevel + 1) == false)
+                        return false;
+                }
+                else if (inline is IInlineContainer)
+                {
+                    // Remove any superscripts.
+                    if (AllTextIsSuperscript((IInlineContainer)inline, superscriptLevel) == false)
+                        return false;
+                }
+                else if (inline is IInlineLeaf && !Common.IsBlankOrWhiteSpace(((IInlineLeaf)inline).Text))
+                {
+                    if (superscriptLevel != 1)
+                        return false;
+                }
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Removes all superscript elements from the given container.
+        /// </summary>
+        /// <param name="container"></param>
+        /// <param name="insertCaret"></param>
+        private void RemoveSuperscriptRuns(IInlineContainer container, bool insertCaret)
+        {
             for (int i = 0; i < container.Inlines.Count; i ++)
             {
                 var inline = container.Inlines[i];
                 if (inline is SuperscriptTextInline)
                 {
                     // Remove any nested superscripts.
-                    if (ExciseSuperscriptRuns((IInlineContainer)inline, superscriptLevel + 1) == false)
-                        allTextIsSuperscript = false;
+                    RemoveSuperscriptRuns((IInlineContainer)inline, insertCaret);
 
                     // Remove the superscript element, insert all the children.
                     container.Inlines.RemoveAt(i);
+                    if (insertCaret)
+                        container.Inlines.Insert(i++, new TextRunInline { Text = "^" });
                     foreach (var superscriptInline in ((SuperscriptTextInline)inline).Inlines)
                         container.Inlines.Insert(i++, superscriptInline);
                     i--;
@@ -1068,16 +1102,9 @@ namespace UniversalMarkdown.Display
                 else if (inline is IInlineContainer)
                 {
                     // Remove any superscripts.
-                    if (ExciseSuperscriptRuns((IInlineContainer)inline, superscriptLevel) == false)
-                        allTextIsSuperscript = false;
-                }
-                else if (inline is IInlineLeaf && superscriptLevel != 1)
-                {
-                    if (!Common.IsBlankOrWhiteSpace(((IInlineLeaf)inline).Text))
-                        allTextIsSuperscript = false;
+                    RemoveSuperscriptRuns((IInlineContainer)inline, insertCaret);
                 }
             }
-            return allTextIsSuperscript;
         }
 
         #endregion

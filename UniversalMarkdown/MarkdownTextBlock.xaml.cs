@@ -554,6 +554,37 @@ namespace UniversalMarkdown
         public static readonly DependencyProperty ListMarginProperty = DependencyProperty.Register(nameof(ListMargin), typeof(Thickness),
                 typeof(MarkdownTextBlock), new PropertyMetadata(new Thickness(0, 5, 0, 5), new PropertyChangedCallback(OnPropertyChangedStatic)));
 
+
+        /// <summary>
+        /// Gets or sets the width of the space used by list item bullets/numbers.
+        /// </summary>
+        public double ListGutterWidth
+        {
+            get { return (double)GetValue(ListGutterWidthProperty); }
+            set { SetValue(ListGutterWidthProperty, value); }
+        }
+
+        /// <summary>
+        /// Gets the dependency property for <see cref="ListGutterWidth"/>.
+        /// </summary>
+        public static readonly DependencyProperty ListGutterWidthProperty = DependencyProperty.Register(nameof(ListGutterWidth), typeof(double),
+                typeof(MarkdownTextBlock), new PropertyMetadata(32.0, new PropertyChangedCallback(OnPropertyChangedStatic)));
+
+        /// <summary>
+        /// Gets or sets the space between the list item bullets/numbers and the list item content.
+        /// </summary>
+        public double ListBulletSpacing
+        {
+            get { return (double)GetValue(ListBulletSpacingProperty); }
+            set { SetValue(ListBulletSpacingProperty, value); }
+        }
+
+        /// <summary>
+        /// Gets the dependency property for <see cref="ListBulletSpacing"/>.
+        /// </summary>
+        public static readonly DependencyProperty ListBulletSpacingProperty = DependencyProperty.Register(nameof(ListBulletSpacing), typeof(double),
+                typeof(MarkdownTextBlock), new PropertyMetadata(8.0, new PropertyChangedCallback(OnPropertyChangedStatic)));
+
         /// <summary>
         /// Gets or sets the margin used for paragraphs.
         /// </summary>
@@ -789,6 +820,8 @@ namespace UniversalMarkdown
                 renderer.HorizontalRuleMargin = HorizontalRuleMargin;
                 renderer.HorizontalRuleThickness = HorizontalRuleThickness;
                 renderer.ListMargin = ListMargin;
+                renderer.ListGutterWidth = ListGutterWidth;
+                renderer.ListBulletSpacing = ListBulletSpacing;
                 renderer.ParagraphMargin = ParagraphMargin;
                 renderer.QuoteBorderBrush = QuoteBorderBrush;
                 renderer.QuoteBorderThickness = QuoteBorderThickness;

@@ -50,9 +50,10 @@ namespace UniversalMarkdown.Parse.Elements
         /// <param name="start"> The location of the first character in the block. </param>
         /// <param name="endOfFirstLine"> The location of the end of the first line. </param>
         /// <param name="maxEnd"> The location to stop parsing. </param>
+        /// <param name="quoteDepth"> The current nesting level for block quoting. </param>
         /// <param name="actualEnd"> Set to the end of the block when the return value is non-null. </param>
         /// <returns> A parsed table block, or <c>null</c> if this is not a table block. </returns>
-        internal static TableBlock Parse(string markdown, int start, int endOfFirstLine, int maxEnd, out int actualEnd)
+        internal static TableBlock Parse(string markdown, int start, int endOfFirstLine, int maxEnd, int quoteDepth, out int actualEnd)
         {
             // A table is a line of text, with at least one vertical bar (|), followed by a line of
             // of text that consists of alternating dashes (-) and vertical bars (|) and optionally
@@ -70,12 +71,12 @@ namespace UniversalMarkdown.Parse.Elements
 
             // Parse the first row.
             var firstRow = new TableRow();
-            start = firstRow.Parse(markdown, start, maxEnd);
+            start = firstRow.Parse(markdown, start, maxEnd, quoteDepth);
             rows.Add(firstRow);
 
             // Parse the contents of the second row.
             var secondRowContents = new List<string>();
-            start = TableRow.ParseContents(markdown, start, maxEnd, requireVerticalBar: false,
+            start = TableRow.ParseContents(markdown, start, maxEnd, quoteDepth, requireVerticalBar: false,
                 contentParser: (start2, end2) => secondRowContents.Add(markdown.Substring(start2, end2 - start2)));
 
             // There must be at least as many columns in the second row as in the first row.
@@ -117,7 +118,7 @@ namespace UniversalMarkdown.Parse.Elements
             while (start < maxEnd)
             {
                 var row = new TableRow();
-                start = row.Parse(markdown, start, maxEnd);
+                start = row.Parse(markdown, start, maxEnd, quoteDepth);
                 if (row.Cells.Count == 0)
                     break;
                 rows.Add(row);
@@ -180,11 +181,12 @@ namespace UniversalMarkdown.Parse.Elements
         /// <param name="markdown"></param>
         /// <param name="startingPos"> The start of the line. </param>
         /// <param name="maxEndingPos"> </param>
+        /// <param name="quoteDepth"> The current nesting level for block quoting. </param>
         /// <returns></returns>
-        internal int Parse(string markdown, int startingPos, int maxEndingPos)
+        internal int Parse(string markdown, int startingPos, int maxEndingPos, int quoteDepth)
         {
             Cells = new List<TableCell>();
-            return ParseContents(markdown, startingPos, maxEndingPos, requireVerticalBar: true,
+            return ParseContents(markdown, startingPos, maxEndingPos, quoteDepth, requireVerticalBar: true,
                 contentParser: (startingPos2, maxEndingPos2) =>
                 {
                     var cell = new TableCell();
@@ -199,14 +201,17 @@ namespace UniversalMarkdown.Parse.Elements
         /// <param name="markdown"> The markdown text. </param>
         /// <param name="startingPos"> The position of the start of the row. </param>
         /// <param name="maxEndingPos"> The maximum position of the end of the row </param>
+        /// <param name="quoteDepth"> The current nesting level for block quoting. </param>
         /// <param name="requireVerticalBar"> Indicates whether the line must contain a vertical bar. </param>
         /// <param name="contentParser"> Called for each cell. </param>
         /// <returns> The position of the start of the next line. </returns>
-        internal static int ParseContents(string markdown, int startingPos, int maxEndingPos, bool requireVerticalBar, Action<int, int> contentParser)
+        internal static int ParseContents(string markdown, int startingPos, int maxEndingPos, int quoteDepth, bool requireVerticalBar, Action<int, int> contentParser)
         {
+            // Skip quote characters.
+            int pos = Common.SkipQuoteCharacters(markdown, startingPos, maxEndingPos, quoteDepth);
+
             // If the line starts with a '|' character, skip it.
             bool lineHasVerticalBar = false;
-            int pos = startingPos;
             if (pos < maxEndingPos && markdown[pos] == '|')
             {
                 lineHasVerticalBar = true;

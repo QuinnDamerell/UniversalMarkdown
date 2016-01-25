@@ -79,27 +79,12 @@ namespace UniversalMarkdown.Parse.Elements
             int russianDollIndex = -1;
             bool previousLineWasBlank = false;
             ListItemBlock currentListItem = null;
+            actualEnd = start;
 
-            while (start < maxEnd)
+            foreach (var lineInfo in Common.ParseLines(markdown, start, maxEnd, quoteDepth))
             {
-                // Skip any whitespace characters, up to a limit.
-                int firstNonWhiteSpaceChar = start;
-                while (firstNonWhiteSpaceChar < maxEnd)
-                {
-                    char c = markdown[firstNonWhiteSpaceChar];
-                    if (c != ' ' && c != '\t')
-                        break;
-                    firstNonWhiteSpaceChar++;
-                    if (firstNonWhiteSpaceChar - start >= (russianDollIndex + 2) * 4 - 1)
-                        break;
-                }
-
-                // Find the end of the line.
-                int startOfNextLine;
-                int endOfLine = Common.FindNextSingleNewLine(markdown, firstNonWhiteSpaceChar, maxEnd, out startOfNextLine);
-
                 // Is this line blank?
-                if (firstNonWhiteSpaceChar == endOfLine)
+                if (lineInfo.IsLineBlank)
                 {
                     // The line is blank, which means the next line which contains text may end the list (or it may not...).
                     previousLineWasBlank = true;
@@ -107,7 +92,9 @@ namespace UniversalMarkdown.Parse.Elements
                 else
                 {
                     // Does the line contain a list item?
-                    var listItemPreamble = ParseItemPreamble(markdown, firstNonWhiteSpaceChar, endOfLine);
+                    ListItemPreamble listItemPreamble = null;
+                    if (lineInfo.FirstNonWhitespaceChar - lineInfo.StartOfLine < (russianDollIndex + 2) * 4)
+                        listItemPreamble = ParseItemPreamble(markdown, lineInfo.FirstNonWhitespaceChar, lineInfo.EndOfLine);
                     if (listItemPreamble != null)
                     {
                         // Yes, this line contains a list item.
@@ -123,7 +110,7 @@ namespace UniversalMarkdown.Parse.Elements
                         //    previous list item).
                         // 5. Etcetera.
                         ListBlock listToAddTo = null;
-                        int spaceCount = firstNonWhiteSpaceChar - start;
+                        int spaceCount = lineInfo.FirstNonWhitespaceChar - lineInfo.StartOfLine;
                         russianDollIndex = russianDolls.FindIndex(rd => rd.SpaceCount == spaceCount);
                         if (russianDollIndex >= 0)
                         {
@@ -154,7 +141,7 @@ namespace UniversalMarkdown.Parse.Elements
                         listToAddTo.Items.Add(currentListItem);
 
                         // Add the rest of the line to the builder.
-                        AppendTextToListItem(currentListItem, markdown, listItemPreamble.ContentStartPos, endOfLine);
+                        AppendTextToListItem(currentListItem, markdown, listItemPreamble.ContentStartPos, lineInfo.EndOfLine);
                     }
                     else
                     {
@@ -173,19 +160,19 @@ namespace UniversalMarkdown.Parse.Elements
                         if (previousLineWasBlank)
                         {
                             // This is the start of a new paragraph.
-                            int spaceCount = firstNonWhiteSpaceChar - start;
+                            int spaceCount = lineInfo.FirstNonWhitespaceChar - lineInfo.StartOfLine;
                             if (spaceCount == 0)
                                 break;
                             russianDollIndex = Math.Min(russianDollIndex, (spaceCount - 1) / 4);
                             ListBlock listToAddTo = russianDolls[russianDollIndex].List;
                             currentListItem = listToAddTo.Items[listToAddTo.Items.Count - 1];
                             currentListItem.Blocks.Add(new ListItemBuilder());
-                            AppendTextToListItem(currentListItem, markdown, Math.Min(firstNonWhiteSpaceChar, start + (russianDollIndex + 1) * 4), endOfLine);
+                            AppendTextToListItem(currentListItem, markdown, Math.Min(lineInfo.FirstNonWhitespaceChar, lineInfo.StartOfLine + (russianDollIndex + 1) * 4), lineInfo.EndOfLine);
                         }
                         else
                         {
                             // Inline text.
-                            AppendTextToListItem(currentListItem, markdown, firstNonWhiteSpaceChar, endOfLine);
+                            AppendTextToListItem(currentListItem, markdown, lineInfo.FirstNonWhitespaceChar, lineInfo.EndOfLine);
                         }
                     }
 
@@ -194,10 +181,9 @@ namespace UniversalMarkdown.Parse.Elements
                 }
 
                 // Go to the next line.
-                start = startOfNextLine;
+                actualEnd = lineInfo.EndOfLine;
             }
-
-            actualEnd = start;
+            
             var result = russianDolls[0].List;
             ReplaceStringBuilders(result);
             return result;

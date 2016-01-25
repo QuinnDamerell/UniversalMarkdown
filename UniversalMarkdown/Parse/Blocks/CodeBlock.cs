@@ -42,16 +42,18 @@ namespace UniversalMarkdown.Parse.Elements
         /// <param name="markdown"> The markdown text. </param>
         /// <param name="start"> The location of the first character in the block. </param>
         /// <param name="maxEnd"> The location to stop parsing. </param>
+        /// <param name="quoteDepth"> The current nesting level for block quoting. </param>
         /// <param name="actualEnd"> Set to the end of the block when the return value is non-null. </param>
         /// <returns> A parsed code block, or <c>null</c> if this is not a code block. </returns>
-        internal static CodeBlock Parse(string markdown, int start, int maxEnd, out int actualEnd)
+        internal static CodeBlock Parse(string markdown, int start, int maxEnd, int quoteDepth, out int actualEnd)
         {
-            int startOfLine = start;
             StringBuilder code = null;
-            while (startOfLine < maxEnd)
+            actualEnd = start;
+
+            foreach (var lineInfo in Common.ParseLines(markdown, start, maxEnd, quoteDepth))
             {
                 // Add every line that starts with a tab character or at least 4 spaces.
-                int pos = startOfLine;
+                int pos = lineInfo.StartOfLine;
                 if (pos < maxEnd && markdown[pos] == '\t')
                     pos++;
                 else
@@ -71,27 +73,11 @@ namespace UniversalMarkdown.Parse.Elements
                     {
                         // We found a line that doesn't start with a tab or 4 spaces.
                         // But don't end the code block until we find a non-blank line.
-                        int pos2 = pos;
-                        bool foundNonSpaceChar = false;
-                        while (pos2 < maxEnd)
-                        {
-                            char c = markdown[pos2];
-                            if (c == '\n')
-                                break;
-                            else if (!Common.IsWhiteSpace(c))
-                            {
-                                foundNonSpaceChar = true;
-                                break;
-                            }
-                            pos2++;
-                        }
-                        if (foundNonSpaceChar)
+                        if (lineInfo.IsLineBlank == false)
                             break;
                     }
                 }
 
-                // Find the end of the line.
-                int endOfLine = Common.FindNextSingleNewLine(markdown, pos, maxEnd, out startOfLine);
 
                 // Separate each line of the code text.
                 if (code == null)
@@ -100,7 +86,7 @@ namespace UniversalMarkdown.Parse.Elements
                     code.AppendLine();
 
                 // Append the code text, excluding the first tab/4 spaces, and convert tab characters into spaces.
-                string lineText = markdown.Substring(pos, endOfLine - pos);
+                string lineText = markdown.Substring(pos, lineInfo.EndOfLine - pos);
                 int startOfLinePos = code.Length;
                 for (int i = 0; i < lineText.Length; i++)
                 {
@@ -110,6 +96,9 @@ namespace UniversalMarkdown.Parse.Elements
                     else
                         code.Append(c);
                 }
+
+                // Update the end position.
+                actualEnd = lineInfo.StartOfNextLine;
             }
 
             if (code == null)
@@ -120,7 +109,6 @@ namespace UniversalMarkdown.Parse.Elements
             }
 
             // Blank lines should be trimmed from the start and end.
-            actualEnd = startOfLine;
             return new CodeBlock() { Text = code.ToString().Trim('\r', '\n') };
         }
 

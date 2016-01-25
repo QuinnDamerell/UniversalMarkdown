@@ -131,7 +131,7 @@ namespace UniversalMarkdownUnitTests.Parse
                     }
                 }.AddChildren(
                     new TableRow().AddChildren(
-                        new TableCell().AddChildren(new TextRunInline { Text = ">a" }),
+                        new TableCell().AddChildren(new TextRunInline { Text = "> a" }),
                         new TableCell().AddChildren(new TextRunInline { Text = "b" })),
                     new TableRow().AddChildren(
                         new TableCell().AddChildren(new TextRunInline { Text = "1" }),
@@ -167,6 +167,30 @@ namespace UniversalMarkdownUnitTests.Parse
 
                 new QuoteBlock().AddChildren(
                     new CodeBlock {  Text = "code, line 1\r\n\r\n\r\ncode, line 4" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - block")]
+        public void Quote_WithList()
+        {
+            AssertEqual(CollapseWhitespace(@"
+                >     code, line 1
+                >
+                
+                >     code, line 4"),
+
+                new QuoteBlock().AddChildren(
+                    new CodeBlock { Text = "code, line 1\r\n\r\n\r\ncode, line 4" }));
+
+            AssertEqual(CollapseWhitespace(@"
+                > + List item 1
+                > + List item 2
+                > + List item 3"),
+            new QuoteBlock().AddChildren(
+                new ListBlock { Style = ListStyle.Bulleted }.AddChildren(
+                    new ListItemBlock().AddChildren(new ParagraphBlock().AddChildren(new TextRunInline { Text = "List item 1" })),
+                    new ListItemBlock().AddChildren(new ParagraphBlock().AddChildren(new TextRunInline { Text = "List item 2" })),
+                    new ListItemBlock().AddChildren(new ParagraphBlock().AddChildren(new TextRunInline { Text = "List item 3" })))));
         }
     }
 }

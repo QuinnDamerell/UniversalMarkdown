@@ -250,6 +250,16 @@ namespace UniversalMarkdown.Display
         public Thickness ListMargin { get; set; }
 
         /// <summary>
+        /// Gets or sets the width of the space used by list item bullets/numbers.
+        /// </summary>
+        public double ListGutterWidth { get; set; }
+
+        /// <summary>
+        /// Gets or sets the space between the list item bullets/numbers and the list item content.
+        /// </summary>
+        public double ListBulletSpacing { get; set; }
+
+        /// <summary>
         /// Gets or sets the margin used for paragraphs.
         /// </summary>
         public Thickness ParagraphMargin { get; set; }
@@ -488,7 +498,7 @@ namespace UniversalMarkdown.Display
             grid.Margin = ListMargin;
 
             // The first column for the bullet (or number) and the second for the text.
-            grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(40) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(ListGutterWidth) });
             grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
 
             for (int rowIndex = 0; rowIndex < element.Items.Count; rowIndex ++)
@@ -511,7 +521,7 @@ namespace UniversalMarkdown.Display
                         break;
                 }
                 bullet.HorizontalAlignment = HorizontalAlignment.Right;
-                bullet.Margin = new Thickness(0, 0, 12, 0);
+                bullet.Margin = new Thickness(0, 0, ListBulletSpacing, 0);
                 Grid.SetRow(bullet, rowIndex);
                 grid.Children.Add(bullet);
 

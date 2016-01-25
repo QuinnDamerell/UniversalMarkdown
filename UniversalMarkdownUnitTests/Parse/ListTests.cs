@@ -325,7 +325,7 @@ namespace UniversalMarkdownUnitTests.Parse
                 new ListBlock().AddChildren(
                     new ListItemBlock().AddChildren(
                         new ParagraphBlock().AddChildren(
-                            new TextRunInline { Text = "a  * b" }))));
+                            new TextRunInline { Text = "a * b" }))));
 
             // 11 spaces is the maximum indentation for three items.
             AssertEqual(CollapseWhitespace(@"
@@ -339,7 +339,7 @@ namespace UniversalMarkdownUnitTests.Parse
                         new ListBlock().AddChildren(
                             new ListItemBlock().AddChildren(
                                 new ParagraphBlock().AddChildren(
-                                    new TextRunInline { Text = "b  * c" }))))));
+                                    new TextRunInline { Text = "b * c" }))))));
         }
 
         [UITestMethod]

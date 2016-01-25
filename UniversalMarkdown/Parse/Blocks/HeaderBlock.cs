@@ -18,8 +18,18 @@ using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
 {
+    /// <summary>
+    /// Represents a heading.
+    /// </summary>
     public class HeaderBlock : MarkdownBlock
     {
+        /// <summary>
+        /// Initializes a new header block.
+        /// </summary>
+        public HeaderBlock() : base(MarkdownBlockType.Header)
+        {
+        }
+
         private int headerLevel;
 
         /// <summary>
@@ -40,14 +50,6 @@ namespace UniversalMarkdown.Parse.Elements
         /// The contents of the block.
         /// </summary>
         public IList<MarkdownInline> Inlines { get; set; }
-
-        /// <summary>
-        /// Initializes a new header block.
-        /// </summary>
-        public HeaderBlock() : base(MarkdownBlockType.Header)
-        {
-        }
-
 
         /// <summary>
         /// Parses a header that starts with a hash.

@@ -18,19 +18,23 @@ using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
 {
+    /// <summary>
+    /// Represents a block of text that is displayed in a fixed-width font.  Inline elements and
+    /// escape sequences are ignored inside the code block.
+    /// </summary>
     public class CodeBlock : MarkdownBlock
     {
-        /// <summary>
-        /// The source code to display.
-        /// </summary>
-        public string Text { get; set; }
-
         /// <summary>
         /// Initializes a new code block.
         /// </summary>
         public CodeBlock() : base(MarkdownBlockType.Code)
         {
         }
+
+        /// <summary>
+        /// The source code to display.
+        /// </summary>
+        public string Text { get; set; }
 
         /// <summary>
         /// Parses a code block.

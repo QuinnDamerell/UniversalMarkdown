@@ -126,15 +126,14 @@ namespace UniversalMarkdownUnitTests.Parse
                 [text](mumble://reddit.com)
 
                 [text](ssh://reddit.com)"),
-                new ParagraphBlock().AddChildren(
-                    new MarkdownLinkInline { Url = "http://reddit.com" }.AddChildren(new TextRunInline { Text = "text" }),
-                    new MarkdownLinkInline { Url = "https://reddit.com" }.AddChildren(new TextRunInline { Text = "text" }),
-                    new MarkdownLinkInline { Url = "ftp://reddit.com" }.AddChildren(new TextRunInline { Text = "text" }),
-                    new MarkdownLinkInline { Url = "steam://reddit.com" }.AddChildren(new TextRunInline { Text = "text" }),
-                    new MarkdownLinkInline { Url = "irc://reddit.com" }.AddChildren(new TextRunInline { Text = "text" }),
-                    new MarkdownLinkInline { Url = "news://reddit.com" }.AddChildren(new TextRunInline { Text = "text" }),
-                    new MarkdownLinkInline { Url = "mumble://reddit.com" }.AddChildren(new TextRunInline { Text = "text" }),
-                    new MarkdownLinkInline { Url = "ssh://reddit.com" }.AddChildren(new TextRunInline { Text = "text" })));
+                new ParagraphBlock().AddChildren(new MarkdownLinkInline { Url = "http://reddit.com" }.AddChildren(new TextRunInline { Text = "text" })),
+                new ParagraphBlock().AddChildren(new MarkdownLinkInline { Url = "https://reddit.com" }.AddChildren(new TextRunInline { Text = "text" })),
+                new ParagraphBlock().AddChildren(new MarkdownLinkInline { Url = "ftp://reddit.com" }.AddChildren(new TextRunInline { Text = "text" })),
+                new ParagraphBlock().AddChildren(new MarkdownLinkInline { Url = "steam://reddit.com" }.AddChildren(new TextRunInline { Text = "text" })),
+                new ParagraphBlock().AddChildren(new MarkdownLinkInline { Url = "irc://reddit.com" }.AddChildren(new TextRunInline { Text = "text" })),
+                new ParagraphBlock().AddChildren(new MarkdownLinkInline { Url = "news://reddit.com" }.AddChildren(new TextRunInline { Text = "text" })),
+                new ParagraphBlock().AddChildren(new MarkdownLinkInline { Url = "mumble://reddit.com" }.AddChildren(new TextRunInline { Text = "text" })),
+                new ParagraphBlock().AddChildren(new MarkdownLinkInline { Url = "ssh://reddit.com" }.AddChildren(new TextRunInline { Text = "text" })));
         }
 
         [UITestMethod]
@@ -183,6 +182,17 @@ namespace UniversalMarkdownUnitTests.Parse
             AssertEqual("[text](hahaha://test)",
                 new ParagraphBlock().AddChildren(
                     new TextRunInline { Text = "[text](hahaha://test)" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void MarkdownLink_Negative_UrlCannotBeDomain()
+        {
+            AssertEqual("[text](www.reddit.com)",
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "[text](" },
+                    new HyperlinkInline { Url = "http://www.reddit.com", Text = "www.reddit.com", LinkType = HyperlinkType.PartialUrl },
+                    new TextRunInline { Text = ")" }));
         }
     }
 }

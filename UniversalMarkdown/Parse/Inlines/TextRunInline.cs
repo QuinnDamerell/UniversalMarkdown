@@ -25,16 +25,16 @@ namespace UniversalMarkdown.Parse.Elements
     public class TextRunInline : MarkdownInline, IInlineLeaf
     {
         /// <summary>
-        /// The text for this run.
-        /// </summary>
-        public string Text { get; set; }
-
-        /// <summary>
         /// Initializes a new text span.
         /// </summary>
         public TextRunInline() : base(MarkdownInlineType.TextRun)
         {
         }
+
+        /// <summary>
+        /// The text for this run.
+        /// </summary>
+        public string Text { get; set; }
 
         // A list of supported HTML entity names, along with their corresponding code points.
         private static readonly Dictionary<string, int> entities = new Dictionary<string, int>

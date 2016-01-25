@@ -24,6 +24,13 @@ namespace UniversalMarkdown.Parse.Elements
     public class MarkdownLinkInline : MarkdownInline, IInlineContainer, ILinkElement
     {
         /// <summary>
+        /// Initializes a new markdown link.
+        /// </summary>
+        public MarkdownLinkInline() : base(MarkdownInlineType.MarkdownLink)
+        {
+        }
+
+        /// <summary>
         /// The contents of the inline.
         /// </summary>
         public IList<MarkdownInline> Inlines { get; set; }
@@ -37,13 +44,6 @@ namespace UniversalMarkdown.Parse.Elements
         /// A tooltip to display on hover.
         /// </summary>
         public string Tooltip { get; set; }
-
-        /// <summary>
-        /// Initializes a new markdown link.
-        /// </summary>
-        public MarkdownLinkInline() : base(MarkdownInlineType.MarkdownLink)
-        {
-        }
 
         /// <summary>
         /// Returns the chars that if found means we might have a match.
@@ -60,7 +60,6 @@ namespace UniversalMarkdown.Parse.Elements
         /// <param name="markdown"> The markdown text. </param>
         /// <param name="start"> The location to start parsing. </param>
         /// <param name="maxEnd"> The location to stop parsing. </param>
-        /// <param name="actualEnd"> Set to the end of the span when the return value is non-null. </param>
         /// <returns> A parsed markdown link, or <c>null</c> if this is not a markdown link. </returns>
         internal static Common.InlineParseResult Parse(string markdown, int start, int maxEnd)
         {
@@ -97,10 +96,30 @@ namespace UniversalMarkdown.Parse.Elements
             if (linkClose == -1)
                 return null;
 
+            // Extract the URL.
+            var url = markdown.Substring(linkOpen + 1, linkClose - linkOpen - 1).Trim();
+
+            // Relative links are allowed.
+            if (!url.StartsWith("/"))
+            {
+                // Check the scheme is allowed.
+                bool schemeIsAllowed = false;
+                foreach (var scheme in HyperlinkInline.KnownSchemes)
+                {
+                    if (url.StartsWith(scheme))
+                    {
+                        schemeIsAllowed = true;
+                        break;
+                    }
+                }
+                if (schemeIsAllowed == false)
+                    return null;
+            }
+
             // We found something!
             var result = new MarkdownLinkInline();
             result.Inlines = Common.ParseInlineChildren(markdown, linkTextOpen + 1, linkTextClose, ignoreLinks: true);
-            result.Url = markdown.Substring(linkOpen + 1, linkClose - linkOpen - 1).Trim();
+            result.Url = url;
             return new Common.InlineParseResult(result, start, linkClose + 1);
         }
 

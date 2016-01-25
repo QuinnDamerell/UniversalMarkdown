@@ -24,16 +24,16 @@ namespace UniversalMarkdown.Parse.Elements
     public class StrikethroughTextInline : MarkdownInline, IInlineContainer
     {
         /// <summary>
-        /// The contents of the inline.
-        /// </summary>
-        public IList<MarkdownInline> Inlines { get; set; }
-
-        /// <summary>
         /// Initializes a new strikethrough text span.
         /// </summary>
         public StrikethroughTextInline() : base(MarkdownInlineType.Strikethrough)
         {
         }
+
+        /// <summary>
+        /// The contents of the inline.
+        /// </summary>
+        public IList<MarkdownInline> Inlines { get; set; }
 
         /// <summary>
         /// Returns the chars that if found means we might have a match.
@@ -50,7 +50,6 @@ namespace UniversalMarkdown.Parse.Elements
         /// <param name="markdown"> The markdown text. </param>
         /// <param name="start"> The location to start parsing. </param>
         /// <param name="maxEnd"> The location to stop parsing. </param>
-        /// <param name="actualEnd"> Set to the end of the span when the return value is non-null. </param>
         /// <returns> A parsed strikethrough text span, or <c>null</c> if this is not a strikethrough text span. </returns>
         internal static Common.InlineParseResult Parse(string markdown, int start, int maxEnd)
         {

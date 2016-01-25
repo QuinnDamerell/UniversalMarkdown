@@ -17,19 +17,23 @@ using System.Collections.Generic;
 
 namespace UniversalMarkdown.Parse.Elements
 {
+    /// <summary>
+    /// Represents a block that is displayed using a quote style.  Quotes are used to indicate
+    /// that the text originated elsewhere (e.g. a previous comment).
+    /// </summary>
     public class QuoteBlock : MarkdownBlock
     {
-        /// <summary>
-        /// The contents of the block.
-        /// </summary>
-        public IList<MarkdownBlock> Blocks { get; set; }
-
         /// <summary>
         /// Initializes a new quote block.
         /// </summary>
         public QuoteBlock() : base(MarkdownBlockType.Quote)
         {
         }
+
+        /// <summary>
+        /// The contents of the block.
+        /// </summary>
+        public IList<MarkdownBlock> Blocks { get; set; }
 
         /// <summary>
         /// Parses a quote block.

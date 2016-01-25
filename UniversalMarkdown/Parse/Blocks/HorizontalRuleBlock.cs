@@ -17,6 +17,9 @@ using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
 {
+    /// <summary>
+    /// Represents a horizontal line.
+    /// </summary>
     public class HorizontalRuleBlock : MarkdownBlock
     {
         /// <summary>

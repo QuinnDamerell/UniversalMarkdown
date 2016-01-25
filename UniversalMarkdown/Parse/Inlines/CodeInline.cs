@@ -25,16 +25,16 @@ namespace UniversalMarkdown.Parse.Elements
     public class CodeInline : MarkdownInline, IInlineLeaf
     {
         /// <summary>
-        /// The text to display as code.
-        /// </summary>
-        public string Text { get; set; }
-
-        /// <summary>
         /// Initializes a new inline code span.
         /// </summary>
         public CodeInline() : base(MarkdownInlineType.Code)
         {
         }
+
+        /// <summary>
+        /// The text to display as code.
+        /// </summary>
+        public string Text { get; set; }
 
         /// <summary>
         /// Returns the chars that if found means we might have a match.
@@ -51,7 +51,6 @@ namespace UniversalMarkdown.Parse.Elements
         /// <param name="markdown"> The markdown text. </param>
         /// <param name="start"> The location to start parsing. </param>
         /// <param name="maxEnd"> The location to stop parsing. </param>
-        /// <param name="actualEnd"> Set to the end of the span when the return value is non-null. </param>
         /// <returns> A parsed inline code span, or <c>null</c> if this is not an inline code span. </returns>
         internal static Common.InlineParseResult Parse(string markdown, int start, int maxEnd)
         {

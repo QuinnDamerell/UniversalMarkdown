@@ -58,6 +58,16 @@ namespace UniversalMarkdownUnitTests.Parse
                     new HyperlinkInline { Url = "https://reddit.com", Text = "https://reddit.com", LinkType = HyperlinkType.FullUrl }));
         }
 
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void Hyperlink_DomainOnly()
+        {
+            AssertEqual("www.reddit.com",
+                new ParagraphBlock().AddChildren(
+                    new HyperlinkInline { Url = "http://www.reddit.com", Text = "www.reddit.com", LinkType = HyperlinkType.PartialUrl }));
+        }
+
         [UITestMethod]
         [TestCategory("Parse - inline")]
         public void Hyperlink_Mailto()
@@ -237,8 +247,6 @@ namespace UniversalMarkdownUnitTests.Parse
 
                 ftp://test.com
 
-                mailto:dfg@test.com
-
                 steam://test.com
 
                 irc://test.com
@@ -251,11 +259,9 @@ namespace UniversalMarkdownUnitTests.Parse
                 new ParagraphBlock().AddChildren(new HyperlinkInline { Url = "http://test.com", Text = "http://test.com", LinkType = HyperlinkType.FullUrl }),
                 new ParagraphBlock().AddChildren(new HyperlinkInline { Url = "https://test.com", Text = "https://test.com", LinkType = HyperlinkType.FullUrl }),
                 new ParagraphBlock().AddChildren(new HyperlinkInline { Url = "ftp://test.com", Text = "ftp://test.com", LinkType = HyperlinkType.FullUrl }),
-                new ParagraphBlock().AddChildren(
-                    new TextRunInline { Text = "mailto:" },
-                    new HyperlinkInline { Url = "dfg@test.com" }),
                 new ParagraphBlock().AddChildren(new HyperlinkInline { Url = "steam://test.com", Text = "steam://test.com", LinkType = HyperlinkType.FullUrl }),
                 new ParagraphBlock().AddChildren(new HyperlinkInline { Url = "irc://test.com", Text = "irc://test.com", LinkType = HyperlinkType.FullUrl }),
+                new ParagraphBlock().AddChildren(new HyperlinkInline { Url = "news://test.com", Text = "news://test.com", LinkType = HyperlinkType.FullUrl }),
                 new ParagraphBlock().AddChildren(new HyperlinkInline { Url = "mumble://test.com", Text = "mumble://test.com", LinkType = HyperlinkType.FullUrl }),
                 new ParagraphBlock().AddChildren(new HyperlinkInline { Url = "ssh://test.com", Text = "ssh://test.com", LinkType = HyperlinkType.FullUrl }));
         }
@@ -330,6 +336,15 @@ namespace UniversalMarkdownUnitTests.Parse
             AssertEqual("<www.reddit.com>",
                 new ParagraphBlock().AddChildren(
                     new TextRunInline { Text = "<www.reddit.com>" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void Hyperlink_Negative_WwwMustBeLowercase()
+        {
+            AssertEqual("WWW.reddit.com",
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "WWW.reddit.com" }));
         }
 
         [UITestMethod]

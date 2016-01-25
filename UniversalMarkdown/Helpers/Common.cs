@@ -32,6 +32,7 @@ namespace UniversalMarkdown.Helpers
             AngleBracketLink,
             Url,
             RedditLink,
+            PartialLink,
             Strikethrough,
             Superscript,
         }
@@ -187,6 +188,10 @@ namespace UniversalMarkdown.Helpers
                             case InlineParseMethod.RedditLink:
                                 if (!ignoreLinks)
                                     parseResult = HyperlinkInline.ParseRedditLink(markdown, pos, end);
+                                break;
+                            case InlineParseMethod.PartialLink:
+                                if (!ignoreLinks)
+                                    parseResult = HyperlinkInline.ParsePartialLink(markdown, pos, end);
                                 break;
                             case InlineParseMethod.Strikethrough:
                                 parseResult = StrikethroughTextInline.Parse(markdown, pos, end);

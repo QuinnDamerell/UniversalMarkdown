@@ -59,6 +59,13 @@ namespace UniversalMarkdown.Parse.Elements
     public class HyperlinkInline : MarkdownInline, IInlineLeaf, ILinkElement
     {
         /// <summary>
+        /// Initializes a new markdown URL.
+        /// </summary>
+        public HyperlinkInline() : base(MarkdownInlineType.RawHyperlink)
+        {
+        }
+
+        /// <summary>
         /// The text to display.
         /// </summary>
         public string Text { get; set; }
@@ -78,12 +85,6 @@ namespace UniversalMarkdown.Parse.Elements
         /// </summary>
         public HyperlinkType LinkType { get; set; }
 
-        /// <summary>
-        /// Initializes a new markdown URL.
-        /// </summary>
-        public HyperlinkInline() : base(MarkdownInlineType.RawHyperlink)
-        {
-        }
 
         /// <summary>
         /// Returns the chars that if found means we might have a match.
@@ -94,7 +95,23 @@ namespace UniversalMarkdown.Parse.Elements
             tripCharHelpers.Add(new Common.InlineTripCharHelper() { FirstChar = '<', Method = Common.InlineParseMethod.AngleBracketLink });
             tripCharHelpers.Add(new Common.InlineTripCharHelper() { FirstChar = ':', Method = Common.InlineParseMethod.Url });
             tripCharHelpers.Add(new Common.InlineTripCharHelper() { FirstChar = '/', Method = Common.InlineParseMethod.RedditLink });
+            tripCharHelpers.Add(new Common.InlineTripCharHelper() { FirstChar = '.', Method = Common.InlineParseMethod.PartialLink });
         }
+
+        /// <summary>
+        /// A list of URL schemes.
+        /// </summary>
+        internal readonly static string[] KnownSchemes = new string[]
+        {
+            "http://",
+            "https://",
+            "ftp://",
+            "steam://",
+            "irc://",
+            "news://",
+            "mumble://",
+            "ssh://",
+        };
 
         /// <summary>
         /// Attempts to parse a URL within angle brackets e.g. "<http://www.reddit.com>".
@@ -102,25 +119,23 @@ namespace UniversalMarkdown.Parse.Elements
         /// <param name="markdown"> The markdown text. </param>
         /// <param name="start"> The location to start parsing. </param>
         /// <param name="maxEnd"> The location to stop parsing. </param>
-        /// <param name="actualEnd"> Set to the end of the span when the return value is non-null. </param>
         /// <returns> A parsed URL, or <c>null</c> if this is not a URL. </returns>
         internal static Common.InlineParseResult ParseAngleBracketLink(string markdown, int start, int maxEnd)
         {
             int innerStart = start + 1;
-            int pos;
-            string httpPrefix = "http://";
-            string httpsPrefix = "https://";
-            if (maxEnd - innerStart >= httpPrefix.Length && string.Equals(markdown.Substring(innerStart, httpPrefix.Length), httpPrefix, StringComparison.OrdinalIgnoreCase))
+
+            // Check for a known scheme e.g. "https://".
+            int pos = -1;
+            foreach (var scheme in KnownSchemes)
             {
-                // HTTP hyperlink found.
-                pos = innerStart + httpPrefix.Length;
+                if (maxEnd - innerStart >= scheme.Length && string.Equals(markdown.Substring(innerStart, scheme.Length), scheme, StringComparison.OrdinalIgnoreCase))
+                {
+                    // URL scheme found.
+                    pos = innerStart + scheme.Length;
+                    break;
+                }
             }
-            else if (maxEnd - innerStart >= httpsPrefix.Length && string.Equals(markdown.Substring(innerStart, httpsPrefix.Length), httpsPrefix, StringComparison.OrdinalIgnoreCase))
-            {
-                // HTTPS hyperlink found.
-                pos = innerStart + httpsPrefix.Length;
-            }
-            else
+            if (pos == -1)
                 return null;
 
             // Angle bracket links should not have any whitespace.
@@ -140,26 +155,25 @@ namespace UniversalMarkdown.Parse.Elements
         /// Attempts to parse a URL e.g. "http://www.reddit.com".
         /// </summary>
         /// <param name="markdown"> The markdown text. </param>
-        /// <param name="start"> The location to start parsing. </param>
+        /// <param name="tripPos"> The location of the colon character. </param>
         /// <param name="maxEnd"> The location to stop parsing. </param>
-        /// <param name="actualEnd"> Set to the end of the span when the return value is non-null. </param>
         /// <returns> A parsed URL, or <c>null</c> if this is not a URL. </returns>
         internal static Common.InlineParseResult ParseUrl(string markdown, int tripPos, int maxEnd)
         {
-            int start;
-            string httpPrefix = "http://";
-            string httpsPrefix = "https://";
-            if (tripPos >= 4 && tripPos < maxEnd - 2 && string.Equals(markdown.Substring(tripPos - 4, httpPrefix.Length), httpPrefix, StringComparison.OrdinalIgnoreCase))
+            int start = -1;
+
+            // Check for a known scheme e.g. "https://".
+            foreach (var scheme in KnownSchemes)
             {
-                // HTTP hyperlink found.
-                start = tripPos - 4;
+                int schemeStart = tripPos - (scheme.Length - 3);
+                if (schemeStart >= 0 && schemeStart <= maxEnd - scheme.Length && string.Equals(markdown.Substring(schemeStart, scheme.Length), scheme, StringComparison.OrdinalIgnoreCase))
+                {
+                    // URL scheme found.
+                    start = schemeStart;
+                    break;
+                }
             }
-            else if (tripPos >= 5 && tripPos < maxEnd - 2 && string.Equals(markdown.Substring(tripPos - 5, httpsPrefix.Length), httpsPrefix, StringComparison.OrdinalIgnoreCase))
-            {
-                // HTTPS hyperlink found.
-                start = tripPos - 5;
-            }
-            else
+            if (start == -1)
                 return null;
 
             // The previous character must be non-alphanumeric i.e. "ahttp://t.co" is not a valid URL.
@@ -172,18 +186,8 @@ namespace UniversalMarkdown.Parse.Elements
             if (dotIndex == -1 || dotIndex == pos)
                 return null;
 
-            // For some reason a less than character ends a URL...
-            int end = markdown.IndexOfAny(new char[] { ' ', '\t', '\r', '\n', '<' }, dotIndex + 1, maxEnd - (dotIndex + 1));
-            if (end == -1)
-                end = maxEnd;
-
-            // URLs can't end on a punctuation character.
-            while (end - 1 > dotIndex)
-            {
-                if (Array.IndexOf(new char[] { ')', '}', ']', '!', ';', '.', '?', ',' }, markdown[end - 1]) < 0)
-                    break;
-                end--;
-            }
+            // Find the end of the URL.
+            int end = FindUrlEnd(markdown, dotIndex + 1, maxEnd);
 
             var url = markdown.Substring(start, end - start);
             return new Common.InlineParseResult(new HyperlinkInline { Url = url, Text = url, LinkType = HyperlinkType.FullUrl }, start, end);
@@ -195,8 +199,7 @@ namespace UniversalMarkdown.Parse.Elements
         /// <param name="markdown"> The markdown text. </param>
         /// <param name="start"> The location to start parsing. </param>
         /// <param name="maxEnd"> The location to stop parsing. </param>
-        /// <param name="actualEnd"> Set to the end of the span when the return value is non-null. </param>
-        /// <returns> A parsed subreddit link, or <c>null</c> if this is not a subreddit link. </returns>
+        /// <returns> A parsed subreddit or user link, or <c>null</c> if this is not a subreddit link. </returns>
         internal static Common.InlineParseResult ParseRedditLink(string markdown, int start, int maxEnd)
         {
             var result = ParseDoubleSlashLink(markdown, start, maxEnd);
@@ -208,10 +211,10 @@ namespace UniversalMarkdown.Parse.Elements
         /// <summary>
         /// Parse a link of the form "/r/news" or "/u/quinbd".
         /// </summary>
-        /// <param name="markdown"></param>
-        /// <param name="start"></param>
-        /// <param name="maxEnd"></param>
-        /// <returns></returns>
+        /// <param name="markdown"> The markdown text. </param>
+        /// <param name="start"> The location to start parsing. </param>
+        /// <param name="maxEnd"> The location to stop parsing. </param>
+        /// <returns> A parsed subreddit or user link, or <c>null</c> if this is not a subreddit link. </returns>
         private static Common.InlineParseResult ParseDoubleSlashLink(string markdown, int start, int maxEnd)
         {
             // The minimum length is 4 characters ("/u/u").
@@ -246,10 +249,10 @@ namespace UniversalMarkdown.Parse.Elements
         /// <summary>
         /// Parse a link of the form "r/news" or "u/quinbd".
         /// </summary>
-        /// <param name="markdown"></param>
-        /// <param name="start"></param>
-        /// <param name="maxEnd"></param>
-        /// <returns></returns>
+        /// <param name="markdown"> The markdown text. </param>
+        /// <param name="start"> The location to start parsing. </param>
+        /// <param name="maxEnd"> The location to stop parsing. </param>
+        /// <returns> A parsed subreddit or user link, or <c>null</c> if this is not a subreddit link. </returns>
         private static Common.InlineParseResult ParseSingleSlashLink(string markdown, int start, int maxEnd)
         {
             // The minimum length is 3 characters ("u/u").
@@ -284,12 +287,53 @@ namespace UniversalMarkdown.Parse.Elements
         }
 
         /// <summary>
-        /// Finds the next char that is not a letter or digit in a range.
+        /// Attempts to parse a URL without a scheme e.g. "www.reddit.com".
         /// </summary>
-        /// <param name="markdown"></param>
-        /// <param name="start"></param>
-        /// <param name="end"></param>
-        /// <returns></returns>
+        /// <param name="markdown"> The markdown text. </param>
+        /// <param name="tripPos"> The location of the dot character. </param>
+        /// <param name="maxEnd"> The location to stop parsing. </param>
+        /// <returns> A parsed URL, or <c>null</c> if this is not a URL. </returns>
+        internal static Common.InlineParseResult ParsePartialLink(string markdown, int tripPos, int maxEnd)
+        {
+            int start = tripPos - 3;
+            if (start < 0 || markdown.Substring(start, 3) != "www")
+                return null;
+
+            // The character before the "www" must be non-alphanumeric i.e. "bwww.reddit.com" is not a valid URL.
+            if (start >= 1 && (char.IsLetterOrDigit(markdown[start - 1]) || markdown[start - 1] == '<'))
+                return null;
+
+            // The URL must have at least one character after the www.
+            if (start >= maxEnd - 4)
+                return null;
+
+            // Find the end of the URL.
+            int end = FindUrlEnd(markdown, start + 4, maxEnd);
+
+            var url = markdown.Substring(start, end - start);
+            return new Common.InlineParseResult(new HyperlinkInline { Url = "http://" + url, Text = url, LinkType = HyperlinkType.PartialUrl }, start, end);
+        }
+
+        /// <summary>
+        /// Converts the object into it's textual representation.
+        /// </summary>
+        /// <returns> The textual representation of this object. </returns>
+        public override string ToString()
+        {
+            if (Text == null)
+                return base.ToString();
+            return Text;
+        }
+
+
+
+        /// <summary>
+        /// Finds the next character that is not a letter, digit or underscore in a range.
+        /// </summary>
+        /// <param name="markdown"> The markdown text. </param>
+        /// <param name="start"> The location to start searching. </param>
+        /// <param name="end"> The location to stop searching. </param>
+        /// <returns> The location of the next character that is not a letter, digit or underscore. </returns>
         private static int FindNextNonLetterDigitOrUnderscore(string markdown, int start, int end)
         {
             int pos = start;
@@ -305,14 +349,27 @@ namespace UniversalMarkdown.Parse.Elements
         }
 
         /// <summary>
-        /// Converts the object into it's textual representation.
+        /// Finds the end of a URL.
         /// </summary>
-        /// <returns> The textual representation of this object. </returns>
-        public override string ToString()
+        /// <param name="markdown"> The markdown text. </param>
+        /// <param name="start"> The location to start searching. </param>
+        /// <param name="end"> The location to stop searching. </param>
+        /// <returns> The location of the end of the URL. </returns>
+        private static int FindUrlEnd(string markdown, int start, int maxEnd)
         {
-            if (Text == null)
-                return base.ToString();
-            return Text;
+            // For some reason a less than character ends a URL...
+            int end = markdown.IndexOfAny(new char[] { ' ', '\t', '\r', '\n', '<' }, start, maxEnd - start);
+            if (end == -1)
+                end = maxEnd;
+
+            // URLs can't end on a punctuation character.
+            while (end - 1 > start)
+            {
+                if (Array.IndexOf(new char[] { ')', '}', ']', '!', ';', '.', '?', ',' }, markdown[end - 1]) < 0)
+                    break;
+                end--;
+            }
+            return end;
         }
     }
 }

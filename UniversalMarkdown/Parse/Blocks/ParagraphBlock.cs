@@ -18,19 +18,22 @@ using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
 {
+    /// <summary>
+    /// Represents a block of text that is displayed as a single paragraph.
+    /// </summary>
     public class ParagraphBlock : MarkdownBlock
     {
-        /// <summary>
-        /// The contents of the block.
-        /// </summary>
-        public IList<MarkdownInline> Inlines { get; set; }
-
         /// <summary>
         /// Initializes a new paragraph block.
         /// </summary>
         public ParagraphBlock() : base(MarkdownBlockType.Paragraph)
         {
         }
+
+        /// <summary>
+        /// The contents of the block.
+        /// </summary>
+        public IList<MarkdownInline> Inlines { get; set; }
 
         /// <summary>
         /// Parses paragraph text.

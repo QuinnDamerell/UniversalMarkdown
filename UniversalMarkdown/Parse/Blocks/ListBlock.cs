@@ -27,8 +27,18 @@ namespace UniversalMarkdown.Parse.Elements
         Numbered,
     }
 
+    /// <summary>
+    /// Represents a list, with each list item proceeded by either a number or a bullet.
+    /// </summary>
     public class ListBlock : MarkdownBlock
     {
+        /// <summary>
+        /// Initializes a new list block.
+        /// </summary>
+        public ListBlock() : base(MarkdownBlockType.List)
+        {
+        }
+
         /// <summary>
         /// The list items.
         /// </summary>
@@ -37,14 +47,7 @@ namespace UniversalMarkdown.Parse.Elements
         /// <summary>
         /// The style of the list, either numbered or bulleted.
         /// </summary>
-        public ListStyle Style;
-
-        /// <summary>
-        /// Initializes a new list block.
-        /// </summary>
-        public ListBlock() : base(MarkdownBlockType.List)
-        {
-        }
+        public ListStyle Style { get; set; }
 
         private class NestedListInfo
         {

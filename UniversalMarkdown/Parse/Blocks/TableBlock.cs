@@ -19,8 +19,18 @@ using UniversalMarkdown.Helpers;
 
 namespace UniversalMarkdown.Parse.Elements
 {
+    /// <summary>
+    /// Represents a block which contains tabular data.
+    /// </summary>
     public class TableBlock : MarkdownBlock
     {
+        /// <summary>
+        /// Initializes a new table block.
+        /// </summary>
+        public TableBlock() : base(MarkdownBlockType.Table)
+        {
+        }
+
         /// <summary>
         /// The table rows.
         /// </summary>
@@ -32,13 +42,6 @@ namespace UniversalMarkdown.Parse.Elements
         /// more cells, the extra cells should be hidden.
         /// </summary>
         public IList<TableColumnDefinition> ColumnDefinitions { get; set; }
-
-        /// <summary>
-        /// Initializes a new table block.
-        /// </summary>
-        public TableBlock() : base(MarkdownBlockType.Table)
-        {
-        }
 
         /// <summary>
         /// Parses a table block.

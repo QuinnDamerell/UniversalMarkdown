@@ -324,11 +324,19 @@ namespace UniversalMarkdown.Parse.Elements
         /// <returns> A parsed URL, or <c>null</c> if this is not a URL. </returns>
         internal static Common.InlineParseResult ParseEmailAddress(string markdown, int tripPos, int maxEnd)
         {
-            // Search backwards until we find a character which is not a letter or digit.
+            // Search backwards until we find a character which is not a letter, digit, or one of
+            // these characters: '+', '-', '_', '.'.
+            // Note: it is intended that this code match the reddit.com markdown parser; there are
+            // many characters which are legal in email addresses but which aren't picked up by
+            // reddit (for example: '$' and '!').
             int start = tripPos;
             while (start > 0)
             {
-                if (!char.IsLetterOrDigit(markdown[start - 1]))
+                char c = markdown[start - 1];
+                if ((c < 'a' || c > 'z') &&
+                    (c < 'A' || c > 'Z') &&
+                    (c < '0' || c > '9') &&
+                    c != '+' && c != '-' && c != '_' && c != '.')
                     break;
                 start--;
             }
@@ -337,11 +345,18 @@ namespace UniversalMarkdown.Parse.Elements
             if (start == tripPos)
                 return null;
 
-            // Search forwards until we find a character which is not a letter or digit.
+            // Search forwards until we find a character which is not a letter, digit, or one of
+            // these characters: '-', '_'.
+            // Note: it is intended that this code match the reddit.com markdown parser;
+            // technically underscores ('_') aren't allowed in a host name.
             int dotIndex = tripPos + 1;
             while (dotIndex < maxEnd)
             {
-                if (!char.IsLetterOrDigit(markdown[dotIndex]))
+                char c = markdown[dotIndex];
+                if ((c < 'a' || c > 'z') &&
+                    (c < 'A' || c > 'Z') &&
+                    (c < '0' || c > '9') &&
+                    c != '-' && c != '_')
                     break;
                 dotIndex++;
             }
@@ -350,11 +365,18 @@ namespace UniversalMarkdown.Parse.Elements
             if (dotIndex == maxEnd || markdown[dotIndex] != '.')
                 return null;
 
-            // Search forwards until we find a character which is not a letter or digit.
+            // Search forwards until we find a character which is not a letter, digit, or one of
+            // these characters: '.', '-', '_'.
+            // Note: it is intended that this code match the reddit.com markdown parser;
+            // technically underscores ('_') aren't allowed in a host name.
             int end = dotIndex + 1;
             while (end < maxEnd)
             {
-                if (!char.IsLetterOrDigit(markdown[end]) && markdown[end] != '.')
+                char c = markdown[end];
+                if ((c < 'a' || c > 'z') &&
+                    (c < 'A' || c > 'Z') &&
+                    (c < '0' || c > '9') &&
+                    c != '.' && c != '-' && c != '_')
                     break;
                 end++;
             }

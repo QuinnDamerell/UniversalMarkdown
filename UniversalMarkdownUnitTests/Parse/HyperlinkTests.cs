@@ -247,6 +247,18 @@ namespace UniversalMarkdownUnitTests.Parse
 
         [UITestMethod]
         [TestCategory("Parse - inline")]
+        public void Hyperlink_MailtoWithBold()
+        {
+            AssertEqual("abc__def@test.co__m",
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "abc" },
+                    new BoldTextInline().AddChildren(
+                        new HyperlinkInline { Url = "mailto:def@test.co", Text = "def@test.co", LinkType = HyperlinkType.Email }),
+                    new TextRunInline { Text = "m" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void Hyperlink_AngleBrackets()
         {
             AssertEqual("<http://reddit.com>",
@@ -706,7 +718,16 @@ namespace UniversalMarkdownUnitTests.Parse
                 new ParagraphBlock().AddChildren(new TextRunInline { Text = "/r/ab+" }));
         }
 
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void SubredditLink_WithPath()
+        {
+            AssertEqual("/r/news/blah",
+                new ParagraphBlock().AddChildren(
+                    new HyperlinkInline { Text = "/r/news/blah", Url = "/r/news/blah", LinkType = HyperlinkType.Subreddit }));
+        }
 
+        
 
         [UITestMethod]
         [TestCategory("Parse - inline")]
@@ -780,6 +801,15 @@ namespace UniversalMarkdownUnitTests.Parse
             AssertEqual("/u/u",
                 new ParagraphBlock().AddChildren(
                     new HyperlinkInline { Text = "/u/u", Url = "/u/u", LinkType = HyperlinkType.User }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void UserLink_WithPath()
+        {
+            AssertEqual("/u/quinbd/blah",
+                new ParagraphBlock().AddChildren(
+                    new HyperlinkInline { Text = "/u/quinbd/blah", Url = "/u/quinbd/blah", LinkType = HyperlinkType.User }));
         }
 
         [UITestMethod]

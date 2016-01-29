@@ -236,7 +236,7 @@ namespace UniversalMarkdown.Parse.Elements
                 return null;
 
             // Find the end of the link.
-            int end = FindNextNonLetterDigitOrUnderscore(markdown, start + 3, maxEnd);
+            int end = FindEndOfRedditLink(markdown, start + 3, maxEnd);
 
             // Subreddit names must be at least two characters long, users at least one.
             if (end - start < (linkType == HyperlinkType.User ? 4 : 5))
@@ -276,7 +276,7 @@ namespace UniversalMarkdown.Parse.Elements
                 return null;
 
             // Find the end of the link.
-            int end = FindNextNonLetterDigitOrUnderscore(markdown, start + 2, maxEnd);
+            int end = FindEndOfRedditLink(markdown, start + 2, maxEnd);
 
             // Subreddit names must be at least two characters long, users at least one.
             if (end - start < (linkType == HyperlinkType.User ? 3 : 4))
@@ -319,10 +319,11 @@ namespace UniversalMarkdown.Parse.Elements
         /// Attempts to parse an email address e.g. "test@reddit.com".
         /// </summary>
         /// <param name="markdown"> The markdown text. </param>
+        /// <param name="minStart"> The minimum start position to return. </param>
         /// <param name="tripPos"> The location of the at character. </param>
         /// <param name="maxEnd"> The location to stop parsing. </param>
         /// <returns> A parsed URL, or <c>null</c> if this is not a URL. </returns>
-        internal static Common.InlineParseResult ParseEmailAddress(string markdown, int tripPos, int maxEnd)
+        internal static Common.InlineParseResult ParseEmailAddress(string markdown, int minStart, int tripPos, int maxEnd)
         {
             // Search backwards until we find a character which is not a letter, digit, or one of
             // these characters: '+', '-', '_', '.'.
@@ -330,7 +331,7 @@ namespace UniversalMarkdown.Parse.Elements
             // many characters which are legal in email addresses but which aren't picked up by
             // reddit (for example: '$' and '!').
             int start = tripPos;
-            while (start > 0)
+            while (start > minStart)
             {
                 char c = markdown[start - 1];
                 if ((c < 'a' || c > 'z') &&
@@ -410,12 +411,16 @@ namespace UniversalMarkdown.Parse.Elements
         /// <param name="start"> The location to start searching. </param>
         /// <param name="end"> The location to stop searching. </param>
         /// <returns> The location of the next character that is not a letter, digit or underscore. </returns>
-        private static int FindNextNonLetterDigitOrUnderscore(string markdown, int start, int end)
+        private static int FindEndOfRedditLink(string markdown, int start, int end)
         {
             int pos = start;
             while (pos < markdown.Length && pos < end)
             {
-                if (!char.IsLetterOrDigit(markdown[pos]) && markdown[pos] != '_')
+                char c = markdown[pos];
+                if ((c < 'a' || c > 'z') &&
+                    (c < 'A' || c > 'Z') &&
+                    (c < '0' || c > '9') &&
+                    c != '_' && c != '/')
                 {
                     return pos;
                 }

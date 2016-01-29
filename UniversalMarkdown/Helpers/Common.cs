@@ -196,7 +196,7 @@ namespace UniversalMarkdown.Helpers
                                 break;
                             case InlineParseMethod.Email:
                                 if (!ignoreLinks)
-                                    parseResult = HyperlinkInline.ParseEmailAddress(markdown, pos, end);
+                                    parseResult = HyperlinkInline.ParseEmailAddress(markdown, start, pos, end);
                                 break;
                             case InlineParseMethod.Strikethrough:
                                 parseResult = StrikethroughTextInline.Parse(markdown, pos, end);

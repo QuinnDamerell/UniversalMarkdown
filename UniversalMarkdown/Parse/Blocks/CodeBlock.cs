@@ -85,16 +85,19 @@ namespace UniversalMarkdown.Parse.Elements
                 else
                     code.AppendLine();
 
-                // Append the code text, excluding the first tab/4 spaces, and convert tab characters into spaces.
-                string lineText = markdown.Substring(pos, lineInfo.EndOfLine - pos);
-                int startOfLinePos = code.Length;
-                for (int i = 0; i < lineText.Length; i++)
+                if (lineInfo.IsLineBlank == false)
                 {
-                    char c = lineText[i];
-                    if (c == '\t')
-                        code.Append(' ', 4 - ((code.Length - startOfLinePos) % 4));
-                    else
-                        code.Append(c);
+                    // Append the code text, excluding the first tab/4 spaces, and convert tab characters into spaces.
+                    string lineText = markdown.Substring(pos, lineInfo.EndOfLine - pos);
+                    int startOfLinePos = code.Length;
+                    for (int i = 0; i < lineText.Length; i++)
+                    {
+                        char c = lineText[i];
+                        if (c == '\t')
+                            code.Append(' ', 4 - ((code.Length - startOfLinePos) % 4));
+                        else
+                            code.Append(c);
+                    }
                 }
 
                 // Update the end position.

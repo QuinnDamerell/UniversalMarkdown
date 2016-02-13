@@ -147,7 +147,7 @@ namespace UniversalMarkdownUnitTests.Parse
 
         [UITestMethod]
         [TestCategory("Parse - block")]
-        public void Code_Block_With_Tabs()
+        public void Code_Block_WithTabs()
         {
             // A tab character can start a code block.
             // Tab characters inside the code are converted to 1-4 spaces.
@@ -163,6 +163,44 @@ namespace UniversalMarkdownUnitTests.Parse
                 new ParagraphBlock().AddChildren(
                     new TextRunInline { Text = "before" }),
                 new CodeBlock { Text = "Code\r\n    can\r\nbe  tabbed\r\nhole    tabbed" },
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "after" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - block")]
+        public void Code_Block_WithLeadingBlankLine()
+        {
+            // Leading lines that are purely whitespace should be ignored.
+            AssertEqual(CollapseWhitespace(@"
+                before
+
+                     
+                    line 1
+
+                after"),
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "before" }),
+                new CodeBlock { Text = "line 1" },
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "after" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - block")]
+        public void Code_Block_WithTrailingBlankLine()
+        {
+            // Trailing lines that are purely whitespace should be ignored.
+            AssertEqual(CollapseWhitespace(@"
+                before
+
+                    line 1
+                     
+
+                after"),
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "before" }),
+                new CodeBlock { Text = "line 1" },
                 new ParagraphBlock().AddChildren(
                     new TextRunInline { Text = "after" }));
         }

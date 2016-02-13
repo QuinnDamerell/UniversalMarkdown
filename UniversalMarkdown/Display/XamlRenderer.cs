@@ -32,13 +32,19 @@ namespace UniversalMarkdown.Display
     internal class XamlRenderer
     {
         /// <summary>
+        /// The markdown document that will be rendered.
+        /// </summary>
+        private MarkdownDocument document;
+
+        /// <summary>
         /// An interface that is used to register hyperlinks.
         /// </summary>
-        private ILinkRegister m_linkRegister;
+        private ILinkRegister linkRegister;
 
-        public XamlRenderer(ILinkRegister linkRegister)
+        public XamlRenderer(MarkdownDocument document, ILinkRegister linkRegister)
         {
-            m_linkRegister = linkRegister;
+            this.document = document;
+            this.linkRegister = linkRegister;
         }
 
         /// <summary>
@@ -315,12 +321,11 @@ namespace UniversalMarkdown.Display
         /// <summary>
         /// Called externally to render markdown to a text block.
         /// </summary>
-        /// <param name="markdownTree"></param>
         /// <returns> A XAML UI element. </returns>
-        public UIElement Render(MarkdownDocument markdownTree)
+        public UIElement Render()
         {
             var stackPanel = new StackPanel();
-            RenderBlocks(markdownTree.Blocks, stackPanel.Children);
+            RenderBlocks(this.document.Blocks, stackPanel.Children);
 
             // Set background and border properties.
             stackPanel.Background = Background;
@@ -775,6 +780,15 @@ namespace UniversalMarkdown.Display
             if (element.Inlines.Count == 0)
                 return;
 
+            // Attempt to resolve references.
+            element.ResolveReference(this.document);
+            if (element.Url == null)
+            {
+                // The element couldn't be resolved, just render it as text.
+                RenderInlineChildren(inlineCollection, element.Inlines, parent, context);
+                return;
+            }
+
             // HACK: Superscript is not allowed within a hyperlink.  But if we switch it around, so
             // that the superscript is outside the hyperlink, then it will render correctly.
             // This assumes that the entire hyperlink is to be rendered as superscript.
@@ -784,7 +798,7 @@ namespace UniversalMarkdown.Display
                 var link = new Hyperlink();
 
                 // Register the link
-                m_linkRegister.RegisterNewHyperLink(link, element.Url);
+                this.linkRegister.RegisterNewHyperLink(link, element.Url);
 
                 // Remove superscripts.
                 RemoveSuperscriptRuns(element, insertCaret: true);
@@ -827,7 +841,7 @@ namespace UniversalMarkdown.Display
             var link = new Hyperlink();
 
             // Register the link
-            m_linkRegister.RegisterNewHyperLink(link, element.Url);
+            this.linkRegister.RegisterNewHyperLink(link, element.Url);
 
             // Make a text block for the link
             Run linkText = new Run();

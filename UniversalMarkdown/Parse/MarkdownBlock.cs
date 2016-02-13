@@ -26,6 +26,7 @@ namespace UniversalMarkdown.Parse
         ListItemBuilder,
         HorizontalRule,
         Table,
+        LinkReference,
     };
 
     public abstract class MarkdownBlock : MarkdownElement

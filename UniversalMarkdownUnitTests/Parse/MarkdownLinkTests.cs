@@ -217,6 +217,54 @@ namespace UniversalMarkdownUnitTests.Parse
 
         [UITestMethod]
         [TestCategory("Parse - inline")]
+        public void MarkdownLink_References()
+        {
+            AssertEqual(CollapseWhitespace(@"
+                [example 1][id1]
+
+                [example 2][id2]
+
+                [example 3] [id3]
+
+                [example 4]  [id4]
+
+                [example 5][id5]
+
+                [id1]: http://example1.com/
+                 [id2]: http://example2.com/  ""Optional Title 2""
+                [id3]: www.example3.com  'Optional Title 3'
+                [id4]: /r/news  (Optional Title 4)
+                [id5]: <http://example5.com/>  (Optional Title 5)
+                [id5]: <http://example5override.com/>  (Optional Title 5 Override)"),
+                new ParagraphBlock().AddChildren(new MarkdownLinkInline { Url = "http://example1.com/" }.AddChildren(new TextRunInline { Text = "example 1" })),
+                new ParagraphBlock().AddChildren(new MarkdownLinkInline { Url = "http://example2.com/", Tooltip = "Optional Title 2" }.AddChildren(new TextRunInline { Text = "example 2" })),
+                new ParagraphBlock().AddChildren(new MarkdownLinkInline { Url = "http://www.example3.com", Tooltip = "Optional Title 3" }.AddChildren(new TextRunInline { Text = "example 3" })),
+                new ParagraphBlock().AddChildren(new MarkdownLinkInline { Url = "/r/news", Tooltip = "Optional Title 4" }.AddChildren(new TextRunInline { Text = "example 4" })),
+                new ParagraphBlock().AddChildren(new MarkdownLinkInline { Url = "http://example5override.com/", Tooltip = "Optional Title 5 Override" }.AddChildren(new TextRunInline { Text = "example 5" })));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void MarkdownLink_ImplicitReference()
+        {
+            AssertEqual(CollapseWhitespace(@"
+                [example][]
+                [example]: http://example.com/"),
+                new ParagraphBlock().AddChildren(new MarkdownLinkInline { Url = "http://example.com/" }.AddChildren(new TextRunInline { Text = "example" })));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void MarkdownLink_ReferencesAreCaseInsensitive()
+        {
+            AssertEqual(CollapseWhitespace(@"
+                [EXAMPLE][]
+                [example]: http://example.com/"),
+                new ParagraphBlock().AddChildren(new MarkdownLinkInline { Url = "http://example.com/" }.AddChildren(new TextRunInline { Text = "EXAMPLE" })));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
         public void MarkdownLink_Negative_UrlMustBeValid()
         {
             AssertEqual("[text](ha)",
@@ -242,6 +290,34 @@ namespace UniversalMarkdownUnitTests.Parse
                     new TextRunInline { Text = "[text](" },
                     new HyperlinkInline { Url = "http://www.reddit.com", Text = "www.reddit.com", LinkType = HyperlinkType.PartialUrl },
                     new TextRunInline { Text = ")" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void MarkdownLink_Negative_UnknownReference()
+        {
+            AssertEqual(CollapseWhitespace(@"
+                [example][]
+                [test]: http://example.com/"),
+                new ParagraphBlock().AddChildren(new TextRunInline { Text = "[example][]" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void MarkdownLink_Negative_InvalidReferenceTooltip()
+        {
+            AssertEqual(CollapseWhitespace(@"
+                [test]: http://example.com/ 'test"),
+                new ParagraphBlock().AddChildren(new TextRunInline { Text = "[test]: http://example.com/ 'test" }));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void MarkdownLink_Negative_InvalidReferenceTrailingText()
+        {
+            AssertEqual(CollapseWhitespace(@"
+                [test]: http://example.com/ 'test' abc"),
+                new ParagraphBlock().AddChildren(new TextRunInline { Text = "[test]: http://example.com/ 'test' abc" }));
         }
     }
 }

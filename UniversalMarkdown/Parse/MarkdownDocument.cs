@@ -13,6 +13,7 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 
+using System;
 using System.Collections.Generic;
 using System.Text;
 using UniversalMarkdown.Helpers;
@@ -25,10 +26,7 @@ namespace UniversalMarkdown.Parse
     /// </summary>
     public class MarkdownDocument : MarkdownBlock
     {
-        /// <summary>
-        /// Holds the list of block elements.
-        /// </summary>
-        public IList<MarkdownBlock> Blocks { get; set; }
+        private Dictionary<string, LinkReferenceBlock> references;
 
         /// <summary>
         /// Initializes a new markdown document.
@@ -38,6 +36,11 @@ namespace UniversalMarkdown.Parse
         }
 
         /// <summary>
+        /// Holds the list of block elements.
+        /// </summary>
+        public IList<MarkdownBlock> Blocks { get; set; }
+
+        /// <summary>
         /// Parses markdown document text.
         /// </summary>
         /// <param name="markdownText"> The markdown text. </param>
@@ -45,6 +48,20 @@ namespace UniversalMarkdown.Parse
         {
             int actualEnd;
             Blocks = Parse(markdownText, 0, markdownText.Length, quoteDepth: 0, actualEnd: out actualEnd);
+
+            // Remove any references from the list of blocks, and add them to a dictionary.
+            for (int i = Blocks.Count - 1; i >= 0; i --)
+            {
+                if (Blocks[i].Type == MarkdownBlockType.LinkReference)
+                {
+                    var reference = (LinkReferenceBlock)Blocks[i];
+                    if (references == null)
+                        references = new Dictionary<string, LinkReferenceBlock>(StringComparer.OrdinalIgnoreCase);
+                    if (!references.ContainsKey(reference.Id))
+                        references.Add(reference.Id, reference);
+                    Blocks.RemoveAt(i);
+                }
+            }
         }
 
         /// <summary>
@@ -214,6 +231,12 @@ namespace UniversalMarkdown.Parse
                         newBlockElement = QuoteBlock.Parse(markdown, realStartOfLine, end, quoteDepth, out startOfNextLine);
                     }
 
+                    // This check needs to go after the code block check.
+                    if (newBlockElement == null && nonSpaceChar == '[')
+                    {
+                        newBlockElement = LinkReferenceBlock.Parse(markdown, startOfLine, endOfLine);
+                    }
+
                     // Block elements start new paragraphs.
                     lineStartsNewParagraph = newBlockElement != null;
 
@@ -273,6 +296,25 @@ namespace UniversalMarkdown.Parse
 
             actualEnd = startOfLine;
             return blocks;
+        }
+
+        /// <summary>
+        /// Looks up a reference using the ID.
+        /// A reference is a line that looks like this:
+        /// [foo]: http://example.com/
+        /// </summary>
+        /// <param name="id"> The ID of the reference (case insensitive). </param>
+        /// <returns> The reference details, or <c>null</c> if the reference wasn't found. </returns>
+        public LinkReferenceBlock LookUpReference(string id)
+        {
+            if (id == null)
+                throw new ArgumentNullException("id");
+            if (references == null)
+                return null;
+            LinkReferenceBlock result;
+            if (references.TryGetValue(id, out result))
+                return result;
+            return null;
         }
 
         /// <summary>

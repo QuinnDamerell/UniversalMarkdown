@@ -118,6 +118,7 @@
       <DependentUpon>MarkdownTextBlock.xaml</DependentUpon>
     </Compile>
     <Compile Include="Parse\Blocks\CodeBlock.cs" />
+    <Compile Include="Parse\Blocks\LinkReferenceBlock.cs" />
     <Compile Include="Parse\Blocks\HeaderBlock.cs" />
     <Compile Include="Parse\Blocks\ListBlock.cs" />
     <Compile Include="Parse\Blocks\HorizontalRuleBlock.cs" />

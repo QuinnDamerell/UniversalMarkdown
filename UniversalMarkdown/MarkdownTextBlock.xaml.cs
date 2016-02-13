@@ -778,7 +778,7 @@ namespace UniversalMarkdown
                 markdown.Parse(Markdown);
 
                 // Now try to display it
-                var renderer = new XamlRenderer(this);
+                var renderer = new XamlRenderer(markdown, this);
                 renderer.Background = Background;
                 renderer.BorderBrush = BorderBrush;
                 renderer.BorderThickness = BorderThickness;
@@ -832,7 +832,7 @@ namespace UniversalMarkdown
                 renderer.TableCellPadding = TableCellPadding;
                 renderer.TableMargin = TableMargin;
                 renderer.TextWrapping = TextWrapping;
-                Content = renderer.Render(markdown);
+                Content = renderer.Render();
             }
             catch (Exception ex)
             {

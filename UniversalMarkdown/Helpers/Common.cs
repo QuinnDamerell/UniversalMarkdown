@@ -515,7 +515,7 @@ namespace UniversalMarkdown.Helpers
                 else
                 {
                     // There were less block quote characters than expected.
-                    return -1;
+                    break;
                 }
             }
 

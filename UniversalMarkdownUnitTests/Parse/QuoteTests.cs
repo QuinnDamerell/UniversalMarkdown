@@ -46,7 +46,7 @@ namespace UniversalMarkdownUnitTests.Parse
 
         [UITestMethod]
         [TestCategory("Parse - block")]
-        public void Quote_MultiLine()
+        public void Quote_MultiLine_Simple()
         {
             AssertEqual(CollapseWhitespace(@"
                 before
@@ -153,6 +153,17 @@ namespace UniversalMarkdownUnitTests.Parse
                         new TableRow().AddChildren(
                             new TableCell().AddChildren(new TextRunInline { Text = "1" }),
                             new TableCell().AddChildren(new TextRunInline { Text = "2" })))));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - block")]
+        public void Quote_Invalid_Table()
+        {
+            AssertEqual(CollapseWhitespace(@"
+                >a|b"),
+                new QuoteBlock().AddChildren(
+                    new ParagraphBlock().AddChildren(
+                        new TextRunInline { Text = "a|b" })));
         }
 
         [UITestMethod]

@@ -42,9 +42,23 @@
 
         <ScrollViewer Grid.Row="2"
                       Background="#191919">
-            <universalMarkdown:MarkdownTextBlock x:Name="MarkdownTextBlock"
-                                                 Margin="12"
-                                                 OnMarkdownLinkTapped="MarkdownTextBlock_OnMarkdownLinkTapped"/>
+            <StackPanel>
+                <!-- Exception details -->
+                <Border Name="ErrorContainer"
+                        Grid.Row="2"
+                        Background="Red"
+                        Padding="8"
+                        Visibility="Collapsed">
+                    <TextBlock Name="ErrorText"
+                           Grid.Row="2"
+                           Foreground="White"/>
+                </Border>
+                
+                <universalMarkdown:MarkdownTextBlock x:Name="MarkdownTextBlock"
+                                                     Margin="12"
+                                                     OnMarkdownLinkTapped="MarkdownTextBlock_OnMarkdownLinkTapped"
+                                                     OnMarkdownReady="MarkdownTextBlock_OnMarkdownReady"/>
+            </StackPanel>
         </ScrollViewer>
 
         <ScrollViewer Grid.Column="1"

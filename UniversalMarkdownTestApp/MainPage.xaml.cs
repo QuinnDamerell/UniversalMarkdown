@@ -37,12 +37,6 @@ namespace UniversalMarkdownTestApp
             InitEditableProperties();
         }
 
-        // Fired when the text changes
-        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            MarkdownTextBlock.Markdown = TextBox.Text;
-        }
-
         private async void Page_Loaded(object sender, RoutedEventArgs e)
         {
             try
@@ -53,6 +47,25 @@ namespace UniversalMarkdownTestApp
             {
                 TextBox.Text = ex.Message;
             }
+        }
+
+        // Fired when the text changes
+        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            MarkdownTextBlock.Markdown = TextBox.Text;
+        }
+
+        private void MarkdownTextBlock_OnMarkdownReady(object sender, OnMarkdownReadyArgs e)
+        {
+            ErrorContainer.Visibility = e.Exception != null ? Visibility.Visible : Visibility.Collapsed;
+            if (e.Exception != null)
+                ErrorText.Text = e.Exception.ToString();
+        }
+
+        private async void MarkdownTextBlock_OnMarkdownLinkTapped(object sender, UniversalMarkdown.OnMarkdownLinkTappedArgs e)
+        {
+            var dialog = new MessageDialog($"Link clicked: {e.Link}");
+            await dialog.ShowAsync();
         }
 
         private async void BenchmarkButton_Click(object sender, RoutedEventArgs e)
@@ -79,12 +92,6 @@ namespace UniversalMarkdownTestApp
 
             
             var dialog = new MessageDialog($"**Benchmark complete**\r\n\r\nTime to parse 2,807 comments: {elapsedTimeInMs:f2}ms");
-            await dialog.ShowAsync();
-        }
-
-        private async void MarkdownTextBlock_OnMarkdownLinkTapped(object sender, UniversalMarkdown.OnMarkdownLinkTappedArgs e)
-        {
-            var dialog = new MessageDialog($"Link clicked: {e.Link}");
             await dialog.ShowAsync();
         }
 

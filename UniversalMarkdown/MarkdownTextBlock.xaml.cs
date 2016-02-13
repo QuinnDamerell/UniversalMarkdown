@@ -129,7 +129,7 @@ namespace UniversalMarkdown
         /// Gets the dependency property for <see cref="CodeBackground"/>.
         /// </summary>
         public static readonly DependencyProperty CodeBackgroundProperty = DependencyProperty.Register(nameof(CodeBackground), typeof(Brush),
-                typeof(MarkdownTextBlock), new PropertyMetadata(null, new PropertyChangedCallback(OnPropertyChangedStatic)));
+                typeof(MarkdownTextBlock), new PropertyMetadata(new SolidColorBrush(Color.FromArgb(255, 30, 30, 30)), new PropertyChangedCallback(OnPropertyChangedStatic)));
 
         /// <summary>
         /// Gets or sets the brush used to render the border fill of a code block.
@@ -144,7 +144,7 @@ namespace UniversalMarkdown
         /// Gets the dependency property for <see cref="CodeBorderBrush"/>.
         /// </summary>
         public static readonly DependencyProperty CodeBorderBrushProperty = DependencyProperty.Register(nameof(CodeBorderBrush), typeof(Brush),
-                typeof(MarkdownTextBlock), new PropertyMetadata(new SolidColorBrush(Color.FromArgb(255, 48, 48, 48)), new PropertyChangedCallback(OnPropertyChangedStatic)));
+                typeof(MarkdownTextBlock), new PropertyMetadata(new SolidColorBrush(Color.FromArgb(255, 40, 40, 40)), new PropertyChangedCallback(OnPropertyChangedStatic)));
 
         /// <summary>
         /// Gets or sets the thickness of the border around code blocks.
@@ -159,7 +159,7 @@ namespace UniversalMarkdown
         /// Gets the dependency property for <see cref="CodeBorderThickness"/>.
         /// </summary>
         public static readonly DependencyProperty CodeBorderThicknessProperty = DependencyProperty.Register(nameof(CodeBorderThickness), typeof(Thickness),
-                typeof(MarkdownTextBlock), new PropertyMetadata(new Thickness(1), new PropertyChangedCallback(OnPropertyChangedStatic)));
+                typeof(MarkdownTextBlock), new PropertyMetadata(new Thickness(2), new PropertyChangedCallback(OnPropertyChangedStatic)));
 
         /// <summary>
         /// Gets or sets the brush used to render the text inside a code block.  If this is
@@ -221,7 +221,7 @@ namespace UniversalMarkdown
         /// Gets the dependency property for <see cref="CodePadding"/>.
         /// </summary>
         public static readonly DependencyProperty CodePaddingProperty = DependencyProperty.Register(nameof(CodePadding), typeof(Thickness),
-                typeof(MarkdownTextBlock), new PropertyMetadata(new Thickness(9, 4, 9, 4), new PropertyChangedCallback(OnPropertyChangedStatic)));
+                typeof(MarkdownTextBlock), new PropertyMetadata(new Thickness(10, 6, 10, 6), new PropertyChangedCallback(OnPropertyChangedStatic)));
 
         /// <summary>
         /// Gets or sets the font weight to use for level 1 headers.
@@ -601,6 +601,21 @@ namespace UniversalMarkdown
                 typeof(MarkdownTextBlock), new PropertyMetadata(new Thickness(0, 5, 0, 5), new PropertyChangedCallback(OnPropertyChangedStatic)));
 
         /// <summary>
+        /// Gets or sets the brush used to fill the background of a quote block.
+        /// </summary>
+        public Brush QuoteBackground
+        {
+            get { return (Brush)GetValue(QuoteBackgroundProperty); }
+            set { SetValue(QuoteBackgroundProperty, value); }
+        }
+
+        /// <summary>
+        /// Gets the dependency property for <see cref="QuoteBackground"/>.
+        /// </summary>
+        public static readonly DependencyProperty QuoteBackgroundProperty = DependencyProperty.Register(nameof(QuoteBackground), typeof(Brush),
+                typeof(MarkdownTextBlock), new PropertyMetadata(new SolidColorBrush(Color.FromArgb(255, 30, 30, 30)), new PropertyChangedCallback(OnPropertyChangedStatic)));
+
+        /// <summary>
         /// Gets or sets the brush used to render a quote border.  If this is <c>null</c>, then
         /// <see cref="Foreground"/> is used.
         /// </summary>
@@ -614,7 +629,7 @@ namespace UniversalMarkdown
         /// Gets the dependency property for <see cref="QuoteBorderBrush"/>.
         /// </summary>
         public static readonly DependencyProperty QuoteBorderBrushProperty = DependencyProperty.Register(nameof(QuoteBorderBrush), typeof(Brush),
-                typeof(MarkdownTextBlock), new PropertyMetadata(Application.Current.Resources["SystemControlHighlightAccentBrush"] as SolidColorBrush, new PropertyChangedCallback(OnPropertyChangedStatic)));
+                typeof(MarkdownTextBlock), new PropertyMetadata(new SolidColorBrush(Color.FromArgb(255, 80, 80, 80)), new PropertyChangedCallback(OnPropertyChangedStatic)));
 
         /// <summary>
         /// Gets or sets the thickness of quote borders.
@@ -630,6 +645,22 @@ namespace UniversalMarkdown
         /// </summary>
         public static readonly DependencyProperty QuoteBorderThicknessProperty = DependencyProperty.Register(nameof(QuoteBorderThickness), typeof(Thickness),
                 typeof(MarkdownTextBlock), new PropertyMetadata(new Thickness(2, 0, 0, 0), new PropertyChangedCallback(OnPropertyChangedStatic)));
+
+        /// <summary>
+        /// Gets or sets the brush used to render the text inside a quote block.  If this is
+        /// <c>null</c>, then <see cref="Foreground"/> is used.
+        /// </summary>
+        public Brush QuoteForeground
+        {
+            get { return (Brush)GetValue(QuoteForegroundProperty); }
+            set { SetValue(QuoteForegroundProperty, value); }
+        }
+
+        /// <summary>
+        /// Gets the dependency property for <see cref="QuoteForeground"/>.
+        /// </summary>
+        public static readonly DependencyProperty QuoteForegroundProperty = DependencyProperty.Register(nameof(QuoteForeground), typeof(Brush),
+                typeof(MarkdownTextBlock), new PropertyMetadata(new SolidColorBrush(Color.FromArgb(255, 180, 180, 180)), new PropertyChangedCallback(OnPropertyChangedStatic)));
 
         /// <summary>
         /// Gets or sets the space outside of quote borders.
@@ -659,7 +690,7 @@ namespace UniversalMarkdown
         /// Gets the dependency property for <see cref="QuotePadding"/>.
         /// </summary>
         public static readonly DependencyProperty QuotePaddingProperty = DependencyProperty.Register(nameof(QuotePadding), typeof(Thickness),
-                typeof(MarkdownTextBlock), new PropertyMetadata(new Thickness(7, 1, 0, 3), new PropertyChangedCallback(OnPropertyChangedStatic)));
+                typeof(MarkdownTextBlock), new PropertyMetadata(new Thickness(7, 2, 0, 4), new PropertyChangedCallback(OnPropertyChangedStatic)));
 
 
         /// <summary>
@@ -823,8 +854,10 @@ namespace UniversalMarkdown
                 renderer.ListGutterWidth = ListGutterWidth;
                 renderer.ListBulletSpacing = ListBulletSpacing;
                 renderer.ParagraphMargin = ParagraphMargin;
+                renderer.QuoteBackground = QuoteBackground;
                 renderer.QuoteBorderBrush = QuoteBorderBrush;
                 renderer.QuoteBorderThickness = QuoteBorderThickness;
+                renderer.QuoteForeground = QuoteForeground;
                 renderer.QuoteMargin = QuoteMargin;
                 renderer.QuotePadding = QuotePadding;
                 renderer.TableBorderBrush = TableBorderBrush;

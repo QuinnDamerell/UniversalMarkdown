@@ -271,6 +271,11 @@ namespace UniversalMarkdown.Display
         public Thickness ParagraphMargin { get; set; }
 
         /// <summary>
+        /// Gets or sets the brush used to fill the background of a quote block.
+        /// </summary>
+        public Brush QuoteBackground { get; set; }
+
+        /// <summary>
         /// Gets or sets the brush used to render a quote border.  If this is <c>null</c>, then
         /// <see cref="Foreground"/> is used.
         /// </summary>
@@ -280,6 +285,12 @@ namespace UniversalMarkdown.Display
         /// Gets or sets the thickness of quote borders.
         /// </summary>
         public Thickness QuoteBorderThickness { get; set; }
+
+        /// <summary>
+        /// Gets or sets the brush used to render the text inside a quote block.  If this is
+        /// <c>null</c>, then <see cref="Foreground"/> is used.
+        /// </summary>
+        public Brush QuoteForeground { get; set; }
 
         /// <summary>
         /// Gets or sets the space outside of quote borders.
@@ -325,7 +336,7 @@ namespace UniversalMarkdown.Display
         public UIElement Render()
         {
             var stackPanel = new StackPanel();
-            RenderBlocks(this.document.Blocks, stackPanel.Children);
+            RenderBlocks(this.document.Blocks, stackPanel.Children, new RenderContext { Foreground = Foreground });
 
             // Set background and border properties.
             stackPanel.Background = Background;
@@ -336,6 +347,19 @@ namespace UniversalMarkdown.Display
             return stackPanel;
         }
 
+        // Helper class for holding persistent state.
+        private class RenderContext
+        {
+            public Brush Foreground;
+            public bool TrimLeadingWhitespace;
+            public bool WithinHyperlink;
+
+            public RenderContext Clone()
+            {
+                return (RenderContext)MemberwiseClone();
+            }
+        }
+
         #region Render Blocks
 
         /// <summary>
@@ -343,11 +367,12 @@ namespace UniversalMarkdown.Display
         /// </summary>
         /// <param name="blockElements"></param>
         /// <param name="blockUIElementCollection"></param>
-        private void RenderBlocks(IEnumerable<MarkdownBlock> blockElements, UIElementCollection blockUIElementCollection)
+        /// <param name="context"></param>
+        private void RenderBlocks(IEnumerable<MarkdownBlock> blockElements, UIElementCollection blockUIElementCollection, RenderContext context)
         {
             foreach (MarkdownBlock element in blockElements)
             {
-                RenderBlock(element, blockUIElementCollection);
+                RenderBlock(element, blockUIElementCollection, context);
             }
 
             // Remove the top margin from the first block element, the bottom margin from the last block element,
@@ -392,30 +417,31 @@ namespace UniversalMarkdown.Display
         /// </summary>
         /// <param name="element"></param>
         /// <param name="blockUIElementCollection"></param>
-        private void RenderBlock(MarkdownBlock element, UIElementCollection blockUIElementCollection)
+        /// <param name="context"></param>
+        private void RenderBlock(MarkdownBlock element, UIElementCollection blockUIElementCollection, RenderContext context)
         {
             switch (element.Type)
             {
                 case MarkdownBlockType.Paragraph:
-                    RenderParagraph((ParagraphBlock)element, blockUIElementCollection);
+                    RenderParagraph((ParagraphBlock)element, blockUIElementCollection, context);
                     break;
                 case MarkdownBlockType.Quote:
-                    RenderQuote((QuoteBlock)element, blockUIElementCollection);
+                    RenderQuote((QuoteBlock)element, blockUIElementCollection, context);
                     break;
                 case MarkdownBlockType.Code:
-                    RenderCode((CodeBlock)element, blockUIElementCollection);
+                    RenderCode((CodeBlock)element, blockUIElementCollection, context);
                     break;
                 case MarkdownBlockType.Header:
-                    RenderHeader((HeaderBlock)element, blockUIElementCollection);
+                    RenderHeader((HeaderBlock)element, blockUIElementCollection, context);
                     break;
                 case MarkdownBlockType.List:
-                    RenderListElement((ListBlock)element, blockUIElementCollection);
+                    RenderListElement((ListBlock)element, blockUIElementCollection, context);
                     break;
                 case MarkdownBlockType.HorizontalRule:
-                    RenderHorizontalRule((HorizontalRuleBlock)element, blockUIElementCollection);
+                    RenderHorizontalRule((HorizontalRuleBlock)element, blockUIElementCollection, context);
                     break;
                 case MarkdownBlockType.Table:
-                    RenderTable((TableBlock)element, blockUIElementCollection);
+                    RenderTable((TableBlock)element, blockUIElementCollection, context);
                     break;
             }
         }
@@ -425,13 +451,15 @@ namespace UniversalMarkdown.Display
         /// </summary>
         /// <param name="element"></param>
         /// <param name="blockUIElementCollection"></param>
-        private void RenderParagraph(ParagraphBlock element, UIElementCollection blockUIElementCollection)
+        /// <param name="context"></param>
+        private void RenderParagraph(ParagraphBlock element, UIElementCollection blockUIElementCollection, RenderContext context)
         {
-            var textBlock = CreateOrReuseRichTextBlock(blockUIElementCollection);
-
             var paragraph = new Paragraph();
             paragraph.Margin = ParagraphMargin;
-            RenderInlineChildren(paragraph.Inlines, element.Inlines, paragraph);
+            context.TrimLeadingWhitespace = true;
+            RenderInlineChildren(paragraph.Inlines, element.Inlines, paragraph, context);
+
+            var textBlock = CreateOrReuseRichTextBlock(blockUIElementCollection, context);
             textBlock.Blocks.Add(paragraph);
         }
 
@@ -440,9 +468,10 @@ namespace UniversalMarkdown.Display
         /// </summary>
         /// <param name="element"></param>
         /// <param name="blockUIElementCollection"></param>
-        private void RenderHeader(HeaderBlock element, UIElementCollection blockUIElementCollection)
+        /// <param name="context"></param>
+        private void RenderHeader(HeaderBlock element, UIElementCollection blockUIElementCollection, RenderContext context)
         {
-            var textBlock = CreateOrReuseRichTextBlock(blockUIElementCollection);
+            var textBlock = CreateOrReuseRichTextBlock(blockUIElementCollection, context);
 
             var paragraph = new Paragraph();
             var childInlines = paragraph.Inlines;
@@ -485,7 +514,8 @@ namespace UniversalMarkdown.Display
             }
 
             // Render the children into the para inline.
-            RenderInlineChildren(childInlines, element.Inlines, paragraph);
+            context.TrimLeadingWhitespace = true;
+            RenderInlineChildren(childInlines, element.Inlines, paragraph, context);
 
             // Add it to the blocks
             textBlock.Blocks.Add(paragraph);
@@ -496,7 +526,8 @@ namespace UniversalMarkdown.Display
         /// </summary>
         /// <param name="element"></param>
         /// <param name="blockUIElementCollection"></param>
-        private void RenderListElement(ListBlock element, UIElementCollection blockUIElementCollection)
+        /// <param name="context"></param>
+        private void RenderListElement(ListBlock element, UIElementCollection blockUIElementCollection, RenderContext context)
         {
             // Create a grid with two columns.
             Grid grid = new Grid();
@@ -514,7 +545,7 @@ namespace UniversalMarkdown.Display
                 grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
                 // Add the bullet or number.
-                var bullet = CreateTextBlock();
+                var bullet = CreateTextBlock(context);
                 bullet.Margin = ParagraphMargin;
                 switch (element.Style)
                 {
@@ -532,7 +563,7 @@ namespace UniversalMarkdown.Display
 
                 // Add the list item content.
                 var content = new StackPanel();
-                RenderBlocks(listItem.Blocks, content.Children);
+                RenderBlocks(listItem.Blocks, content.Children, context);
                 Grid.SetColumn(content, 1);
                 Grid.SetRow(content, rowIndex);
                 grid.Children.Add(content);
@@ -546,12 +577,13 @@ namespace UniversalMarkdown.Display
         /// </summary>
         /// <param name="element"></param>
         /// <param name="blockUIElementCollection"></param>
-        private void RenderHorizontalRule(HorizontalRuleBlock element, UIElementCollection blockUIElementCollection)
+        /// <param name="context"></param>
+        private void RenderHorizontalRule(HorizontalRuleBlock element, UIElementCollection blockUIElementCollection, RenderContext context)
         {
             var rectangle = new Rectangle();
             rectangle.HorizontalAlignment = HorizontalAlignment.Stretch;
             rectangle.Height = HorizontalRuleThickness;
-            rectangle.Fill = HorizontalRuleBrush ?? Foreground;
+            rectangle.Fill = HorizontalRuleBrush ?? context.Foreground;
             rectangle.Margin = HorizontalRuleMargin;
 
             blockUIElementCollection.Add(rectangle);
@@ -562,14 +594,21 @@ namespace UniversalMarkdown.Display
         /// </summary>
         /// <param name="element"></param>
         /// <param name="blockUIElementCollection"></param>
-        private void RenderQuote(QuoteBlock element, UIElementCollection blockUIElementCollection)
+        private void RenderQuote(QuoteBlock element, UIElementCollection blockUIElementCollection, RenderContext context)
         {
+            if (QuoteForeground != null)
+            {
+                context = context.Clone();
+                context.Foreground = QuoteForeground;
+            }
+
             var stackPanel = new StackPanel();
-            RenderBlocks(element.Blocks, stackPanel.Children);
+            RenderBlocks(element.Blocks, stackPanel.Children, context);
 
             var border = new Border();
             border.Margin = QuoteMargin;
-            border.BorderBrush = QuoteBorderBrush ?? Foreground;
+            border.Background = QuoteBackground;
+            border.BorderBrush = QuoteBorderBrush ?? context.Foreground;
             border.BorderThickness = QuoteBorderThickness;
             border.Padding = QuotePadding;
             border.Child = stackPanel;
@@ -583,11 +622,13 @@ namespace UniversalMarkdown.Display
         /// </summary>
         /// <param name="element"></param>
         /// <param name="blockUIElementCollection"></param>
-        private void RenderCode(CodeBlock element, UIElementCollection blockUIElementCollection)
+        /// <param name="context"></param>
+        private void RenderCode(CodeBlock element, UIElementCollection blockUIElementCollection, RenderContext context)
         {
-            var textBlock = CreateTextBlock();
+            var textBlock = CreateTextBlock(context);
             textBlock.FontFamily = CodeFontFamily ?? FontFamily;
-            textBlock.Foreground = CodeForeground ?? Foreground;
+            textBlock.Foreground = CodeForeground ?? context.Foreground;
+            textBlock.LineHeight = FontSize * 1.4;
             textBlock.Text = element.Text;
 
             var border = new Border();
@@ -608,7 +649,8 @@ namespace UniversalMarkdown.Display
         /// </summary>
         /// <param name="element"></param>
         /// <param name="blockUIElementCollection"></param>
-        private void RenderTable(TableBlock element, UIElementCollection blockUIElementCollection)
+        /// <param name="context"></param>
+        private void RenderTable(TableBlock element, UIElementCollection blockUIElementCollection, RenderContext context)
         {
             var table = new MarkdownTable(element.ColumnDefinitions.Count, element.Rows.Count, TableBorderThickness, TableBorderBrush);
             table.HorizontalAlignment = HorizontalAlignment.Left;
@@ -625,7 +667,7 @@ namespace UniversalMarkdown.Display
                     var cell = row.Cells[cellIndex];
 
                     // Cell content.
-                    var cellContent = CreateOrReuseRichTextBlock(null);
+                    var cellContent = CreateOrReuseRichTextBlock(null, context);
                     cellContent.Margin = TableCellPadding;
                     Grid.SetRow(cellContent, rowIndex);
                     Grid.SetColumn(cellContent, cellIndex);
@@ -641,7 +683,8 @@ namespace UniversalMarkdown.Display
                     if (rowIndex == 0)
                         cellContent.FontWeight = FontWeights.Bold;
                     var paragraph = new Paragraph();
-                    RenderInlineChildren(paragraph.Inlines, cell.Inlines, paragraph);
+                    context.TrimLeadingWhitespace = true;
+                    RenderInlineChildren(paragraph.Inlines, cell.Inlines, paragraph, context);
                     cellContent.Blocks.Add(paragraph);
                     table.Children.Add(cellContent);
                 }
@@ -653,29 +696,6 @@ namespace UniversalMarkdown.Display
         #endregion
 
         #region Render Inlines
-
-        // Helper class for holding persistent state.
-        private class RenderContext
-        {
-            public bool TrimLeadingWhitespace;
-            public bool WithinHyperlink;
-
-            public RenderContext Clone()
-            {
-                return new RenderContext { TrimLeadingWhitespace = TrimLeadingWhitespace, WithinHyperlink = WithinHyperlink };
-            }
-        }
-
-        /// <summary>
-        /// Renders all of the children for the given element.
-        /// </summary>
-        /// <param name="inlineCollection"> The list to add to. </param>
-        /// <param name="inlineElements"> The inline elements to render. </param>
-        /// <param name="parentParagraph"> The parent Paragraph. </param>
-        private void RenderInlineChildren(InlineCollection inlineCollection, IList<MarkdownInline> inlineElements, Paragraph parentParagraph)
-        {
-            RenderInlineChildren(inlineCollection, inlineElements, parentParagraph, new RenderContext { TrimLeadingWhitespace = true });
-        }
 
         /// <summary>
         /// Renders all of the children for the given element.
@@ -914,7 +934,7 @@ namespace UniversalMarkdown.Display
         {
             // Le <sigh>, InlineUIContainers are not allowed within hyperlinks.
             if (context.WithinHyperlink)
-        {
+            {
                 RenderInlineChildren(inlineCollection, element.Inlines, parent, context);
                 return;
             }
@@ -926,7 +946,7 @@ namespace UniversalMarkdown.Display
             paragraph.FontWeight = parent.FontWeight;
             RenderInlineChildren(paragraph.Inlines, element.Inlines, paragraph, context);
 
-            var richTextBlock = CreateOrReuseRichTextBlock(null);
+            var richTextBlock = CreateOrReuseRichTextBlock(null, context);
             richTextBlock.Blocks.Add(paragraph);
 
             var border = new Border();
@@ -1019,8 +1039,9 @@ namespace UniversalMarkdown.Display
         /// Creates a new RichTextBlock, if the last element of the provided collection isn't already a RichTextBlock.
         /// </summary>
         /// <param name="blockUIElementCollection"></param>
+        /// <param name="context"></param>
         /// <returns></returns>
-        private RichTextBlock CreateOrReuseRichTextBlock(UIElementCollection blockUIElementCollection)
+        private RichTextBlock CreateOrReuseRichTextBlock(UIElementCollection blockUIElementCollection, RenderContext context)
         {
             // Reuse the last RichTextBlock, if possible.
             if (blockUIElementCollection != null && blockUIElementCollection.Count > 0 && blockUIElementCollection[blockUIElementCollection.Count - 1] is RichTextBlock)
@@ -1033,7 +1054,7 @@ namespace UniversalMarkdown.Display
             result.FontStretch = FontStretch;
             result.FontStyle = FontStyle;
             result.FontWeight = FontWeight;
-            result.Foreground = Foreground;
+            result.Foreground = context.Foreground;
             result.IsTextSelectionEnabled = IsTextSelectionEnabled;
             result.TextWrapping = TextWrapping;
             if (blockUIElementCollection != null)
@@ -1044,8 +1065,9 @@ namespace UniversalMarkdown.Display
         /// <summary>
         /// Creates a new TextBlock, with default settings.
         /// </summary>
+        /// <param name="context"></param>
         /// <returns></returns>
-        private TextBlock CreateTextBlock()
+        private TextBlock CreateTextBlock(RenderContext context)
         {
             var result = new TextBlock();
             result.CharacterSpacing = CharacterSpacing;
@@ -1054,7 +1076,7 @@ namespace UniversalMarkdown.Display
             result.FontStretch = FontStretch;
             result.FontStyle = FontStyle;
             result.FontWeight = FontWeight;
-            result.Foreground = Foreground;
+            result.Foreground = context.Foreground;
             result.IsTextSelectionEnabled = IsTextSelectionEnabled;
             result.TextWrapping = TextWrapping;
             return result;

@@ -151,22 +151,9 @@ namespace UniversalMarkdown.Parse.Elements
                     url = TextRunInline.ResolveEscapeSequences(markdown, linkOpen, linkClose);
                 }
 
-                // Relative links are allowed.
-                if (!url.StartsWith("/"))
-                {
-                    // Check the scheme is allowed.
-                    bool schemeIsAllowed = false;
-                    foreach (var scheme in HyperlinkInline.KnownSchemes)
-                    {
-                        if (url.StartsWith(scheme))
-                        {
-                            schemeIsAllowed = true;
-                            break;
-                        }
-                    }
-                    if (schemeIsAllowed == false)
-                        return null;
-                }
+                // Check the URL is okay.
+                if (!IsUrlValid(url))
+                    return null;
 
                 // We found a regular stand-alone link.
                 var result = new MarkdownLinkInline();
@@ -210,27 +197,37 @@ namespace UniversalMarkdown.Parse.Elements
                 return;
 
             // The reference was found. Check the URL is valid.
-            // Relative links are allowed.
-            if (!reference.Url.StartsWith("/"))
-            {
-                // Check the scheme is allowed.
-                bool schemeIsAllowed = false;
-                foreach (var scheme in HyperlinkInline.KnownSchemes)
-                {
-                    if (reference.Url.StartsWith(scheme))
-                    {
-                        schemeIsAllowed = true;
-                        break;
-                    }
-                }
-                if (schemeIsAllowed == false)
-                    return;
-            }
+            if (!IsUrlValid(reference.Url))
+                return;
 
             // Everything is cool when you're part of a team.
             Url = reference.Url;
             Tooltip = reference.Tooltip;
             ReferenceId = null;
+        }
+
+        /// <summary>
+        /// Checks if the given URL is allowed in a markdown link.
+        /// </summary>
+        /// <param name="url"> The URL to check. </param>
+        /// <returns> <c>true</c> if the URL is valid; <c>false</c> otherwise. </returns>
+        private static bool IsUrlValid(string url)
+        {
+            // URLs can be relative.
+            if (url.StartsWith("/") || url.StartsWith("#"))
+                return true;
+
+            // Check the scheme is allowed.
+            bool schemeIsAllowed = false;
+            foreach (var scheme in HyperlinkInline.KnownSchemes)
+            {
+                if (url.StartsWith(scheme))
+                {
+                    schemeIsAllowed = true;
+                    break;
+                }
+            }
+            return schemeIsAllowed;
         }
 
         /// <summary>
@@ -241,6 +238,8 @@ namespace UniversalMarkdown.Parse.Elements
         {
             if (Inlines == null || Url == null)
                 return base.ToString();
+            if (ReferenceId != null)
+                return string.Format("[{0}][{1}]", string.Join(string.Empty, Inlines), ReferenceId);
             return string.Format("[{0}]({1})", string.Join(string.Empty, Inlines), Url);
         }
     }

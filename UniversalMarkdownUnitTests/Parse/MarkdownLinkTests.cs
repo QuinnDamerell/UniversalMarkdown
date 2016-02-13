@@ -25,7 +25,17 @@ namespace UniversalMarkdownUnitTests.Parse
         {
             AssertEqual("[reddit] ( /blog )",
                 new ParagraphBlock().AddChildren(
-                    new MarkdownLinkInline { Url = "/blog" }.AddChildren(     // Should the URL be https://www.reddit.com/blog?
+                    new MarkdownLinkInline { Url = "/blog" }.AddChildren(
+                        new TextRunInline { Text = "reddit" })));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void MarkdownLink_HashLink()
+        {
+            AssertEqual("[reddit](#abc)",
+                new ParagraphBlock().AddChildren(
+                    new MarkdownLinkInline { Url = "#abc" }.AddChildren(
                         new TextRunInline { Text = "reddit" })));
         }
 

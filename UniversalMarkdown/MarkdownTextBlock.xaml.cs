@@ -86,10 +86,11 @@ namespace UniversalMarkdown
             RegisterPropertyChangedCallback(FontWeightProperty, OnPropertyChanged);
             RegisterPropertyChangedCallback(ForegroundProperty, OnPropertyChanged);
             RegisterPropertyChangedCallback(PaddingProperty, OnPropertyChanged);
+            RegisterPropertyChangedCallback(LinkForegroundProperty, OnPropertyChanged);
 #endif
         }
 
-#region Dependency properties
+        #region Dependency properties
 
         /// <summary>
         /// The markdown text to display.
@@ -663,6 +664,21 @@ namespace UniversalMarkdown
         /// </summary>
         public static readonly DependencyProperty QuoteForegroundProperty = DependencyProperty.Register(nameof(QuoteForeground), typeof(Brush),
                 typeof(MarkdownTextBlock), new PropertyMetadata(new SolidColorBrush(Color.FromArgb(255, 180, 180, 180)), new PropertyChangedCallback(OnPropertyChangedStatic)));
+        /// <summary>
+        /// Gets or sets the brush used to render the text inside a quote block.  If this is
+        /// <c>null</c>, then <see cref="Foreground"/> is used.
+        /// </summary>
+        public Brush LinkForeground
+        {
+            get { return (Brush)GetValue(LinkForegroundProperty); }
+            set { SetValue(LinkForegroundProperty, value); }
+        }
+
+        /// <summary>
+        /// Gets the dependency property for <see cref="QuoteForeground"/>.
+        /// </summary>
+        public static readonly DependencyProperty LinkForegroundProperty = DependencyProperty.Register(nameof(LinkForeground), typeof(Brush),
+                typeof(MarkdownTextBlock), new PropertyMetadata(new SolidColorBrush(Color.FromArgb(255, 0,0,0)), new PropertyChangedCallback(OnPropertyChangedStatic)));
 
         /// <summary>
         /// Gets or sets the space outside of quote borders.
@@ -866,6 +882,7 @@ namespace UniversalMarkdown
                 renderer.TableCellPadding = TableCellPadding;
                 renderer.TableMargin = TableMargin;
                 renderer.TextWrapping = TextWrapping;
+                renderer.LinkForeground = LinkForeground;
                 Content = renderer.Render();
             }
             catch (Exception ex)

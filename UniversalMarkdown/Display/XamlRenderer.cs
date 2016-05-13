@@ -327,6 +327,11 @@ namespace UniversalMarkdown.Display
         /// Gets or sets the word wrapping behavior.
         /// </summary>
         public TextWrapping TextWrapping { get; set; }
+        
+        /// <summary>
+        /// Gets or sets the link foreground.
+        /// </summary>
+        public Brush LinkForeground { get; set; }
 
 
         /// <summary>
@@ -824,7 +829,7 @@ namespace UniversalMarkdown.Display
             {
                 // Regular ol' hyperlink.
                 var link = new Hyperlink();
-
+                link.Foreground = LinkForeground ?? Foreground;
                 // Register the link
                 this.linkRegister.RegisterNewHyperLink(link, element.Url);
 
@@ -873,6 +878,7 @@ namespace UniversalMarkdown.Display
 
             // Make a text block for the link
             Run linkText = new Run();
+            linkText.Foreground = LinkForeground ?? Foreground;
             linkText.Text = CollapseWhitespace(context, element.Text);
             link.Inlines.Add(linkText);
 

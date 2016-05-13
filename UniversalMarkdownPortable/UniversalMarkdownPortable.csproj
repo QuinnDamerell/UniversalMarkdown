@@ -1,0 +1,150 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <MinimumVisualStudioVersion>12.0</MinimumVisualStudioVersion>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{8B5FC8A3-F9C7-4AFE-9BE9-F6377B7928D9}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>UniversalMarkdownPortable</RootNamespace>
+    <AssemblyName>UniversalMarkdownPortable</AssemblyName>
+    <DefaultLanguage>en-US</DefaultLanguage>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <TargetFrameworkProfile>Profile32</TargetFrameworkProfile>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- A reference to the entire .NET Framework is automatically included -->
+    <Page Include="..\UniversalMarkdown\MarkdownTextBlock.xaml">
+      <Link>MarkdownTextBlock.xaml</Link>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <TargetPlatform Include="Windows, Version=8.1" />
+    <TargetPlatform Include="WindowsPhoneApp, Version=8.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\UniversalMarkdown\Display\ILinkRegister.cs">
+      <Link>Display\ILinkRegister.cs</Link>
+    </Compile>
+    <Compile Include="..\UniversalMarkdown\Display\MarkdownTable.cs">
+      <Link>Display\MarkdownTable.cs</Link>
+    </Compile>
+    <Compile Include="..\UniversalMarkdown\Display\XamlRenderer.cs">
+      <Link>Display\XamlRenderer.cs</Link>
+    </Compile>
+    <Compile Include="..\UniversalMarkdown\Helpers\Common.cs">
+      <Link>Helpers\Common.cs</Link>
+    </Compile>
+    <Compile Include="..\UniversalMarkdown\Helpers\DebuggingReporter.cs">
+      <Link>Helpers\DebuggingReporter.cs</Link>
+    </Compile>
+    <Compile Include="..\UniversalMarkdown\Helpers\SmartWeakEvent.cs">
+      <Link>Helpers\SmartWeakEvent.cs</Link>
+    </Compile>
+    <Compile Include="..\UniversalMarkdown\MarkdownTextBlock.xaml.cs">
+      <Link>MarkdownTextBlock.xaml.cs</Link>
+      <DependentUpon>MarkdownTextBlock.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="..\UniversalMarkdown\Parse\Blocks\CodeBlock.cs">
+      <Link>Parse\Blocks\CodeBlock.cs</Link>
+    </Compile>
+    <Compile Include="..\UniversalMarkdown\Parse\Blocks\HeaderBlock.cs">
+      <Link>Parse\Blocks\HeaderBlock.cs</Link>
+    </Compile>
+    <Compile Include="..\UniversalMarkdown\Parse\Blocks\HorizontalRuleBlock.cs">
+      <Link>Parse\Blocks\HorizontalRuleBlock.cs</Link>
+    </Compile>
+    <Compile Include="..\UniversalMarkdown\Parse\Blocks\LinkReferenceBlock.cs">
+      <Link>Parse\Blocks\LinkReferenceBlock.cs</Link>
+    </Compile>
+    <Compile Include="..\UniversalMarkdown\Parse\Blocks\ListBlock.cs">
+      <Link>Parse\Blocks\ListBlock.cs</Link>
+    </Compile>
+    <Compile Include="..\UniversalMarkdown\Parse\Blocks\ParagraphBlock.cs">
+      <Link>Parse\Blocks\ParagraphBlock.cs</Link>
+    </Compile>
+    <Compile Include="..\UniversalMarkdown\Parse\Blocks\QuoteBlock.cs">
+      <Link>Parse\Blocks\QuoteBlock.cs</Link>
+    </Compile>
+    <Compile Include="..\UniversalMarkdown\Parse\Blocks\TableBlock.cs">
+      <Link>Parse\Blocks\TableBlock.cs</Link>
+    </Compile>
+    <Compile Include="..\UniversalMarkdown\Parse\Inlines\BoldTextInline.cs">
+      <Link>Parse\Inlines\BoldTextInline.cs</Link>
+    </Compile>
+    <Compile Include="..\UniversalMarkdown\Parse\Inlines\CodeInline.cs">
+      <Link>Parse\Inlines\CodeInline.cs</Link>
+    </Compile>
+    <Compile Include="..\UniversalMarkdown\Parse\Inlines\HyperlinkInline.cs">
+      <Link>Parse\Inlines\HyperlinkInline.cs</Link>
+    </Compile>
+    <Compile Include="..\UniversalMarkdown\Parse\Inlines\IInlineContainer.cs">
+      <Link>Parse\Inlines\IInlineContainer.cs</Link>
+    </Compile>
+    <Compile Include="..\UniversalMarkdown\Parse\Inlines\IInlineLeaf.cs">
+      <Link>Parse\Inlines\IInlineLeaf.cs</Link>
+    </Compile>
+    <Compile Include="..\UniversalMarkdown\Parse\Inlines\ILinkElement.cs">
+      <Link>Parse\Inlines\ILinkElement.cs</Link>
+    </Compile>
+    <Compile Include="..\UniversalMarkdown\Parse\Inlines\ItalicTextInline.cs">
+      <Link>Parse\Inlines\ItalicTextInline.cs</Link>
+    </Compile>
+    <Compile Include="..\UniversalMarkdown\Parse\Inlines\MarkdownLinkInline.cs">
+      <Link>Parse\Inlines\MarkdownLinkInline.cs</Link>
+    </Compile>
+    <Compile Include="..\UniversalMarkdown\Parse\Inlines\StrikethroughTextInline.cs">
+      <Link>Parse\Inlines\StrikethroughTextInline.cs</Link>
+    </Compile>
+    <Compile Include="..\UniversalMarkdown\Parse\Inlines\SuperscriptTextInline.cs">
+      <Link>Parse\Inlines\SuperscriptTextInline.cs</Link>
+    </Compile>
+    <Compile Include="..\UniversalMarkdown\Parse\Inlines\TextRunInline.cs">
+      <Link>Parse\Inlines\TextRunInline.cs</Link>
+    </Compile>
+    <Compile Include="..\UniversalMarkdown\Parse\MarkdownBlock.cs">
+      <Link>Parse\MarkdownBlock.cs</Link>
+    </Compile>
+    <Compile Include="..\UniversalMarkdown\Parse\MarkdownDocument.cs">
+      <Link>Parse\MarkdownDocument.cs</Link>
+    </Compile>
+    <Compile Include="..\UniversalMarkdown\Parse\MarkdownElement.cs">
+      <Link>Parse\MarkdownElement.cs</Link>
+    </Compile>
+    <Compile Include="..\UniversalMarkdown\Parse\MarkdownInline.cs">
+      <Link>Parse\MarkdownInline.cs</Link>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

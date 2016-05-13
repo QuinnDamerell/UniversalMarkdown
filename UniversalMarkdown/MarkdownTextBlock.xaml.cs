@@ -73,6 +73,7 @@ namespace UniversalMarkdown
         public MarkdownTextBlock()
         {
             this.InitializeComponent();
+#if WINDOWS_UWP
             RegisterPropertyChangedCallback(FontSizeProperty, OnPropertyChanged);
             RegisterPropertyChangedCallback(BackgroundProperty, OnPropertyChanged);
             RegisterPropertyChangedCallback(BorderBrushProperty, OnPropertyChanged);
@@ -85,9 +86,10 @@ namespace UniversalMarkdown
             RegisterPropertyChangedCallback(FontWeightProperty, OnPropertyChanged);
             RegisterPropertyChangedCallback(ForegroundProperty, OnPropertyChanged);
             RegisterPropertyChangedCallback(PaddingProperty, OnPropertyChanged);
+#endif
         }
 
-        #region Dependency properties
+#region Dependency properties
 
         /// <summary>
         /// The markdown text to display.
@@ -769,9 +771,8 @@ namespace UniversalMarkdown
         public static readonly DependencyProperty TextWrappingProperty = DependencyProperty.Register(nameof(TextWrapping), typeof(TextWrapping),
                 typeof(MarkdownTextBlock), new PropertyMetadata(TextWrapping.Wrap, new PropertyChangedCallback(OnPropertyChangedStatic)));
 
-        #endregion
-
-
+#endregion
+        
         /// <summary>
         /// Calls OnPropertyChanged.
         /// </summary>
@@ -878,7 +879,7 @@ namespace UniversalMarkdown
             m_onMarkdownReady.Raise(this, args);            
         }
 
-        #region Link Logic
+#region Link Logic
 
         private void UnhookListeners()
         {
@@ -943,6 +944,6 @@ namespace UniversalMarkdown
             m_onMarkdownLinkTapped.Raise(this, eventArgs);
         }
 
-        #endregion
+#endregion
     }
 }

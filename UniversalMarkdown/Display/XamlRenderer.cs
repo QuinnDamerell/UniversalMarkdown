@@ -340,11 +340,19 @@ namespace UniversalMarkdown.Display
 
             // Set background and border properties.
             stackPanel.Background = Background;
+#if WINDOWS_UWP
             stackPanel.BorderBrush = BorderBrush;
             stackPanel.BorderThickness = BorderThickness;
             stackPanel.Padding = Padding;
-
             return stackPanel;
+#else
+            var border = new Border();
+            border.BorderBrush = BorderBrush;
+            border.BorderThickness = BorderThickness;
+            stackPanel.Margin = Padding;
+            border.Child = stackPanel;
+            return border;
+#endif
         }
 
         // Helper class for holding persistent state.
@@ -537,7 +545,7 @@ namespace UniversalMarkdown.Display
             grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(ListGutterWidth) });
             grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
 
-            for (int rowIndex = 0; rowIndex < element.Items.Count; rowIndex ++)
+            for (int rowIndex = 0; rowIndex < element.Items.Count; rowIndex++)
             {
                 var listItem = element.Items[rowIndex];
 
@@ -845,7 +853,7 @@ namespace UniversalMarkdown.Display
 
                 // Now render it.
                 RenderSuperscriptRun(inlineCollection, fakeSuperscript, parent, context);
-                
+
             }
         }
 
@@ -1007,7 +1015,7 @@ namespace UniversalMarkdown.Display
         {
             bool dontOutputWhitespace = context.TrimLeadingWhitespace;
             StringBuilder result = null;
-            for (int i = 0; i < text.Length; i ++)
+            for (int i = 0; i < text.Length; i++)
             {
                 char c = text[i];
                 if (c == ' ' || c == '\t')
@@ -1119,7 +1127,7 @@ namespace UniversalMarkdown.Display
         /// <param name="insertCaret"></param>
         private void RemoveSuperscriptRuns(IInlineContainer container, bool insertCaret)
         {
-            for (int i = 0; i < container.Inlines.Count; i ++)
+            for (int i = 0; i < container.Inlines.Count; i++)
             {
                 var inline = container.Inlines[i];
                 if (inline is SuperscriptTextInline)

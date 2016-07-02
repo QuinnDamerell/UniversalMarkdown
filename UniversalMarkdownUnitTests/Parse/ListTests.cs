@@ -256,6 +256,20 @@ namespace UniversalMarkdownUnitTests.Parse
                                 new ParagraphBlock().AddChildren(new TextRunInline { Text = "List item 2" }),
                                 new ListBlock().AddChildren(
                                     new ListItemBlock().AddChildren(new ParagraphBlock().AddChildren(new TextRunInline { Text = "List item 3" }))))))));
+            AssertEqual(CollapseWhitespace(@"
+                - 1
+                 - 2
+                - 3
+                 - 4"),
+                new ListBlock { Style = ListStyle.Bulleted }.AddChildren(
+                    new ListItemBlock().AddChildren(
+                        new ParagraphBlock().AddChildren(new TextRunInline { Text = "1" }),
+                        new ListBlock { Style = ListStyle.Bulleted }.AddChildren(
+                            new ListItemBlock().AddChildren(new ParagraphBlock().AddChildren(new TextRunInline { Text = "2" })))),
+                    new ListItemBlock().AddChildren(
+                        new ParagraphBlock().AddChildren(new TextRunInline { Text = "3" }),
+                        new ListBlock { Style = ListStyle.Bulleted }.AddChildren(
+                            new ListItemBlock().AddChildren(new ParagraphBlock().AddChildren(new TextRunInline { Text = "4" }))))));
         }
 
         [UITestMethod]
@@ -296,9 +310,9 @@ namespace UniversalMarkdownUnitTests.Parse
         {
             // No blank line means only the last line actually has a bullet.
             AssertEqual(CollapseWhitespace(@"
-                1. * Ordered list item 1
-                2. * Bullet 1 in list item 2
-                    * Bullet 2 in list item 2"),
+1. * Ordered list item 1
+2. * Bullet 1 in list item 2
+    * Bullet 2 in list item 2"),
                 new ListBlock { Style = ListStyle.Numbered }.AddChildren(
                     new ListItemBlock().AddChildren(
                         new ParagraphBlock().AddChildren(
@@ -313,10 +327,10 @@ namespace UniversalMarkdownUnitTests.Parse
 
             // But if you put a blank line in there it works.
             AssertEqual(CollapseWhitespace(@"
-                1. * Ordered list item 1
+1. * Ordered list item 1
 
-                2. * Bullet 1 in list item 2
-                    * Bullet 2 in list item 2"),
+2. * Bullet 1 in list item 2
+    * Bullet 2 in list item 2"),
                 new ListBlock { Style = ListStyle.Numbered }.AddChildren(
                     new ListItemBlock().AddChildren(
                         new ListBlock().AddChildren(

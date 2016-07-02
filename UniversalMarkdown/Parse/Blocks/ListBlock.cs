@@ -116,6 +116,9 @@ namespace UniversalMarkdown.Parse.Elements
                         {
                             // Add the new list item to an existing list.
                             listToAddTo = russianDolls[russianDollIndex].List;
+
+                            // Don't add new list items to items higher up in the list.
+                            russianDolls.RemoveRange(russianDollIndex + 1, russianDolls.Count - (russianDollIndex + 1));
                         }
                         else
                         {
@@ -124,6 +127,9 @@ namespace UniversalMarkdown.Parse.Elements
                             {
                                 // Add the new list item to an existing list.
                                 listToAddTo = russianDolls[russianDollIndex].List;
+
+                                // Don't add new list items to items higher up in the list.
+                                russianDolls.RemoveRange(russianDollIndex + 1, russianDolls.Count - (russianDollIndex + 1));
                             }
                             else
                             {

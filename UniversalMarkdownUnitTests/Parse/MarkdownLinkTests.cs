@@ -207,13 +207,24 @@ namespace UniversalMarkdownUnitTests.Parse
 
         [UITestMethod]
         [TestCategory("Parse - inline")]
-        public void MarkdownLink_Escape()
+        public void MarkdownLink_Escape_Url()
         {
             // The link stops at the first ')'
             AssertEqual(@"[test](http://en.wikipedia.org/wiki/Pica_\(disorder\))",
                 new ParagraphBlock().AddChildren(
                     new MarkdownLinkInline { Url = "http://en.wikipedia.org/wiki/Pica_(disorder)" }.AddChildren(
                         new TextRunInline { Text = "test" })));
+        }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void MarkdownLink_Escape_Text()
+        {
+            // The link stops at the first ')'
+            AssertEqual(@"[test\[ing\]](https://www.reddit.com)",
+                new ParagraphBlock().AddChildren(
+                    new MarkdownLinkInline { Url = "https://www.reddit.com" }.AddChildren(
+                        new TextRunInline { Text = "test[ing]" })));
         }
 
         [UITestMethod]
@@ -329,5 +340,21 @@ namespace UniversalMarkdownUnitTests.Parse
                 [test]: http://example.com/ 'test' abc"),
                 new ParagraphBlock().AddChildren(new TextRunInline { Text = "[test]: http://example.com/ 'test' abc" }));
         }
+
+        [UITestMethod]
+        [TestCategory("Parse - inline")]
+        public void MarkdownLink_Negative_BackTrack()
+        {
+            AssertEqual(@"[/r/programming] [text] (https://www.reddit.com)",
+                new ParagraphBlock().AddChildren(
+                    new TextRunInline { Text = "[" },
+                    new MarkdownLinkInline { Url = "http://reddit.com" }.AddChildren(
+                        new TextRunInline { Text = "http://reddit.com" }),
+                    new TextRunInline { Text = "] " },
+                    new MarkdownLinkInline { Url = "https://www.reddit.com" }.AddChildren(
+                        new TextRunInline { Text = "text" })));
+        }
+
+        
     }
 }

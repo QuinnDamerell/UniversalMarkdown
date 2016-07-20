@@ -112,6 +112,7 @@ namespace UniversalMarkdown.Parse.Elements
             "news://",
             "mumble://",
             "ssh://",
+            "mailto:"
         };
 
         /// <summary>
